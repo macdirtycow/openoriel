@@ -90,7 +90,9 @@
         "*oauth2.googleapis.com",
         "*appleid.apple.com",
         "*login.live.com",
-        "*login.microsoftonline.com"
+        "*login.microsoftonline.com",
+        "www.google.com",
+        "google.com"
       ]
     },
     "action": {

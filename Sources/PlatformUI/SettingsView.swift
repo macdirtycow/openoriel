@@ -5,6 +5,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
+    /// When true, show a Done button (sheet). Native macOS Settings window can omit it.
+    var showsDoneButton: Bool = true
+
     var body: some View {
         @Bindable var settings = environment.settings
         NavigationStack {
@@ -97,15 +100,18 @@ struct SettingsView: View {
                 Section {
                     Button {
                         environment.showExtensions = true
-                        #if os(iOS)
-                        dismiss()
-                        #endif
+                        if showsDoneButton {
+                            dismiss()
+                        }
                     } label: {
                         Label("Extensions…", systemImage: "puzzlepiece.extension")
                     }
                     #if os(macOS)
                     Button {
                         environment.openURLInNewTab(BrowserConstants.chromeWebStoreURL)
+                        if showsDoneButton {
+                            dismiss()
+                        }
                     } label: {
                         Label("Browse Chrome Web Store", systemImage: "safari")
                     }
@@ -137,12 +143,14 @@ struct SettingsView: View {
             .listStyle(.insetGrouped)
             .presentationDetents(horizontalSizeClass == .compact ? [.large] : [.medium, .large])
             .presentationDragIndicator(.visible)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
+                if showsDoneButton {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { dismiss() }
+                    }
                 }
             }
-            #endif
         }
     }
 }

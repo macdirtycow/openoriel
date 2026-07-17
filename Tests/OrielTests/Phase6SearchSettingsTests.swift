@@ -6,14 +6,15 @@ final class Phase6SearchSettingsTests: XCTestCase {
         let url = SearchEngine.google.searchURL(for: "oriel browser")
         XCTAssertEqual(url.host, "www.google.com")
         XCTAssertTrue(url.query?.contains("oriel") == true)
-        XCTAssertTrue(url.query?.contains("udm=14") == true)
+        XCTAssertTrue(url.query?.contains("client=safari") == true)
+        XCTAssertFalse(url.query?.contains("udm=14") == true)
         XCTAssertEqual(SearchEngine.google.addressBarPlaceholder, "Search with Google or enter address")
     }
 
     func testResolveUsesSelectedEngine() {
         let google = URLParser.resolve("swift concurrency", searchEngine: .google)
         XCTAssertEqual(google.host, "www.google.com")
-        XCTAssertTrue(google.query?.contains("udm=14") == true)
+        XCTAssertFalse(google.query?.contains("udm=14") == true)
 
         let ddg = URLParser.resolve("swift concurrency", searchEngine: .duckDuckGo)
         XCTAssertEqual(ddg.host, "duckduckgo.com")

@@ -19,10 +19,11 @@ struct OrielApp: App {
 
         #if os(macOS)
         Settings {
-            SettingsView()
+            SettingsView(showsDoneButton: false)
                 .environment(environment)
                 .preferredColorScheme(environment.settings.appearance.colorScheme)
-                .frame(minWidth: 560, idealWidth: 620, minHeight: 480, idealHeight: 640)
+                // Fit small displays / Stage Manager / split windows.
+                .frame(minWidth: 360, idealWidth: 520, minHeight: 360, idealHeight: 560)
         }
         #endif
     }

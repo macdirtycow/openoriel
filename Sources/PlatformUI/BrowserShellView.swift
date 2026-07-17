@@ -4,9 +4,6 @@ struct BrowserShellView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    #if os(macOS)
-    @Environment(\.openSettings) private var openSettings
-    #endif
 
     var body: some View {
         @Bindable var environment = environment
@@ -56,11 +53,13 @@ struct BrowserShellView: View {
             ExtensionsView()
                 .orielSheetChrome(preferLargeOnCompact: true)
         }
-        #if os(iOS)
         .sheet(isPresented: $environment.showSettings) {
-            SettingsView()
+            SettingsView(showsDoneButton: true)
+                .orielSheetChrome(preferLargeOnCompact: true)
+                #if os(macOS)
+                .frame(minWidth: 360, idealWidth: 480, minHeight: 400, idealHeight: 560)
+                #endif
         }
-        #endif
         .sheet(item: $environment.authPopup) { popup in
             AuthPopupView(state: popup)
                 .orielSheetChrome(preferLargeOnCompact: true)
@@ -68,21 +67,10 @@ struct BrowserShellView: View {
         .onChange(of: environment.settings.restorePreviousSession) { _, newValue in
             environment.sessionStore.restorePreviousSession = newValue
         }
-        #if os(macOS)
-        .onChange(of: environment.showSettings) { _, shouldOpen in
-            guard shouldOpen else { return }
-            openSettings()
-            environment.showSettings = false
-        }
-        #endif
     }
 
     private func openAppSettings() {
-        #if os(macOS)
-        openSettings()
-        #else
         environment.showSettings = true
-        #endif
     }
 
     // MARK: - iPhone (compact)
@@ -206,35 +194,122 @@ struct BrowserShellView: View {
     @ViewBuilder
     private func macShell(tab: BrowserTab, environment: AppEnvironment) -> some View {
         @Bindable var environment = environment
-        VStack(spacing: 0) {
-            if tab.isPrivate { privateBanner }
-            if environment.tabs.tabs.count > 1 {
-                macTabStrip(environment: environment)
+        GeometryReader { proxy in
+            let isCompact = proxy.size.width < 780
+            VStack(spacing: 0) {
+                if tab.isPrivate { privateBanner }
+                if environment.tabs.tabs.count > 1 {
+                    macTabStrip(environment: environment)
+                }
+                if isCompact {
+                    macCompactChrome(tab: tab, environment: environment)
+                }
+                progressBar(for: tab)
+                content(for: tab, environment: environment)
+                if environment.showFindInPage {
+                    FindInPageBar(
+                        query: $environment.findQuery,
+                        onSubmit: { environment.performFind(forward: true) },
+                        onNext: { environment.performFind(forward: true) },
+                        onPrevious: { environment.performFind(forward: false) },
+                        onClose: { environment.closeFind() }
+                    )
+                }
             }
-            progressBar(for: tab)
-            content(for: tab, environment: environment)
-            if environment.showFindInPage {
-                FindInPageBar(
-                    query: $environment.findQuery,
-                    onSubmit: { environment.performFind(forward: true) },
-                    onNext: { environment.performFind(forward: true) },
-                    onPrevious: { environment.performFind(forward: false) },
-                    onClose: { environment.closeFind() }
-                )
+            .toolbar {
+                if !isCompact {
+                    ToolbarItemGroup(placement: .navigation) {
+                        NavigationControlsView(tab: tab)
+                    }
+                    ToolbarItem(placement: .principal) {
+                        AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
+                            tab.searchEngine = environment.settings.searchEngine
+                            tab.submitAddressBar()
+                        }
+                        .frame(minWidth: 200, idealWidth: 520, maxWidth: 720)
+                    }
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        // Settings first so it survives toolbar overflow in mid-size windows.
+                        Button {
+                            openAppSettings()
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
+                        .help("Settings")
+
+                        Button {
+                            environment.tabs.createTab(select: true)
+                            environment.wireTabPrivacyHooks()
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                        .help("New Tab")
+
+                        shieldButton(environment: environment)
+                        javaScriptButton(tab: tab)
+
+                        Button {
+                            environment.showExtensions = true
+                        } label: {
+                            Image(systemName: "puzzlepiece.extension")
+                        }
+                        .help("Extensions")
+
+                        Button {
+                            environment.showDownloads = true
+                        } label: {
+                            Image(systemName: environment.downloads.hasActiveDownloads ? "arrow.down.circle.fill" : "arrow.down.circle")
+                        }
+                        .help("Downloads")
+
+                        Button {
+                            environment.showTabOverview = true
+                        } label: {
+                            Image(systemName: "square.on.square")
+                        }
+                        .help("Tab Overview")
+
+                        chromeMenu(environment: environment, tab: tab)
+                    }
+                } else {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            openAppSettings()
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
+                        .help("Settings")
+                    }
+                }
             }
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .navigation) {
+    }
+
+    /// Always-visible chrome when the window is too narrow for the full toolbar.
+    private func macCompactChrome(tab: BrowserTab, environment: AppEnvironment) -> some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 10) {
                 NavigationControlsView(tab: tab)
-            }
-            ToolbarItem(placement: .principal) {
                 AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
                     tab.searchEngine = environment.settings.searchEngine
                     tab.submitAddressBar()
                 }
-                .frame(minWidth: 280, idealWidth: 520, maxWidth: 720)
             }
-            ToolbarItemGroup(placement: .primaryAction) {
+            HStack(spacing: 12) {
+                Button {
+                    openAppSettings()
+                } label: {
+                    Label("Settings", systemImage: "gearshape")
+                }
+                shieldButton(environment: environment)
+                javaScriptButton(tab: tab)
+                Button {
+                    environment.showExtensions = true
+                } label: {
+                    Image(systemName: "puzzlepiece.extension")
+                }
+                .help("Extensions")
+                Spacer(minLength: 0)
                 Button {
                     environment.tabs.createTab(select: true)
                     environment.wireTabPrivacyHooks()
@@ -242,42 +317,19 @@ struct BrowserShellView: View {
                     Image(systemName: "plus")
                 }
                 .help("New Tab")
-
-                shieldButton(environment: environment)
-
-                javaScriptButton(tab: tab)
-
-                Button {
-                    openAppSettings()
-                } label: {
-                    Image(systemName: "gearshape")
-                }
-                .help("Settings")
-
-                Button {
-                    environment.showExtensions = true
-                } label: {
-                    Image(systemName: "puzzlepiece.extension")
-                }
-                .help("Extensions")
-
-                Button {
-                    environment.showDownloads = true
-                } label: {
-                    Image(systemName: environment.downloads.hasActiveDownloads ? "arrow.down.circle.fill" : "arrow.down.circle")
-                }
-                .help("Downloads")
-
+                chromeMenu(environment: environment, tab: tab)
                 Button {
                     environment.showTabOverview = true
                 } label: {
                     Image(systemName: "square.on.square")
                 }
                 .help("Tab Overview")
-
-                chromeMenu(environment: environment, tab: tab)
             }
+            .buttonStyle(.borderless)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.bar)
     }
 
     private func macTabStrip(environment: AppEnvironment) -> some View {

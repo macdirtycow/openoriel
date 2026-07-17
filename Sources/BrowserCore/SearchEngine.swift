@@ -37,11 +37,12 @@ enum SearchEngine: String, CaseIterable, Identifiable, Codable, Sendable {
             components = URLComponents(string: "https://duckduckgo.com/")!
             components.queryItems = [URLQueryItem(name: "q", value: query)]
         case .google:
-            // udm=14 prefers classic web results over AI overview layouts.
+            // Modern Google Search (no udm=14 — that forces the legacy classic results UI).
             components = URLComponents(string: "https://www.google.com/search")!
             components.queryItems = [
                 URLQueryItem(name: "q", value: query),
-                URLQueryItem(name: "udm", value: "14")
+                URLQueryItem(name: "client", value: "safari"),
+                URLQueryItem(name: "rls", value: "en")
             ]
         case .bing:
             components = URLComponents(string: "https://www.bing.com/search")!
