@@ -67,7 +67,15 @@ final class TabManager {
 
     @discardableResult
     func createTab(url: URL? = nil, isPrivate: Bool = false, select: Bool = true) -> BrowserTab {
-        let tab = makeTab(url: url, isPrivate: isPrivate)
+        let initial: URL?
+        if let url {
+            initial = url
+        } else if !isPrivate, let homepageProvider {
+            initial = homepageProvider()
+        } else {
+            initial = nil
+        }
+        let tab = makeTab(url: initial, isPrivate: isPrivate)
         tabs.append(tab)
         if select {
             activeTabID = tab.id
@@ -75,6 +83,9 @@ final class TabManager {
         notifySessionChanged()
         return tab
     }
+
+    /// Optional homepage for new normal tabs (start page when nil).
+    var homepageProvider: (() -> URL?)?
 
     @discardableResult
     func createPrivateTab(select: Bool = true) -> BrowserTab {

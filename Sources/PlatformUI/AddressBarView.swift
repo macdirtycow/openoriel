@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AddressBarView: View {
     @Bindable var tab: BrowserTab
+    var searchEngine: SearchEngine = .duckDuckGo
     var onSubmit: () -> Void
 
     var body: some View {
@@ -11,7 +12,7 @@ struct AddressBarView: View {
                 .foregroundStyle(securityColor)
                 .accessibilityLabel(securityAccessibilityLabel)
 
-            TextField("Search or enter address", text: $tab.navigation.addressBarText)
+            TextField(searchEngine.addressBarPlaceholder, text: $tab.navigation.addressBarText)
                 .textFieldStyle(.plain)
                 #if os(iOS)
                 .textInputAutocapitalization(.never)
@@ -21,6 +22,8 @@ struct AddressBarView: View {
                 .submitLabel(.go)
                 .onSubmit(onSubmit)
                 .accessibilityLabel("Address and search")
+                .accessibilityValue(tab.navigation.addressBarText)
+                .accessibilityHint("Searches with \(searchEngine.displayName) when the text is not a web address")
 
             if tab.navigation.isLoading {
                 Button {

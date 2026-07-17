@@ -1,5 +1,10 @@
 import Foundation
 import Observation
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 /// Composition root for Oriel.
 @Observable
@@ -63,6 +68,13 @@ final class AppEnvironment {
         let snapshot = resolvedSession.load()
         let manager = TabManager(searchEngine: resolvedSettings.searchEngine, restoring: snapshot)
         self.tabs = manager
+        manager.homepageProvider = { [weak self] in
+            guard let self else { return nil }
+            switch self.settings.newTabBehavior {
+            case .startPage: return nil
+            case .homepage: return self.settings.homepageURL
+            }
+        }
 
         manager.onTabFinishedNavigation = { [weak self] tab in
             guard let self else { return }
@@ -110,6 +122,30 @@ final class AppEnvironment {
         showFindInPage = false
         findQuery = ""
         activeTab?.clearFindInPage()
+    }
+
+    func setSearchEngine(_ engine: SearchEngine) {
+        settings.searchEngine = engine
+        tabs.searchEngine = engine
+        for tab in tabs.tabs {
+            tab.searchEngine = engine
+        }
+    }
+
+    func copyCurrentURL() {
+        guard let url = activeTab?.navigation.url,
+              !URLParser.isStartPage(url) else { return }
+        #if os(iOS)
+        UIPasteboard.general.string = url.absoluteString
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(url.absoluteString, forType: .string)
+        #endif
+    }
+
+    var shareURL: URL? {
+        guard let url = activeTab?.navigation.url, !URLParser.isStartPage(url) else { return nil }
+        return url
     }
 
     func wireTabPrivacyHooks(for tab: BrowserTab? = nil) {

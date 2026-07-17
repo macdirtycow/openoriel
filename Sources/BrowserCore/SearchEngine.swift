@@ -17,6 +17,19 @@ enum SearchEngine: String, CaseIterable, Identifiable, Codable, Sendable {
         }
     }
 
+    var addressBarPlaceholder: String {
+        "Search with \(displayName) or enter address"
+    }
+
+    var systemImage: String {
+        switch self {
+        case .duckDuckGo: "shield.lefthalf.filled"
+        case .google: "globe"
+        case .bing: "b.circle"
+        case .ecosia: "leaf"
+        }
+    }
+
     func searchURL(for query: String) -> URL {
         var components: URLComponents
         switch self {

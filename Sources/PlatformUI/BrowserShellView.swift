@@ -75,7 +75,7 @@ struct BrowserShellView: View {
             }
 
             VStack(spacing: 8) {
-                AddressBarView(tab: tab) {
+                AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
                     tab.searchEngine = environment.settings.searchEngine
                     tab.submitAddressBar()
                     hideKeyboard()
@@ -104,7 +104,7 @@ struct BrowserShellView: View {
 
             HStack(spacing: 12) {
                 NavigationControlsView(tab: tab)
-                AddressBarView(tab: tab) {
+                AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
                     tab.searchEngine = environment.settings.searchEngine
                     tab.submitAddressBar()
                     hideKeyboard()
@@ -139,6 +139,13 @@ struct BrowserShellView: View {
                 }
                 .accessibilityLabel("Downloads")
             }
+            Button {
+                environment.showSettings = true
+            } label: {
+                Image(systemName: "gearshape")
+            }
+            .accessibilityLabel("Settings")
+            .accessibilityHint("Change search engine, appearance, and more")
             chromeMenu(environment: environment, tab: tab)
             Button {
                 environment.showTabOverview = true
@@ -195,7 +202,7 @@ struct BrowserShellView: View {
                 NavigationControlsView(tab: tab)
             }
             ToolbarItem(placement: .principal) {
-                AddressBarView(tab: tab) {
+                AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
                     tab.searchEngine = environment.settings.searchEngine
                     tab.submitAddressBar()
                 }
@@ -211,6 +218,13 @@ struct BrowserShellView: View {
                 .help("New Tab")
 
                 shieldButton(environment: environment)
+
+                Button {
+                    environment.showSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .help("Settings")
 
                 Button {
                     environment.showDownloads = true
@@ -321,6 +335,17 @@ struct BrowserShellView: View {
                 tab.toggleDesktopSite()
             }
             .disabled(tab.isShowingStartPage)
+
+            Button("Copy URL") {
+                environment.copyCurrentURL()
+            }
+            .disabled(environment.shareURL == nil)
+
+            if let shareURL = environment.shareURL {
+                ShareLink(item: shareURL) {
+                    Label("Share…", systemImage: "square.and.arrow.up")
+                }
+            }
 
             Divider()
 

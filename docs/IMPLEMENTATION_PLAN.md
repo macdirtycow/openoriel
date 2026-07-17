@@ -85,6 +85,17 @@ Implemented:
 - App Store readiness + QA checklist docs
 - Extra UI test for Shields sheet
 
+## Phase 6 status
+
+Implemented:
+
+- Explicit search-engine choice (DuckDuckGo, **Google**, Bing, Ecosia) on start page + Settings
+- Address bar placeholder shows the active engine (“Search with Google…”)
+- Settings gear in chrome; appearance (system/light/dark)
+- New-tab behavior (start page or homepage URL)
+- Copy URL + Share sheet
+- Unit tests for Google search routing / settings persistence
+
 ## Non-goals (all phases)
 
 - AI assistant / chatbot / agent  

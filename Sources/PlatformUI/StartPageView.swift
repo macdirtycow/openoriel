@@ -9,6 +9,8 @@ struct StartPageView: View {
             VStack(alignment: .leading, spacing: 28) {
                 header
 
+                searchEngineChooser
+
                 if !environment.bookmarks.favorites.isEmpty {
                     section(title: "Favorites") {
                         tileGrid(items: environment.bookmarks.favorites.map {
@@ -59,6 +61,44 @@ struct StartPageView: View {
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
+        }
+    }
+
+    private var searchEngineChooser: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Search with")
+                    .font(.headline)
+                Spacer()
+                Button("Settings") {
+                    environment.showSettings = true
+                }
+                .font(.subheadline.weight(.semibold))
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(SearchEngine.allCases) { engine in
+                        let selected = environment.settings.searchEngine == engine
+                        Button {
+                            environment.setSearchEngine(engine)
+                            tab.searchEngine = engine
+                        } label: {
+                            Label(engine.displayName, systemImage: engine.systemImage)
+                                .font(.subheadline.weight(.semibold))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(
+                                    selected ? Color.accentColor.opacity(0.2) : Color.secondary.opacity(0.12),
+                                    in: Capsule()
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(selected ? [.isSelected] : [])
+                        .accessibilityLabel("\(engine.displayName) search engine")
+                    }
+                }
+            }
         }
     }
 

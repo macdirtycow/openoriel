@@ -8,6 +8,7 @@ struct OrielApp: App {
         WindowGroup {
             BrowserShellView()
                 .environment(environment)
+                .preferredColorScheme(environment.settings.appearance.colorScheme)
         }
         #if os(macOS)
         .defaultSize(width: 1100, height: 760)
@@ -102,6 +103,11 @@ struct OrielApp: App {
                     environment.showPrivacyShield = true
                 }
                 .keyboardShortcut("i", modifiers: [.command, .shift])
+
+                Button("Copy URL") {
+                    environment.copyCurrentURL()
+                }
+                .keyboardShortcut("c", modifiers: [.command, .shift])
 
                 Button("Settings…") {
                     environment.showSettings = true
