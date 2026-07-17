@@ -96,8 +96,7 @@ Implemented:
 - Native macOS **Settings** window (⌘,) + improved sheets
 - **Web extensions** on macOS 15.4+ (`WKWebExtension`): install zip/crx/folder, browse Chrome Web Store
 - Google searches use web-results params (`udm=14`) for a calmer results page
-- Modern Google Search URLs (Safari client; no legacy `udm=14` classic UI)
-- Address bar placeholder shows the active engine (“Search with Google…”)
+- Modern Google Search URLs (no Safari `client=` / legacy `udm=14`) + Chrome-like UA on Google hosts
 - Settings sheet on all sizes (including narrow macOS windows) + native ⌘, Settings
 - Settings gear in chrome; appearance (system/light/dark)
 - New-tab behavior (start page or homepage URL)

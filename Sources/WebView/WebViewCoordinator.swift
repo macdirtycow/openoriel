@@ -83,6 +83,9 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
     ) {
         preferences.allowsContentJavaScript = tab.javaScriptEnabled
+        if let url = navigationAction.request.url {
+            tab.syncUserAgentForNavigation(to: url)
+        }
         let context = NavigationPolicy.Context(
             contentBlockingEnabled: contentBlockingEnabled,
             matchesBlockedHint: matchesBlockedHint,

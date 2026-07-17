@@ -95,7 +95,7 @@ final class BrowserTab: Identifiable {
         }
 
         navigation.isLoading = true
-        applyUserAgent()
+        applyUserAgent(for: destination)
         webView?.load(URLRequest(url: destination))
         refreshNavigationChrome()
     }
@@ -157,7 +157,7 @@ final class BrowserTab: Identifiable {
 
     func toggleDesktopSite() {
         requestsDesktopSite.toggle()
-        applyUserAgent()
+        applyUserAgent(for: navigation.url)
         if !isShowingStartPage {
             webView?.reload()
         }
@@ -233,13 +233,20 @@ final class BrowserTab: Identifiable {
         refreshNavigationChrome()
     }
 
-    private func applyUserAgent() {
+    private func applyUserAgent(for url: URL? = nil) {
         guard let webView else { return }
-        if requestsDesktopSite {
-            webView.customUserAgent = BrowserConstants.desktopUserAgent
-        } else {
-            webView.customUserAgent = nil
+        let desired = UserAgentPolicy.customUserAgent(
+            for: url ?? navigation.url,
+            requestsDesktopSite: requestsDesktopSite
+        )
+        if webView.customUserAgent != desired {
+            webView.customUserAgent = desired
         }
+    }
+
+    /// Keeps Google on a Chrome-like UA (and clears it when leaving Google) during in-page navigations.
+    func syncUserAgentForNavigation(to url: URL?) {
+        applyUserAgent(for: url)
     }
 
     private func applyJavaScriptPreference() {

@@ -37,13 +37,10 @@ enum SearchEngine: String, CaseIterable, Identifiable, Codable, Sendable {
             components = URLComponents(string: "https://duckduckgo.com/")!
             components.queryItems = [URLQueryItem(name: "q", value: query)]
         case .google:
-            // Modern Google Search (no udm=14 — that forces the legacy classic results UI).
+            // Plain search URL — do not pass client=safari (that forces Google’s Safari skin).
+            // Chrome-like UA for google.* is applied in UserAgentPolicy / BrowserTab.
             components = URLComponents(string: "https://www.google.com/search")!
-            components.queryItems = [
-                URLQueryItem(name: "q", value: query),
-                URLQueryItem(name: "client", value: "safari"),
-                URLQueryItem(name: "rls", value: "en")
-            ]
+            components.queryItems = [URLQueryItem(name: "q", value: query)]
         case .bing:
             components = URLComponents(string: "https://www.bing.com/search")!
             components.queryItems = [URLQueryItem(name: "q", value: query)]

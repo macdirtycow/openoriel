@@ -70,8 +70,11 @@ struct BrowserWebView: PlatformViewRepresentable {
         webView.scrollView.contentInsetAdjustmentBehavior = .automatic
         #endif
 
-        if tab.requestsDesktopSite {
-            webView.customUserAgent = BrowserConstants.desktopUserAgent
+        if tab.requestsDesktopSite || UserAgentPolicy.isGoogleHost(tab.navigation.url?.host) {
+            webView.customUserAgent = UserAgentPolicy.customUserAgent(
+                for: tab.navigation.url,
+                requestsDesktopSite: tab.requestsDesktopSite
+            )
         }
 
         context.coordinator.observe(webView)
@@ -102,7 +105,10 @@ struct BrowserWebView: PlatformViewRepresentable {
 
         webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = tab.javaScriptEnabled
 
-        let desiredUA = tab.requestsDesktopSite ? BrowserConstants.desktopUserAgent : nil
+        let desiredUA = UserAgentPolicy.customUserAgent(
+            for: tab.navigation.url,
+            requestsDesktopSite: tab.requestsDesktopSite
+        )
         if webView.customUserAgent != desiredUA {
             webView.customUserAgent = desiredUA
         }

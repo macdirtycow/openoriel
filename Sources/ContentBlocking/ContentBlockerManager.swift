@@ -73,7 +73,7 @@ final class ContentBlockerManager {
     private(set) var ruleCount = 0
     private(set) var blockedHostHints: [String] = []
 
-    private let listIdentifier = "oriel.example-blocklist"
+    private let listIdentifier = "oriel.example-blocklist.v3"
     private let store = WKContentRuleListStore.default()
 
     func prepare() async {
