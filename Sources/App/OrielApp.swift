@@ -21,8 +21,15 @@ struct OrielApp: App {
             CommandGroup(after: .newItem) {
                 Button("New Tab") {
                     environment.tabs.createTab(select: true)
+                    environment.wireTabPrivacyHooks()
                 }
                 .keyboardShortcut("t", modifiers: .command)
+
+                Button("New Private Tab") {
+                    environment.tabs.createPrivateTab(select: true)
+                    environment.wireTabPrivacyHooks()
+                }
+                .keyboardShortcut("n", modifiers: [.command, .shift])
 
                 Button("Close Tab") {
                     environment.tabs.closeActiveTab()
@@ -31,6 +38,7 @@ struct OrielApp: App {
 
                 Button("Reopen Closed Tab") {
                     _ = environment.tabs.restoreClosedTab()
+                    environment.wireTabPrivacyHooks()
                 }
                 .keyboardShortcut("t", modifiers: [.command, .shift])
             }
@@ -60,6 +68,11 @@ struct OrielApp: App {
                     environment.showHistory = true
                 }
                 .keyboardShortcut("y", modifiers: .command)
+
+                Button("Shields") {
+                    environment.showPrivacyShield = true
+                }
+                .keyboardShortcut("i", modifiers: [.command, .shift])
 
                 Button("Bookmark This Page") {
                     environment.bookmarkActivePage()

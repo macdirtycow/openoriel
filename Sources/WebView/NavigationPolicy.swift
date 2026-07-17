@@ -2,8 +2,17 @@ import Foundation
 import WebKit
 
 enum NavigationPolicy {
+    struct Context {
+        var contentBlockingEnabled: Bool = true
+        var matchesBlockedHint: (URL) -> Bool = { _ in false }
+        var onBlocked: () -> Void = {}
+    }
+
     /// Decides whether a navigation request may proceed.
-    static func decision(for navigationAction: WKNavigationAction) -> WKNavigationActionPolicy {
+    static func decision(
+        for navigationAction: WKNavigationAction,
+        context: Context = Context()
+    ) -> WKNavigationActionPolicy {
         guard let url = navigationAction.request.url else {
             return .cancel
         }
@@ -16,16 +25,20 @@ enum NavigationPolicy {
             return .cancel
         }
 
-        // Allow http(s) and our internal start-page scheme (handled natively).
+        if context.contentBlockingEnabled,
+           navigationAction.targetFrame?.isMainFrame == false,
+           context.matchesBlockedHint(url) {
+            context.onBlocked()
+            return .cancel
+        }
+
         if URLParser.allowedSchemes.contains(scheme) {
             if scheme == BrowserConstants.aboutScheme {
-                // Native start page — cancel WebKit load; shell shows StartPageView.
                 return .cancel
             }
             return .allow
         }
 
-        // tel:, mailto:, etc. — cancel in-browser; OS handling can be added later.
         return .cancel
     }
 }

@@ -41,6 +41,10 @@ targets:
       - path: Sources
       - path: Resources/Assets.xcassets
         buildPhase: resources
+      - path: Resources/ContentBlocker
+        buildPhase: resources
+        includes:
+          - "**/*.json"
     entitlements:
       path: Oriel.entitlements
     settings:

@@ -42,19 +42,26 @@ struct BrowserShellView: View {
                 .frame(minWidth: 420, minHeight: 480)
                 #endif
         }
+        .sheet(isPresented: $environment.showPrivacyShield) {
+            PrivacyShieldView()
+                #if os(macOS)
+                .frame(minWidth: 440, minHeight: 560)
+                #endif
+        }
         .onChange(of: environment.settings.restorePreviousSession) { _, newValue in
             environment.sessionStore.restorePreviousSession = newValue
         }
     }
 
-    // MARK: - iOS / iPadOS
-
     #if os(iOS)
     @ViewBuilder
     private func iosShell(tab: BrowserTab, environment: AppEnvironment) -> some View {
         VStack(spacing: 0) {
+            if tab.isPrivate {
+                privateBanner
+            }
             progressBar(for: tab)
-            content(for: tab)
+            content(for: tab, environment: environment)
 
             VStack(spacing: 8) {
                 AddressBarView(tab: tab) {
@@ -66,6 +73,7 @@ struct BrowserShellView: View {
                 HStack(spacing: 16) {
                     NavigationControlsView(tab: tab)
                     Spacer()
+                    shieldButton(environment: environment)
                     chromeMenu(environment: environment, tab: tab)
                     Button {
                         environment.showTabOverview = true
@@ -89,17 +97,18 @@ struct BrowserShellView: View {
     }
     #endif
 
-    // MARK: - macOS
-
     #if os(macOS)
     @ViewBuilder
     private func macShell(tab: BrowserTab, environment: AppEnvironment) -> some View {
         VStack(spacing: 0) {
+            if tab.isPrivate {
+                privateBanner
+            }
             if environment.tabs.tabs.count > 1 {
                 macTabStrip(environment: environment)
             }
             progressBar(for: tab)
-            content(for: tab)
+            content(for: tab, environment: environment)
         }
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
@@ -115,10 +124,13 @@ struct BrowserShellView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button {
                     environment.tabs.createTab(select: true)
+                    environment.wireTabPrivacyHooks()
                 } label: {
                     Image(systemName: "plus")
                 }
                 .help("New Tab")
+
+                shieldButton(environment: environment)
 
                 Button {
                     environment.showTabOverview = true
@@ -141,6 +153,10 @@ struct BrowserShellView: View {
                         environment.tabs.selectTab(id: item.id)
                     } label: {
                         HStack(spacing: 6) {
+                            if item.isPrivate {
+                                Image(systemName: "eyeglasses")
+                                    .font(.caption2)
+                            }
                             Text(item.displayTitle)
                                 .lineLimit(1)
                             if environment.tabs.tabs.count > 1 {
@@ -165,22 +181,46 @@ struct BrowserShellView: View {
     }
     #endif
 
-    // MARK: - Shared
+    private var privateBanner: some View {
+        Text("Private Tab — history and session restore are off for this tab")
+            .font(.caption.weight(.medium))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(Color.purple.opacity(0.18))
+            .accessibilityLabel("Private browsing tab")
+    }
+
+    private func shieldButton(environment: AppEnvironment) -> some View {
+        Button {
+            environment.showPrivacyShield = true
+        } label: {
+            Image(systemName: environment.privacy.contentBlockingEnabled ? "shield.lefthalf.filled" : "shield.slash")
+        }
+        .accessibilityLabel("Privacy Shields")
+        .help("Privacy Shields")
+    }
 
     @ViewBuilder
     private func chromeMenu(environment: AppEnvironment, tab: BrowserTab) -> some View {
         Menu {
             Button("New Tab") {
                 environment.tabs.createTab(select: true)
+                environment.wireTabPrivacyHooks()
+            }
+            Button("New Private Tab") {
+                environment.tabs.createPrivateTab(select: true)
+                environment.wireTabPrivacyHooks()
             }
             Button("Duplicate Tab") {
                 environment.tabs.duplicateActiveTab()
+                environment.wireTabPrivacyHooks()
             }
             Button("Close Tab") {
                 environment.tabs.closeActiveTab()
             }
             Button("Reopen Closed Tab") {
                 _ = environment.tabs.restoreClosedTab()
+                environment.wireTabPrivacyHooks()
             }
             .disabled(!environment.tabs.canRestoreClosedTab)
 
@@ -189,14 +229,11 @@ struct BrowserShellView: View {
             Button("Bookmark This Page") {
                 environment.bookmarkActivePage()
             }
-            .disabled(URLParser.isStartPage(tab.navigation.url))
+            .disabled(URLParser.isStartPage(tab.navigation.url) || tab.isPrivate)
 
-            Button("Bookmarks") {
-                environment.showBookmarks = true
-            }
-            Button("History") {
-                environment.showHistory = true
-            }
+            Button("Bookmarks") { environment.showBookmarks = true }
+            Button("History") { environment.showHistory = true }
+            Button("Shields") { environment.showPrivacyShield = true }
 
             Divider()
 
@@ -213,7 +250,7 @@ struct BrowserShellView: View {
     }
 
     @ViewBuilder
-    private func content(for tab: BrowserTab) -> some View {
+    private func content(for tab: BrowserTab, environment: AppEnvironment) -> some View {
         ZStack {
             if URLParser.isStartPage(tab.navigation.url), tab.navigation.lastErrorMessage == nil {
                 StartPageView(tab: tab)
@@ -224,9 +261,20 @@ struct BrowserShellView: View {
                     onHome: { tab.goHome() }
                 )
             } else {
-                BrowserWebView(tab: tab)
-                    .id(tab.id)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                BrowserWebView(
+                    tab: tab,
+                    contentRuleList: environment.contentBlocker.compiledList,
+                    blockThirdPartyCookies: environment.privacy.blockThirdPartyCookies,
+                    contentBlockingEnabled: environment.contentBlockingEnabled(for: tab),
+                    matchesBlockedHint: { url in
+                        environment.contentBlocker.matchesBlockedHostHint(url)
+                    },
+                    onBlockedNavigation: {
+                        environment.privacyStats.recordBlockedRequest()
+                    }
+                )
+                .id("\(tab.id)-\(environment.contentBlockingEnabled(for: tab))-\(environment.contentBlocker.isReady)")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

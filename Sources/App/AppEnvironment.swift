@@ -10,11 +10,15 @@ final class AppEnvironment {
     let history: HistoryStore
     let sessionStore: SessionStore
     let tabs: TabManager
+    let privacy: PrivacySettings
+    let privacyStats: PrivacyStats
+    let contentBlocker: ContentBlockerManager
 
     var showAbout = false
     var showTabOverview = false
     var showBookmarks = false
     var showHistory = false
+    var showPrivacyShield = false
 
     var activeTab: BrowserTab? { tabs.activeTab }
 
@@ -22,17 +26,26 @@ final class AppEnvironment {
         settings: BrowserSettings? = nil,
         bookmarks: BookmarkStore? = nil,
         history: HistoryStore? = nil,
-        sessionStore: SessionStore? = nil
+        sessionStore: SessionStore? = nil,
+        privacy: PrivacySettings? = nil,
+        privacyStats: PrivacyStats? = nil,
+        contentBlocker: ContentBlockerManager? = nil
     ) {
         let resolvedSettings = settings ?? BrowserSettings()
         let resolvedBookmarks = bookmarks ?? BookmarkStore()
         let resolvedHistory = history ?? HistoryStore()
         let resolvedSession = sessionStore ?? SessionStore()
+        let resolvedPrivacy = privacy ?? PrivacySettings()
+        let resolvedStats = privacyStats ?? PrivacyStats()
+        let resolvedBlocker = contentBlocker ?? ContentBlockerManager()
 
         self.settings = resolvedSettings
         self.bookmarks = resolvedBookmarks
         self.history = resolvedHistory
         self.sessionStore = resolvedSession
+        self.privacy = resolvedPrivacy
+        self.privacyStats = resolvedStats
+        self.contentBlocker = resolvedBlocker
         resolvedSession.restorePreviousSession = resolvedSettings.restorePreviousSession
 
         let snapshot = resolvedSession.load()
@@ -46,11 +59,14 @@ final class AppEnvironment {
             self.history.record(title: tab.navigation.title, url: url)
         }
         manager.onSessionChanged = { [weak self] in
+            self?.wireTabPrivacyHooks()
             self?.persistSession()
         }
 
-        // Persist initial restored/created session.
+        wireTabPrivacyHooks()
         persistSession()
+
+        Task { await resolvedBlocker.prepare() }
     }
 
     func persistSession() {
@@ -64,7 +80,25 @@ final class AppEnvironment {
         bookmarks.add(title: tab.displayTitle, url: url)
     }
 
-    func openURLInNewTab(_ url: URL) {
-        tabs.createTab(url: url, select: true)
+    func openURLInNewTab(_ url: URL, isPrivate: Bool = false) {
+        tabs.createTab(url: url, isPrivate: isPrivate, select: true)
+        wireTabPrivacyHooks()
+    }
+
+    func contentBlockingEnabled(for tab: BrowserTab) -> Bool {
+        privacy.effectiveContentBlocking(forHost: tab.navigation.url?.host)
+    }
+
+    func wireTabPrivacyHooks(for tab: BrowserTab? = nil) {
+        let targets = tab.map { [$0] } ?? tabs.tabs
+        for item in targets {
+            item.shouldUpgradeHTTPS = { [weak self] url in
+                guard let self else { return true }
+                return self.privacy.effectiveHTTPSUpgrade(forHost: url.host)
+            }
+            item.onHTTPSUpgrade = { [weak self] in
+                self?.privacyStats.recordHTTPSUpgrade()
+            }
+        }
     }
 }

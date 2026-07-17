@@ -49,6 +49,10 @@ final class BrowserTab: Identifiable {
         navigation.url ?? URLParser.startPageURL
     }
 
+    /// Optional HTTPS upgrade + privacy hooks set by AppEnvironment.
+    var shouldUpgradeHTTPS: ((URL) -> Bool)?
+    var onHTTPSUpgrade: (() -> Void)?
+
     func submitAddressBar() {
         let url = URLParser.resolve(navigation.addressBarText, searchEngine: searchEngine)
         load(url)
@@ -56,24 +60,34 @@ final class BrowserTab: Identifiable {
 
     func load(_ url: URL) {
         navigation.lastErrorMessage = nil
-        navigation.url = url
+
+        var destination = url
+        if !URLParser.isStartPage(url) {
+            let upgradeEnabled = shouldUpgradeHTTPS?(destination) ?? true
+            let result = HTTPSUpgrade.upgradeIfNeeded(destination, enabled: upgradeEnabled)
+            if result.didUpgrade {
+                destination = result.url
+                onHTTPSUpgrade?()
+            }
+        }
+
+        navigation.url = destination
         navigation.syncAddressBarFromURL()
 
-        if URLParser.isStartPage(url) {
+        if URLParser.isStartPage(destination) {
             navigation.isLoading = false
             navigation.estimatedProgress = 0
             navigation.title = BrowserConstants.productName
-            // Stay on native start page — do not ask WKWebView to load oriel://
             return
         }
 
-        guard URLParser.isAllowedNavigation(url) else {
+        guard URLParser.isAllowedNavigation(destination) else {
             navigation.lastErrorMessage = "This address uses an unsupported or blocked scheme."
             return
         }
 
         navigation.isLoading = true
-        webView?.load(URLRequest(url: url))
+        webView?.load(URLRequest(url: destination))
     }
 
     func goBack() {

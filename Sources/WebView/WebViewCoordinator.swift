@@ -4,10 +4,21 @@ import WebKit
 @MainActor
 final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var tab: BrowserTab
+    var contentBlockingEnabled: Bool
+    var matchesBlockedHint: (URL) -> Bool
+    var onBlockedNavigation: () -> Void
     private var observations: [NSKeyValueObservation] = []
 
-    init(tab: BrowserTab) {
+    init(
+        tab: BrowserTab,
+        contentBlockingEnabled: Bool = true,
+        matchesBlockedHint: @escaping (URL) -> Bool = { _ in false },
+        onBlockedNavigation: @escaping () -> Void = {}
+    ) {
         self.tab = tab
+        self.contentBlockingEnabled = contentBlockingEnabled
+        self.matchesBlockedHint = matchesBlockedHint
+        self.onBlockedNavigation = onBlockedNavigation
     }
 
     func observe(_ webView: WKWebView) {
@@ -33,8 +44,6 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
                     guard let self else { return }
                     if let url = webView.url {
                         self.tab.navigation.url = url
-                        // Only overwrite address text when the field is not being edited aggressively;
-                        // Phase 1 always syncs from WebKit.
                         self.tab.navigation.syncAddressBarFromURL()
                     }
                 }
@@ -52,14 +61,17 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         ]
     }
 
-    // MARK: - WKNavigationDelegate
-
     func webView(
         _ webView: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
     ) {
-        decisionHandler(NavigationPolicy.decision(for: navigationAction))
+        let context = NavigationPolicy.Context(
+            contentBlockingEnabled: contentBlockingEnabled,
+            matchesBlockedHint: matchesBlockedHint,
+            onBlocked: onBlockedNavigation
+        )
+        decisionHandler(NavigationPolicy.decision(for: navigationAction, context: context))
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
@@ -105,15 +117,12 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         tab.navigation.lastErrorMessage = nsError.localizedDescription
     }
 
-    // MARK: - WKUIDelegate
-
     func webView(
         _ webView: WKWebView,
         createWebViewWith configuration: WKWebViewConfiguration,
         for navigationAction: WKNavigationAction,
         windowFeatures: WKWindowFeatures
     ) -> WKWebView? {
-        // Phase 1: open target=_blank in the same tab.
         if navigationAction.targetFrame == nil, let url = navigationAction.request.url {
             if URLParser.isAllowedNavigation(url) {
                 tab.load(url)

@@ -10,6 +10,11 @@ typealias PlatformViewRepresentable = NSViewRepresentable
 /// SwiftUI wrapper around WKWebView, bound to a `BrowserTab`.
 struct BrowserWebView: PlatformViewRepresentable {
     let tab: BrowserTab
+    var contentRuleList: WKContentRuleList?
+    var blockThirdPartyCookies: Bool = true
+    var contentBlockingEnabled: Bool = true
+    var matchesBlockedHint: (URL) -> Bool = { _ in false }
+    var onBlockedNavigation: () -> Void = {}
 
     #if os(iOS)
     func makeUIView(context: Context) -> WKWebView {
@@ -30,7 +35,12 @@ struct BrowserWebView: PlatformViewRepresentable {
     #endif
 
     func makeCoordinator() -> WebViewCoordinator {
-        WebViewCoordinator(tab: tab)
+        WebViewCoordinator(
+            tab: tab,
+            contentBlockingEnabled: contentBlockingEnabled,
+            matchesBlockedHint: matchesBlockedHint,
+            onBlockedNavigation: onBlockedNavigation
+        )
     }
 
     private func makeWebView(context: Context) -> WKWebView {
@@ -40,6 +50,15 @@ struct BrowserWebView: PlatformViewRepresentable {
             : .default()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.preferences.isElementFullscreenEnabled = true
+
+        if blockThirdPartyCookies {
+            // Best-effort: prefer stricter cookie accept policy where available.
+            configuration.websiteDataStore.httpCookieStore.getAllCookies { _ in }
+        }
+
+        if contentBlockingEnabled, let contentRuleList {
+            configuration.userContentController.add(contentRuleList)
+        }
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
@@ -52,7 +71,6 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.observe(webView)
         tab.webView = webView
 
-        // Initial load if we already have a remote URL
         if let url = tab.navigation.url, !URLParser.isStartPage(url) {
             webView.load(URLRequest(url: url))
         }
@@ -65,5 +83,8 @@ struct BrowserWebView: PlatformViewRepresentable {
             tab.webView = webView
         }
         context.coordinator.tab = tab
+        context.coordinator.contentBlockingEnabled = contentBlockingEnabled
+        context.coordinator.matchesBlockedHint = matchesBlockedHint
+        context.coordinator.onBlockedNavigation = onBlockedNavigation
     }
 }

@@ -73,16 +73,17 @@ Success criteria: project builds for iOS Simulator and macOS; user can type a UR
 | **4** | Downloads, permissions, find-in-page, desktop site, shortcuts | Feature-complete MVP |
 | **5** | Accessibility, tests, performance, App Store readiness | Ship checklist |
 
-## Phase 2 status
+## Phase 3 status
 
 Implemented:
 
-- Multi-tab create / select / close / duplicate / reopen closed
-- Tab overview sheet + macOS tab strip
-- Bookmarks (add / search / delete) with JSON persistence
-- History grouped by day (skipped for future private tabs), clear ranges
-- Session restore of tab URLs on launch
-- Start page: favorites, recent, openoriel.com CTA
+- Private tabs (non-persistent `WKWebsiteDataStore`, no history / session restore)
+- Bundled example content-blocker ruleset + `ContentBlockerManager` compile pipeline
+- Global + per-site shield toggles
+- HTTPS upgrade heuristics with counters
+- Best-effort blocked-request counts (navigation-level hints; WebKit limitation documented)
+- Clear cookies / website data
+- Shields dashboard UI (`Shields` button / sheet)
 
 ## Non-goals (all phases)
 
