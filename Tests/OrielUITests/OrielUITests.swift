@@ -5,15 +5,11 @@ final class OrielUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    /// Phase 1 smoke: app launches to the Oriel start page.
     func testLaunchShowsStartPage() throws {
         let app = XCUIApplication()
         app.launch()
 
-        let brand = app.staticTexts["Oriel"]
-        XCTAssertTrue(brand.waitForExistence(timeout: 5))
-
-        let madeBy = app.staticTexts["Made by inveil.net"]
-        XCTAssertTrue(madeBy.exists)
+        XCTAssertTrue(app.staticTexts["Oriel"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["openoriel.com"].exists)
     }
 }

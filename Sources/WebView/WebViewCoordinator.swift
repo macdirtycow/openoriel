@@ -77,6 +77,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         }
         tab.navigation.canGoBack = webView.canGoBack
         tab.navigation.canGoForward = webView.canGoForward
+        tab.onNavigationFinished?(tab)
     }
 
     func webView(

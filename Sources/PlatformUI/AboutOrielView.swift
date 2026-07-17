@@ -6,7 +6,7 @@ struct AboutOrielView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Image(systemName: "shield.lefthalf.filled")
+                Image(systemName: "square.on.square.dashed")
                     .font(.system(size: 48, weight: .light))
                     .foregroundStyle(Color.accentColor)
                     .accessibilityHidden(true)
@@ -17,15 +17,23 @@ struct AboutOrielView: View {
                 Text("A native browser for Apple platforms.")
                     .foregroundStyle(.secondary)
 
-                VStack(spacing: 6) {
-                    Text("Made by \(BrowserConstants.publisherName)")
+                VStack(spacing: 8) {
+                    Text("Official website")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Link(BrowserConstants.productWebsiteHost, destination: BrowserConstants.productWebsiteURL)
                         .font(.headline)
-                    Link(BrowserConstants.publisherURL.absoluteString, destination: BrowserConstants.publisherURL)
-                        .font(.subheadline)
-                }
-                .padding(.top, 8)
 
-                Text("Uses Apple’s WebKit framework. Privacy protections are limited by what WebKit and the OS expose — see docs/PRIVACY_LIMITATIONS.md in the project.")
+                    Text("Made by \(BrowserConstants.publisherName)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 8)
+                    Link(BrowserConstants.publisherName, destination: BrowserConstants.publisherURL)
+                        .font(.footnote)
+                }
+                .padding(.top, 4)
+
+                Text("Uses Apple’s WebKit framework. Privacy protections are limited by what WebKit and the OS expose.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

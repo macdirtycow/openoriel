@@ -73,19 +73,16 @@ Success criteria: project builds for iOS Simulator and macOS; user can type a UR
 | **4** | Downloads, permissions, find-in-page, desktop site, shortcuts | Feature-complete MVP |
 | **5** | Accessibility, tests, performance, App Store readiness | Ship checklist |
 
-## Phase 1 steps (this iteration)
+## Phase 2 status
 
-1. Docs + entitlements list  
-2. `project.yml` + folder scaffold + assets  
-3. `BrowserCore` — `BrowserTab`, `NavigationState`, `URLParser`  
-4. `WebView` — `BrowserWebView` + `WebViewCoordinator`  
-5. `PlatformUI` — address bar, toolbar, `BrowserShellView`  
-6. App entry + “Made by inveil.net”  
-7. Generate project, build iOS + macOS, fix errors  
+Implemented:
 
-## Phase 2–5 (later)
-
-See architecture doc for service ownership. Do not expand Phase 1 scope into tabs/privacy/downloads until Phase 1 builds cleanly.
+- Multi-tab create / select / close / duplicate / reopen closed
+- Tab overview sheet + macOS tab strip
+- Bookmarks (add / search / delete) with JSON persistence
+- History grouped by day (skipped for future private tabs), clear ranges
+- Session restore of tab URLs on launch
+- Start page: favorites, recent, openoriel.com CTA
 
 ## Non-goals (all phases)
 

@@ -8,8 +8,13 @@ final class BrowserSettings {
         didSet { persist() }
     }
 
+    var restorePreviousSession: Bool {
+        didSet { defaults.set(restorePreviousSession, forKey: restoreSessionKey) }
+    }
+
     private let defaults: UserDefaults
     private let searchEngineKey = "oriel.searchEngine"
+    private let restoreSessionKey = "oriel.restoreSession"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -18,6 +23,11 @@ final class BrowserSettings {
             self.searchEngine = engine
         } else {
             self.searchEngine = .duckDuckGo
+        }
+        if defaults.object(forKey: restoreSessionKey) == nil {
+            self.restorePreviousSession = true
+        } else {
+            self.restorePreviousSession = defaults.bool(forKey: restoreSessionKey)
         }
     }
 

@@ -2,7 +2,7 @@ import Foundation
 import Observation
 import WebKit
 
-/// A single browser tab. Phase 1 uses one instance; TabManager arrives in Phase 2.
+/// A single browser tab managed by `TabManager`.
 @Observable
 @MainActor
 final class BrowserTab: Identifiable {
@@ -13,6 +13,9 @@ final class BrowserTab: Identifiable {
 
     /// Weak reference so the SwiftUI `BrowserWebView` can drive load/back/forward.
     weak var webView: WKWebView?
+
+    /// Optional callback when a page finishes loading (used for history).
+    var onNavigationFinished: ((BrowserTab) -> Void)?
 
     init(
         id: UUID = UUID(),
@@ -26,10 +29,24 @@ final class BrowserTab: Identifiable {
         if let initialURL {
             navigation.url = initialURL
             navigation.syncAddressBarFromURL()
+            if !URLParser.isStartPage(initialURL) {
+                navigation.title = initialURL.host ?? BrowserConstants.productName
+            } else {
+                navigation.title = BrowserConstants.productName
+            }
         } else {
             navigation.url = URLParser.startPageURL
             navigation.addressBarText = ""
+            navigation.title = BrowserConstants.productName
         }
+    }
+
+    var displayTitle: String {
+        navigation.displayTitle
+    }
+
+    var restorableURL: URL {
+        navigation.url ?? URLParser.startPageURL
     }
 
     func submitAddressBar() {
@@ -85,6 +102,10 @@ final class BrowserTab: Identifiable {
 
     func goHome() {
         load(URLParser.startPageURL)
+    }
+
+    func openProductSite() {
+        load(BrowserConstants.productWebsiteURL)
     }
 
     func openPublisherSite() {
