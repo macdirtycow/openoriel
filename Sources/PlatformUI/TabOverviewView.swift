@@ -49,6 +49,13 @@ struct TabOverviewView: View {
         let isActive = tab.id == environment.tabs.activeTabID
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
+                FaviconImage(pageURL: tab.restorableURL, size: 18)
+                if tab.isPinned {
+                    Image(systemName: "pin.fill")
+                        .font(.caption2)
+                        .foregroundStyle(Color.accentColor)
+                        .accessibilityLabel("Pinned")
+                }
                 if tab.isPrivate {
                     Image(systemName: "eyeglasses")
                         .foregroundStyle(.purple)
@@ -58,14 +65,19 @@ struct TabOverviewView: View {
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(2)
                 Spacer(minLength: 4)
-                Button {
-                    environment.tabs.closeTab(id: tab.id)
+                Menu {
+                    Button(tab.isPinned ? "Unpin" : "Pin") {
+                        environment.tabs.togglePin(id: tab.id)
+                    }
+                    Button("Close", role: .destructive) {
+                        environment.tabs.closeTab(id: tab.id)
+                    }
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemName: "ellipsis.circle")
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Close Tab")
+                .accessibilityLabel("Tab actions")
             }
 
             Text(tab.restorableURL.host ?? tab.restorableURL.absoluteString)

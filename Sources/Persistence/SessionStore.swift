@@ -6,6 +6,28 @@ struct SessionSnapshot: Codable, Equatable, Sendable {
         var urlString: String
         var title: String
         var isPrivate: Bool
+        var isPinned: Bool
+
+        init(id: UUID, urlString: String, title: String, isPrivate: Bool, isPinned: Bool = false) {
+            self.id = id
+            self.urlString = urlString
+            self.title = title
+            self.isPrivate = isPrivate
+            self.isPinned = isPinned
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case id, urlString, title, isPrivate, isPinned
+        }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            id = try c.decode(UUID.self, forKey: .id)
+            urlString = try c.decode(String.self, forKey: .urlString)
+            title = try c.decode(String.self, forKey: .title)
+            isPrivate = try c.decode(Bool.self, forKey: .isPrivate)
+            isPinned = try c.decodeIfPresent(Bool.self, forKey: .isPinned) ?? false
+        }
     }
 
     var tabs: [TabSnapshot]

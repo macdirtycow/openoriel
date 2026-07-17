@@ -103,6 +103,20 @@ Implemented:
 - Copy URL + Share sheet
 - Unit tests for Google search routing / settings persistence
 
+## Phase 7 status
+
+Implemented (everyday parity with Safari/Chrome/Brave — within WebKit):
+
+- Link context menus (iOS) + ⌘-click open in new tab (macOS)
+- Favicons on tabs / overview / bookmarks
+- Zoom In/Out/Actual Size (+ shortcuts on Mac)
+- Print page
+- Reader Mode + Force Dark on page
+- Block media autoplay (setting)
+- Pin tabs (persisted in session)
+- Import bookmarks from HTML exports
+- Competitive gap notes: `docs/COMPETITIVE_GAPS.md`
+
 ## Non-goals (all phases)
 
 - AI assistant / chatbot / agent  

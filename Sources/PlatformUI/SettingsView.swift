@@ -74,10 +74,11 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Enable JavaScript by default", isOn: $settings.javaScriptEnabledByDefault)
+                    Toggle("Block media autoplay", isOn: $settings.blockAutoplay)
                 } header: {
-                    Text("JavaScript")
+                    Text("Page media")
                 } footer: {
-                    Text("New tabs use this default. Use the JS button in the toolbar to toggle the current tab.")
+                    Text("New tabs use the JavaScript default. Autoplay blocking applies to newly created tab WebViews — reopen a tab after changing it. Use the JS button to toggle the current tab.")
                         .fixedSize(horizontal: false, vertical: true)
                 }
 

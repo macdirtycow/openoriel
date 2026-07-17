@@ -68,6 +68,11 @@ final class BrowserSettings {
         didSet { defaults.set(javaScriptEnabledByDefault, forKey: javaScriptKey) }
     }
 
+    /// When true, audio/video require a user gesture before playing.
+    var blockAutoplay: Bool {
+        didSet { defaults.set(blockAutoplay, forKey: blockAutoplayKey) }
+    }
+
     var homepageURL: URL {
         if let url = URL(string: homepageURLString), url.scheme != nil {
             return url
@@ -82,6 +87,7 @@ final class BrowserSettings {
     private let newTabBehaviorKey = "oriel.newTabBehavior"
     private let homepageKey = "oriel.homepageURL"
     private let javaScriptKey = "oriel.javaScriptEnabled"
+    private let blockAutoplayKey = "oriel.blockAutoplay"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -114,6 +120,11 @@ final class BrowserSettings {
             self.javaScriptEnabledByDefault = true
         } else {
             self.javaScriptEnabledByDefault = defaults.bool(forKey: javaScriptKey)
+        }
+        if defaults.object(forKey: blockAutoplayKey) == nil {
+            self.blockAutoplay = true
+        } else {
+            self.blockAutoplay = defaults.bool(forKey: blockAutoplayKey)
         }
     }
 

@@ -20,7 +20,9 @@ struct BrowserWebView: PlatformViewRepresentable {
     var onPopupCreated: ((WKWebView) -> Void)?
     var onPopupClosed: ((WKWebView) -> Void)?
     var onPopupTitleChanged: ((String?) -> Void)?
+    var onOpenURLInNewTab: ((URL) -> Void)?
     var webExtensionController: AnyObject?
+    var blockAutoplay: Bool = true
 
     #if os(iOS)
     func makeUIView(context: Context) -> WKWebView {
@@ -49,7 +51,8 @@ struct BrowserWebView: PlatformViewRepresentable {
             onDownload: onDownload,
             permissionManager: permissionManager,
             onPopupCreated: onPopupCreated,
-            onPopupClosed: onPopupClosed
+            onPopupClosed: onPopupClosed,
+            onOpenURLInNewTab: onOpenURLInNewTab
         )
     }
 
@@ -59,6 +62,7 @@ struct BrowserWebView: PlatformViewRepresentable {
             javaScriptEnabled: tab.javaScriptEnabled,
             contentRuleList: contentRuleList,
             contentBlockingEnabled: contentBlockingEnabled,
+            blockAutoplay: blockAutoplay,
             webExtensionController: webExtensionController
         )
 
@@ -102,6 +106,7 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.onPopupCreated = onPopupCreated
         context.coordinator.onPopupClosed = onPopupClosed
         context.coordinator.onPopupTitleChanged = onPopupTitleChanged
+        context.coordinator.onOpenURLInNewTab = onOpenURLInNewTab
 
         webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = tab.javaScriptEnabled
 

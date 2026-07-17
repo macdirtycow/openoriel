@@ -1,6 +1,11 @@
 import Foundation
 import Observation
 import WebKit
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 /// A single browser tab managed by `TabManager`.
 @Observable
@@ -16,6 +21,15 @@ final class BrowserTab: Identifiable {
 
     /// When false, page scripts are blocked (reload required to apply).
     var javaScriptEnabled = true
+
+    /// Pinned tabs stay toward the front of the strip / overview.
+    var isPinned = false
+
+    /// Page zoom factor (1.0 = actual size).
+    var zoomFactor: Double = 1.0
+
+    var forceDarkEnabled = false
+    var isReaderMode = false
 
     /// Weak reference so the SwiftUI `BrowserWebView` can drive load/back/forward.
     weak var webView: WKWebView?
@@ -198,6 +212,79 @@ final class BrowserTab: Identifiable {
         #endif
         let config = WKFindConfiguration()
         webView?.find("", configuration: config) { _ in }
+    }
+
+    func zoomIn() {
+        setZoom(zoomFactor + 0.1)
+    }
+
+    func zoomOut() {
+        setZoom(zoomFactor - 0.1)
+    }
+
+    func resetZoom() {
+        setZoom(1.0)
+    }
+
+    func setZoom(_ factor: Double) {
+        zoomFactor = min(3.0, max(0.5, (factor * 10).rounded() / 10))
+        #if os(macOS)
+        webView?.pageZoom = zoomFactor
+        #endif
+        webView?.evaluateJavaScript(PageEnhancementScripts.setZoom(zoomFactor), completionHandler: nil)
+    }
+
+    func applyPageEnhancementsAfterLoad() {
+        #if os(macOS)
+        webView?.pageZoom = zoomFactor
+        #endif
+        if zoomFactor != 1.0 {
+            webView?.evaluateJavaScript(PageEnhancementScripts.setZoom(zoomFactor), completionHandler: nil)
+        }
+        if forceDarkEnabled {
+            webView?.evaluateJavaScript(PageEnhancementScripts.enableForceDark, completionHandler: nil)
+        }
+    }
+
+    func toggleForceDark() {
+        forceDarkEnabled.toggle()
+        let script = forceDarkEnabled
+            ? PageEnhancementScripts.enableForceDark
+            : PageEnhancementScripts.disableForceDark
+        webView?.evaluateJavaScript(script, completionHandler: nil)
+    }
+
+    func toggleReaderMode() {
+        guard !isShowingStartPage else { return }
+        webView?.evaluateJavaScript(PageEnhancementScripts.readerMode) { [weak self] result, _ in
+            Task { @MainActor in
+                guard let self else { return }
+                if let status = result as? String {
+                    self.isReaderMode = (status == "on")
+                } else {
+                    self.isReaderMode.toggle()
+                }
+            }
+        }
+    }
+
+    func printPage() {
+        guard let webView, !isShowingStartPage else { return }
+        #if os(iOS)
+        let controller = UIPrintInteractionController.shared
+        let info = UIPrintInfo.printInfo()
+        info.jobName = displayTitle
+        info.outputType = .general
+        controller.printInfo = info
+        controller.printFormatter = webView.viewPrintFormatter()
+        controller.present(animated: true)
+        #elseif os(macOS)
+        let info = NSPrintInfo.shared
+        let operation = webView.printOperation(with: info)
+        operation.showsPrintPanel = true
+        operation.showsProgressPanel = true
+        operation.run()
+        #endif
     }
 
     /// Call after WebKit navigation changes so toolbar buttons stay accurate.

@@ -1,5 +1,8 @@
 import Foundation
 import WebKit
+#if os(iOS)
+import UIKit
+#endif
 
 @MainActor
 final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
@@ -11,6 +14,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var permissionManager: WebsitePermissionManager?
     var onPopupCreated: ((WKWebView) -> Void)?
     var onPopupClosed: ((WKWebView) -> Void)?
+    var onOpenURLInNewTab: ((URL) -> Void)?
 
     private var observations: [NSKeyValueObservation] = []
     private var popupTitleObservation: NSKeyValueObservation?
@@ -23,7 +27,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         onDownload: ((URL, String?) -> Void)? = nil,
         permissionManager: WebsitePermissionManager? = nil,
         onPopupCreated: ((WKWebView) -> Void)? = nil,
-        onPopupClosed: ((WKWebView) -> Void)? = nil
+        onPopupClosed: ((WKWebView) -> Void)? = nil,
+        onOpenURLInNewTab: ((URL) -> Void)? = nil
     ) {
         self.tab = tab
         self.contentBlockingEnabled = contentBlockingEnabled
@@ -33,6 +38,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         self.permissionManager = permissionManager
         self.onPopupCreated = onPopupCreated
         self.onPopupClosed = onPopupClosed
+        self.onOpenURLInNewTab = onOpenURLInNewTab
     }
 
     func observe(_ webView: WKWebView) {
@@ -85,6 +91,18 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         preferences.allowsContentJavaScript = tab.javaScriptEnabled
         if let url = navigationAction.request.url {
             tab.syncUserAgentForNavigation(to: url)
+
+            #if os(macOS)
+            // ⌘-click opens links in a new tab (Safari/Chrome convention).
+            if navigationAction.modifierFlags.contains(.command),
+               navigationAction.targetFrame != nil,
+               URLParser.isAllowedNavigation(url),
+               !URLParser.isStartPage(url) {
+                onOpenURLInNewTab?(url)
+                decisionHandler(.cancel, preferences)
+                return
+            }
+            #endif
         }
         let context = NavigationPolicy.Context(
             contentBlockingEnabled: contentBlockingEnabled,
@@ -126,6 +144,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
                 tab.navigation.syncAddressBarFromURL()
             }
             tab.onNavigationFinished?(tab)
+            tab.applyPageEnhancementsAfterLoad()
         }
         if webView === tab.webView {
             tab.refreshNavigationChrome()
@@ -192,6 +211,32 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     func webViewDidClose(_ webView: WKWebView) {
         onPopupClosed?(webView)
     }
+
+    #if os(iOS)
+    func webView(
+        _ webView: WKWebView,
+        contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo,
+        completionHandler: @escaping (UIContextMenuConfiguration?) -> Void
+    ) {
+        guard let linkURL = elementInfo.linkURL, URLParser.isAllowedNavigation(linkURL) else {
+            completionHandler(nil)
+            return
+        }
+        let config = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+            let open = UIAction(title: "Open in New Tab", image: UIImage(systemName: "plus.square.on.square")) { _ in
+                self?.onOpenURLInNewTab?(linkURL)
+            }
+            let copy = UIAction(title: "Copy Link", image: UIImage(systemName: "link")) { _ in
+                UIPasteboard.general.url = linkURL
+            }
+            let download = UIAction(title: "Download Linked File", image: UIImage(systemName: "arrow.down.circle")) { _ in
+                self?.onDownload?(linkURL, linkURL.lastPathComponent)
+            }
+            return UIMenu(title: "", children: [open, copy, download])
+        }
+        completionHandler(config)
+    }
+    #endif
 
     @available(iOS 15.0, macOS 12.0, *)
     func webView(

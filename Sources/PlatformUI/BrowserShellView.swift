@@ -341,11 +341,15 @@ struct BrowserShellView: View {
                         environment.tabs.selectTab(id: item.id)
                     } label: {
                         HStack(spacing: 6) {
+                            FaviconImage(pageURL: item.restorableURL, size: 12)
+                            if item.isPinned {
+                                Image(systemName: "pin.fill").font(.caption2)
+                            }
                             if item.isPrivate {
                                 Image(systemName: "eyeglasses").font(.caption2)
                             }
                             Text(item.displayTitle).lineLimit(1)
-                            if environment.tabs.tabs.count > 1 {
+                            if environment.tabs.tabs.count > 1, !item.isPinned {
                                 Image(systemName: "xmark")
                                     .font(.caption2.weight(.bold))
                                     .onTapGesture { environment.tabs.closeTab(id: item.id) }
@@ -437,6 +441,9 @@ struct BrowserShellView: View {
                 environment.wireTabPrivacyHooks()
             }
             Button("Close Tab") { environment.tabs.closeActiveTab() }
+            Button(tab.isPinned ? "Unpin Tab" : "Pin Tab") {
+                environment.tabs.togglePin(id: tab.id)
+            }
             Button("Reopen Closed Tab") {
                 _ = environment.tabs.restoreClosedTab()
                 environment.wireTabPrivacyHooks()
@@ -446,6 +453,26 @@ struct BrowserShellView: View {
             Divider()
 
             Button("Find in Page…") { environment.showFindInPage = true }
+                .disabled(tab.isShowingStartPage)
+
+            Button(tab.isReaderMode ? "Exit Reader Mode" : "Reader Mode") {
+                tab.toggleReaderMode()
+            }
+            .disabled(tab.isShowingStartPage)
+
+            Button(tab.forceDarkEnabled ? "Disable Force Dark" : "Force Dark on Page") {
+                tab.toggleForceDark()
+            }
+            .disabled(tab.isShowingStartPage)
+
+            Button("Zoom In") { tab.zoomIn() }
+                .disabled(tab.isShowingStartPage)
+            Button("Zoom Out") { tab.zoomOut() }
+                .disabled(tab.isShowingStartPage)
+            Button("Actual Size") { tab.resetZoom() }
+                .disabled(tab.isShowingStartPage || tab.zoomFactor == 1.0)
+
+            Button("Print…") { tab.printPage() }
                 .disabled(tab.isShowingStartPage)
 
             Button(tab.requestsDesktopSite ? "Request Mobile Website" : "Request Desktop Website") {
@@ -522,7 +549,11 @@ struct BrowserShellView: View {
                 onPopupTitleChanged: { title in
                     environment.updateAuthPopupTitle(title)
                 },
-                webExtensionController: environment.extensions.webExtensionControllerForConfiguration
+                onOpenURLInNewTab: { url in
+                    environment.openURLInNewTab(url, isPrivate: tab.isPrivate)
+                },
+                webExtensionController: environment.extensions.webExtensionControllerForConfiguration,
+                blockAutoplay: environment.settings.blockAutoplay
             )
             .id(tab.id)
             .opacity(showStart || showError ? 0 : 1)

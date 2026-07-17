@@ -46,6 +46,7 @@ final class TabManager {
                     initialURL: url
                 )
                 tab.javaScriptEnabled = javaScriptEnabledProvider?() ?? true
+                tab.isPinned = item.isPinned
                 tab.navigation.title = item.title
                 return tab
             }
@@ -53,6 +54,7 @@ final class TabManager {
                 tabs = [makeTab(isPrivate: false)]
             } else {
                 tabs = restored
+                reorderPinnedFirst()
             }
             if let active = snapshot.activeTabID, tabs.contains(where: { $0.id == active }) {
                 activeTabID = active
@@ -149,6 +151,19 @@ final class TabManager {
         closeTab(id: id)
     }
 
+    func togglePin(id: UUID) {
+        guard let tab = tabs.first(where: { $0.id == id }) else { return }
+        tab.isPinned.toggle()
+        reorderPinnedFirst()
+        notifySessionChanged()
+    }
+
+    func reorderPinnedFirst() {
+        let pinned = tabs.filter(\.isPinned)
+        let rest = tabs.filter { !$0.isPinned }
+        tabs = pinned + rest
+    }
+
     func makeSessionSnapshot() -> SessionSnapshot {
         // Persist only normal tabs.
         let normal = tabs.filter { !$0.isPrivate }
@@ -162,7 +177,8 @@ final class TabManager {
                     id: $0.id,
                     urlString: $0.restorableURL.absoluteString,
                     title: $0.displayTitle,
-                    isPrivate: false
+                    isPrivate: false,
+                    isPinned: $0.isPinned
                 )
             },
             activeTabID: activeNormalID,

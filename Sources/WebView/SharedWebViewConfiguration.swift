@@ -11,6 +11,7 @@ enum SharedWebViewConfiguration {
         javaScriptEnabled: Bool,
         contentRuleList: WKContentRuleList?,
         contentBlockingEnabled: Bool,
+        blockAutoplay: Bool = true,
         webExtensionController: AnyObject? = nil
     ) -> WKWebViewConfiguration {
         let configuration = WKWebViewConfiguration()
@@ -19,6 +20,11 @@ enum SharedWebViewConfiguration {
         configuration.defaultWebpagePreferences.allowsContentJavaScript = javaScriptEnabled
         configuration.preferences.isElementFullscreenEnabled = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
+        if blockAutoplay {
+            configuration.mediaTypesRequiringUserActionForPlayback = [.all]
+        } else {
+            configuration.mediaTypesRequiringUserActionForPlayback = []
+        }
 
         if contentBlockingEnabled, let contentRuleList {
             configuration.userContentController.add(contentRuleList)

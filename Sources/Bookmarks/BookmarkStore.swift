@@ -27,6 +27,19 @@ final class BookmarkStore {
         persist()
     }
 
+    @discardableResult
+    func importHTML(_ html: String) -> Int {
+        let imported = BookmarkHTMLImporter.parse(html)
+        var count = 0
+        for item in imported.reversed() {
+            if !contains(url: item.url) {
+                add(title: item.title, url: item.url)
+                count += 1
+            }
+        }
+        return count
+    }
+
     func update(_ bookmark: Bookmark) {
         guard let index = bookmarks.firstIndex(where: { $0.id == bookmark.id }) else { return }
         bookmarks[index] = bookmark

@@ -93,6 +93,31 @@ struct OrielApp: App {
             }
             .keyboardShortcut("f", modifiers: .command)
 
+            Button("Zoom In") {
+                environment.activeTab?.zoomIn()
+            }
+            .keyboardShortcut("+", modifiers: .command)
+
+            Button("Zoom Out") {
+                environment.activeTab?.zoomOut()
+            }
+            .keyboardShortcut("-", modifiers: .command)
+
+            Button("Actual Size") {
+                environment.activeTab?.resetZoom()
+            }
+            .keyboardShortcut("0", modifiers: .command)
+
+            Button("Reader Mode") {
+                environment.activeTab?.toggleReaderMode()
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+
+            Button("Print…") {
+                environment.activeTab?.printPage()
+            }
+            .keyboardShortcut("p", modifiers: .command)
+
             Button("Request Desktop Website") {
                 environment.activeTab?.toggleDesktopSite()
             }
