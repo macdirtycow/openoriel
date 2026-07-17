@@ -11,91 +11,140 @@ struct ExtensionsView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if environment.extensions.isSupported {
-                    supportedBody
-                } else {
-                    unsupportedBody
-                }
-            }
-            .navigationTitle("Extensions")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
-                }
-                #if os(macOS)
-                if environment.extensions.isSupported {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("Install…") {
-                            Task { await pickAndInstall() }
-                        }
-                        .disabled(isInstalling)
-                    }
-                }
+            content
+                .navigationTitle("Extensions")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
                 #endif
-            }
-            #if os(macOS)
-            .frame(minWidth: 520, idealWidth: 580, minHeight: 420, idealHeight: 560)
-            #endif
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { dismiss() }
+                    }
+                    #if os(macOS)
+                    if environment.extensions.isSupported {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button {
+                                Task { await pickAndInstall() }
+                            } label: {
+                                if isInstalling {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                } else {
+                                    Text("Install…")
+                                }
+                            }
+                            .disabled(isInstalling)
+                        }
+                    }
+                    #endif
+                }
         }
     }
 
     @ViewBuilder
-    private var supportedBody: some View {
+    private var content: some View {
+        if environment.extensions.isSupported {
+            supportedList
+        } else {
+            unsupportedBody
+        }
+    }
+
+    private var supportedList: some View {
         List {
             Section {
-                Text("Install Manifest V2/V3 extensions from a folder, .zip, or .crx. Browse the Chrome Web Store for packages, then install the downloaded file here — one-click store install is not available outside Chrome.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Add Manifest V2 or V3 packages from a folder, .zip, or .crx.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Chrome Web Store one-click install is not available — download a package, then install it here.")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.vertical, 4)
+                .listRowBackground(Color.clear)
             }
 
-            Section("Chrome Web Store") {
+            Section {
                 Button {
                     environment.openURLInNewTab(BrowserConstants.chromeWebStoreURL)
                     dismiss()
                 } label: {
                     Label("Browse Chrome Web Store", systemImage: "safari")
                 }
+
+                #if os(macOS)
+                Button {
+                    Task { await pickAndInstall() }
+                } label: {
+                    Label(isInstalling ? "Installing…" : "Install from file…", systemImage: "plus.square.on.square")
+                }
+                .disabled(isInstalling)
+                #endif
+            } header: {
+                Text("Get extensions")
             }
 
-            Section("Installed") {
+            Section {
                 if environment.extensions.extensions.isEmpty {
-                    Text("No extensions installed yet.")
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 12) {
+                        Image(systemName: "puzzlepiece.extension")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("No extensions installed")
+                                .font(.subheadline.weight(.semibold))
+                            Text("Installed packages will appear here.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 8)
                 } else {
                     ForEach(environment.extensions.extensions) { item in
                         extensionRow(item)
                     }
                 }
+            } header: {
+                Text("Installed")
             }
 
             if let error = environment.extensions.lastError {
                 Section("Status") {
-                    Text(error)
-                        .foregroundStyle(.red)
+                    Label(error, systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote)
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
-        #if os(macOS)
+        #if os(iOS)
+        .listStyle(.insetGrouped)
+        #else
         .listStyle(.inset)
         #endif
     }
 
     private func extensionRow(_ item: InstalledExtensionInfo) -> some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: 14) {
+            Image(systemName: "puzzlepiece.extension.fill")
+                .font(.title3)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 28)
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.displayName)
                     .font(.body.weight(.semibold))
-                Text("v\(item.version)")
+                    .lineLimit(1)
+                Text("Version \(item.version)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Spacer()
+
+            Spacer(minLength: 8)
+
             Toggle(
                 "Enabled",
                 isOn: Binding(
@@ -106,7 +155,9 @@ struct ExtensionsView: View {
                 )
             )
             .labelsHidden()
-            .accessibilityLabel("Enabled")
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .accessibilityLabel("\(item.displayName) enabled")
 
             Button(role: .destructive) {
                 Task { await environment.extensions.remove(id: item.id) }
@@ -114,8 +165,10 @@ struct ExtensionsView: View {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
+            .help("Remove")
             .accessibilityLabel("Remove \(item.displayName)")
         }
+        .padding(.vertical, 4)
     }
 
     private var unsupportedBody: some View {
@@ -123,7 +176,7 @@ struct ExtensionsView: View {
             Label("Extensions unavailable", systemImage: "puzzlepiece.extension")
         } description: {
             Text(environment.extensions.lastError
-                  ?? "Web extensions are not available on this platform.")
+                  ?? "Chrome-style extensions are not available on this device.")
         } actions: {
             Button("Browse Chrome Web Store") {
                 environment.openURLInNewTab(BrowserConstants.chromeWebStoreURL)
@@ -131,7 +184,7 @@ struct ExtensionsView: View {
             }
             .buttonStyle(.borderedProminent)
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     #if os(macOS)

@@ -4,20 +4,41 @@ enum OrielTheme {
     static let brandPrimary = Color("AccentColor")
     static let chromePadding: CGFloat = 10
     static let controlRadius: CGFloat = 12
-    static let searchFieldRadius: CGFloat = 18
-    static let searchFieldHeight: CGFloat = 56
+    static let searchFieldRadius: CGFloat = 14
+    static let searchFieldHeight: CGFloat = 52
 
-    /// Soft bay-window wash — cool slate into clear, not purple.
+    /// Quiet paper wash — no neon gradients or glow.
     static var startPageBackground: some View {
-        LinearGradient(
-            colors: [
-                Color(red: 0.22, green: 0.38, blue: 0.42).opacity(0.18),
-                Color(red: 0.45, green: 0.55, blue: 0.52).opacity(0.08),
-                Color.clear
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        ZStack {
+            Color(red: 0.96, green: 0.95, blue: 0.93)
+            #if os(macOS)
+            // Slight vertical depth only.
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.03),
+                    Color.clear,
+                    Color.black.opacity(0.02)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            #endif
+        }
+        .ignoresSafeArea()
+    }
+
+    static var startPageBackgroundDark: some View {
+        ZStack {
+            Color(red: 0.11, green: 0.12, blue: 0.13)
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.04),
+                    Color.clear
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
         .ignoresSafeArea()
     }
 }

@@ -51,7 +51,12 @@ struct BrowserShellView: View {
         }
         .sheet(isPresented: $environment.showExtensions) {
             ExtensionsView()
-                .orielSheetChrome(preferLargeOnCompact: true)
+                #if os(iOS)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+                #else
+                .frame(minWidth: 420, idealWidth: 520, minHeight: 380, idealHeight: 520)
+                #endif
         }
         .sheet(isPresented: $environment.showSettings) {
             SettingsView(showsDoneButton: true)

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StartPageView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let tab: BrowserTab
 
@@ -14,13 +15,14 @@ struct StartPageView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 36) {
-                searchComposition
-                    .frame(minHeight: 320, alignment: .center)
+            VStack(alignment: .leading, spacing: 40) {
+                hero
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 56)
 
                 if !environment.bookmarks.favorites.isEmpty {
                     section(title: "Favorites") {
-                        tileGrid(items: environment.bookmarks.favorites.map {
+                        linkRows(items: environment.bookmarks.favorites.map {
                             ($0.title, $0.urlString)
                         })
                     }
@@ -28,14 +30,14 @@ struct StartPageView: View {
 
                 if !environment.history.recentSites.isEmpty {
                     section(title: "Recent") {
-                        tileGrid(items: environment.history.recentSites.map {
+                        linkRows(items: environment.history.recentSites.prefix(6).map {
                             ($0.title, $0.urlString)
                         })
                     }
                 }
 
                 section(title: "Suggested") {
-                    tileGrid(items: [
+                    linkRows(items: [
                         ("openoriel.com", BrowserConstants.productWebsiteURL.absoluteString),
                         ("DuckDuckGo", "https://duckduckgo.com"),
                         ("Wikipedia", "https://wikipedia.org"),
@@ -43,25 +45,24 @@ struct StartPageView: View {
                     ])
                 }
 
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 12) {
-                        productButton
-                        publisherButton
-                    }
-                    VStack(spacing: 10) {
-                        productButton
-                        publisherButton
-                    }
-                }
-                .font(.subheadline.weight(.semibold))
+                footerLinks
+                    .padding(.top, 8)
 
-                Spacer(minLength: 40)
+                Spacer(minLength: 48)
             }
-            .padding(.horizontal, 24)
-            .frame(maxWidth: 720)
+            .padding(.horizontal, 28)
+            .frame(maxWidth: 560)
             .frame(maxWidth: .infinity)
         }
-        .background { OrielTheme.startPageBackground }
+        .background {
+            Group {
+                if colorScheme == .dark {
+                    OrielTheme.startPageBackgroundDark
+                } else {
+                    OrielTheme.startPageBackground
+                }
+            }
+        }
         .onAppear {
             if !reduceMotion {
                 searchFocused = true
@@ -69,28 +70,27 @@ struct StartPageView: View {
         }
     }
 
-    /// First viewport: brand + one search field + engine hint.
-    private var searchComposition: some View {
-        VStack(spacing: 20) {
-            VStack(spacing: 10) {
+    private var hero: some View {
+        VStack(spacing: 22) {
+            VStack(spacing: 6) {
                 Text(BrowserConstants.productName)
-                    .font(.system(size: 48, weight: .bold, design: .serif))
-                    .tracking(-1.2)
+                    .font(.system(size: 44, weight: .semibold, design: .serif))
+                    .tracking(-0.8)
                     .foregroundStyle(.primary)
 
                 Text("A calm view of the web.")
-                    .font(.title3)
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .combine)
 
             searchField
 
-            Text("Search via \(activeEngine.displayName)")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: activeEngine)
+            Text("via \(activeEngine.displayName)")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.tertiary)
+                .textCase(.uppercase)
+                .tracking(0.6)
 
             enginePicker
 
@@ -100,33 +100,25 @@ struct StartPageView: View {
                         tab.load(url)
                     }
                 } label: {
-                    Label("Sign in to Google Account", systemImage: "person.crop.circle")
-                        .font(.subheadline.weight(.semibold))
+                    Text("Sign in to Google")
+                        .font(.subheadline.weight(.medium))
                 }
-                .buttonStyle(.bordered)
-                .accessibilityHint("Opens Google Account sign-in in this tab. Use a normal tab, not Private.")
-            }
-
-            HStack {
-                Spacer()
-                Button("Settings") {
-                    environment.showSettings = true
-                }
-                .font(.footnote.weight(.semibold))
+                .buttonStyle(.plain)
+                .foregroundStyle(OrielTheme.brandPrimary)
+                .accessibilityHint("Opens Google Account sign-in in this tab.")
             }
         }
-        .padding(.top, 48)
     }
 
     private var searchField: some View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .font(.title3.weight(.medium))
-                .foregroundStyle(searchFocused ? OrielTheme.brandPrimary : .secondary)
+                .font(.body.weight(.medium))
+                .foregroundStyle(.secondary)
 
             TextField("Search or enter address", text: $query)
                 .textFieldStyle(.plain)
-                .font(.title3)
+                .font(.body)
                 #if os(iOS)
                 .textInputAutocapitalization(.never)
                 .keyboardType(.webSearch)
@@ -141,7 +133,8 @@ struct StartPageView: View {
                 Button {
                     query = ""
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -149,60 +142,51 @@ struct StartPageView: View {
             }
 
             Button(action: submitSearch) {
-                Image(systemName: "arrow.right.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                     ? Color.secondary.opacity(0.4)
-                                     : OrielTheme.brandPrimary)
+                Text("Go")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(
+                        query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        ? Color.secondary
+                        : Color.primary
+                    )
             }
             .buttonStyle(.plain)
             .disabled(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityLabel("Search")
         }
-        .padding(.horizontal, 18)
+        .padding(.horizontal, 16)
         .frame(height: OrielTheme.searchFieldHeight)
-        .background {
-            RoundedRectangle(cornerRadius: OrielTheme.searchFieldRadius, style: .continuous)
-                .fill(.regularMaterial)
-                .shadow(
-                    color: searchFocused ? OrielTheme.brandPrimary.opacity(0.22) : .black.opacity(0.06),
-                    radius: searchFocused && !reduceMotion ? 16 : 8,
-                    y: 4
-                )
-        }
+        .background(
+            colorScheme == .dark
+                ? Color.white.opacity(0.06)
+                : Color.white.opacity(0.85),
+            in: RoundedRectangle(cornerRadius: OrielTheme.searchFieldRadius, style: .continuous)
+        )
         .overlay {
             RoundedRectangle(cornerRadius: OrielTheme.searchFieldRadius, style: .continuous)
                 .strokeBorder(
-                    searchFocused ? OrielTheme.brandPrimary.opacity(0.55) : Color.primary.opacity(0.08),
-                    lineWidth: searchFocused ? 1.5 : 1
+                    Color.primary.opacity(searchFocused ? 0.28 : 0.12),
+                    lineWidth: 1
                 )
         }
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: searchFocused)
     }
 
     private var enginePicker: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 16) {
             ForEach(SearchEngine.allCases) { engine in
                 let selected = activeEngine == engine
                 Button {
-                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
-                        environment.setSearchEngine(engine)
-                        tab.searchEngine = engine
-                    }
+                    environment.setSearchEngine(engine)
+                    tab.searchEngine = engine
                 } label: {
                     Text(engine.displayName)
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .font(.caption.weight(selected ? .semibold : .regular))
                         .foregroundStyle(selected ? Color.primary : Color.secondary)
-                        .background {
-                            if selected {
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .fill(.background.opacity(0.9))
-                                    .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
-                            }
+                        .padding(.bottom, 2)
+                        .overlay(alignment: .bottom) {
+                            Rectangle()
+                                .fill(selected ? OrielTheme.brandPrimary : Color.clear)
+                                .frame(height: 1.5)
                         }
                 }
                 .buttonStyle(.plain)
@@ -210,10 +194,27 @@ struct StartPageView: View {
                 .accessibilityLabel("\(engine.displayName) search engine")
             }
         }
-        .padding(3)
-        .background(Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Search engine")
+    }
+
+    private var footerLinks: some View {
+        HStack(spacing: 20) {
+            Button("Settings") {
+                environment.showSettings = true
+            }
+            Button(BrowserConstants.productWebsiteHost) {
+                tab.openProductSite()
+            }
+            Button(BrowserConstants.publisherName) {
+                tab.openPublisherSite()
+            }
+            Spacer(minLength: 0)
+        }
+        .font(.footnote.weight(.medium))
+        .foregroundStyle(.secondary)
+        .buttonStyle(.plain)
     }
 
     private func submitSearch() {
@@ -221,66 +222,55 @@ struct StartPageView: View {
         guard !trimmed.isEmpty else { return }
         let engine = environment.settings.searchEngine
         tab.searchEngine = engine
-        let url = URLParser.resolve(trimmed, searchEngine: engine)
-        tab.load(url)
+        tab.load(URLParser.resolve(trimmed, searchEngine: engine))
         query = ""
     }
 
-    private var productButton: some View {
-        Button {
-            tab.openProductSite()
-        } label: {
-            Label(BrowserConstants.productWebsiteHost, systemImage: "globe")
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.borderedProminent)
-        .accessibilityHint("Opens the official Oriel website")
-    }
-
-    private var publisherButton: some View {
-        Button {
-            tab.openPublisherSite()
-        } label: {
-            Label("Made by \(BrowserConstants.publisherName)", systemImage: "building.2")
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.bordered)
-        .accessibilityHint("Opens the publisher website")
-    }
-
     private func section<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             Text(title)
-                .font(.headline)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .tracking(0.8)
             content()
         }
     }
 
-    private func tileGrid(items: [(String, String)]) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 12)], spacing: 12) {
-            ForEach(items, id: \.1) { item in
+    private func linkRows(items: [(String, String)]) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 Button {
                     if let url = URL(string: item.1) {
                         tab.load(url)
                     }
                 } label: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Image(systemName: "globe")
-                            .font(.title2)
-                        Text(item.0)
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                        Text(item.1.replacingOccurrences(of: "https://", with: ""))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
+                    HStack(spacing: 12) {
+                        FaviconImage(pageURL: URL(string: item.1), size: 18)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.0)
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                            Text(item.1.replacingOccurrences(of: "https://", with: ""))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(14)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .padding(.vertical, 12)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+
+                if index < items.count - 1 {
+                    Divider()
+                        .opacity(0.45)
+                }
             }
         }
     }
