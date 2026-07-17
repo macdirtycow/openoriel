@@ -48,6 +48,12 @@ struct BrowserShellView: View {
                 .frame(minWidth: 440, minHeight: 560)
                 #endif
         }
+        .sheet(isPresented: $environment.showDownloads) {
+            DownloadsView()
+                #if os(macOS)
+                .frame(minWidth: 480, minHeight: 420)
+                #endif
+        }
         .onChange(of: environment.settings.restorePreviousSession) { _, newValue in
             environment.sessionStore.restorePreviousSession = newValue
         }
@@ -56,12 +62,20 @@ struct BrowserShellView: View {
     #if os(iOS)
     @ViewBuilder
     private func iosShell(tab: BrowserTab, environment: AppEnvironment) -> some View {
+        @Bindable var environment = environment
         VStack(spacing: 0) {
-            if tab.isPrivate {
-                privateBanner
-            }
+            if tab.isPrivate { privateBanner }
             progressBar(for: tab)
             content(for: tab, environment: environment)
+            if environment.showFindInPage {
+                FindInPageBar(
+                    query: $environment.findQuery,
+                    onSubmit: { environment.performFind(forward: true) },
+                    onNext: { environment.performFind(forward: true) },
+                    onPrevious: { environment.performFind(forward: false) },
+                    onClose: { environment.closeFind() }
+                )
+            }
 
             VStack(spacing: 8) {
                 AddressBarView(tab: tab) {
@@ -70,9 +84,9 @@ struct BrowserShellView: View {
                     hideKeyboard()
                 }
 
-                HStack(spacing: 16) {
+                HStack(spacing: 12) {
                     NavigationControlsView(tab: tab)
-                    Spacer()
+                    Spacer(minLength: 8)
                     shieldButton(environment: environment)
                     chromeMenu(environment: environment, tab: tab)
                     Button {
@@ -100,15 +114,23 @@ struct BrowserShellView: View {
     #if os(macOS)
     @ViewBuilder
     private func macShell(tab: BrowserTab, environment: AppEnvironment) -> some View {
+        @Bindable var environment = environment
         VStack(spacing: 0) {
-            if tab.isPrivate {
-                privateBanner
-            }
+            if tab.isPrivate { privateBanner }
             if environment.tabs.tabs.count > 1 {
                 macTabStrip(environment: environment)
             }
             progressBar(for: tab)
             content(for: tab, environment: environment)
+            if environment.showFindInPage {
+                FindInPageBar(
+                    query: $environment.findQuery,
+                    onSubmit: { environment.performFind(forward: true) },
+                    onNext: { environment.performFind(forward: true) },
+                    onPrevious: { environment.performFind(forward: false) },
+                    onClose: { environment.closeFind() }
+                )
+            }
         }
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
@@ -133,6 +155,13 @@ struct BrowserShellView: View {
                 shieldButton(environment: environment)
 
                 Button {
+                    environment.showDownloads = true
+                } label: {
+                    Image(systemName: environment.downloads.hasActiveDownloads ? "arrow.down.circle.fill" : "arrow.down.circle")
+                }
+                .help("Downloads")
+
+                Button {
                     environment.showTabOverview = true
                 } label: {
                     Image(systemName: "square.on.square")
@@ -154,17 +183,13 @@ struct BrowserShellView: View {
                     } label: {
                         HStack(spacing: 6) {
                             if item.isPrivate {
-                                Image(systemName: "eyeglasses")
-                                    .font(.caption2)
+                                Image(systemName: "eyeglasses").font(.caption2)
                             }
-                            Text(item.displayTitle)
-                                .lineLimit(1)
+                            Text(item.displayTitle).lineLimit(1)
                             if environment.tabs.tabs.count > 1 {
                                 Image(systemName: "xmark")
                                     .font(.caption2.weight(.bold))
-                                    .onTapGesture {
-                                        environment.tabs.closeTab(id: item.id)
-                                    }
+                                    .onTapGesture { environment.tabs.closeTab(id: item.id) }
                             }
                         }
                         .padding(.horizontal, 10)
@@ -215,9 +240,7 @@ struct BrowserShellView: View {
                 environment.tabs.duplicateActiveTab()
                 environment.wireTabPrivacyHooks()
             }
-            Button("Close Tab") {
-                environment.tabs.closeActiveTab()
-            }
+            Button("Close Tab") { environment.tabs.closeActiveTab() }
             Button("Reopen Closed Tab") {
                 _ = environment.tabs.restoreClosedTab()
                 environment.wireTabPrivacyHooks()
@@ -226,33 +249,65 @@ struct BrowserShellView: View {
 
             Divider()
 
-            Button("Bookmark This Page") {
-                environment.bookmarkActivePage()
+            Button("Find in Page…") {
+                environment.showFindInPage = true
             }
-            .disabled(URLParser.isStartPage(tab.navigation.url) || tab.isPrivate)
+            .disabled(tab.isShowingStartPage)
+
+            Button(tab.requestsDesktopSite ? "Request Mobile Website" : "Request Desktop Website") {
+                tab.toggleDesktopSite()
+            }
+            .disabled(tab.isShowingStartPage)
+
+            Divider()
+
+            Button("Bookmark This Page") { environment.bookmarkActivePage() }
+                .disabled(tab.isShowingStartPage || tab.isPrivate)
 
             Button("Bookmarks") { environment.showBookmarks = true }
             Button("History") { environment.showHistory = true }
+            Button("Downloads") { environment.showDownloads = true }
             Button("Shields") { environment.showPrivacyShield = true }
 
             Divider()
 
-            Button("Visit \(BrowserConstants.productWebsiteHost)") {
-                tab.openProductSite()
-            }
-            Button("About Oriel") {
-                environment.showAbout = true
-            }
+            Button("Visit \(BrowserConstants.productWebsiteHost)") { tab.openProductSite() }
+            Button("About Oriel") { environment.showAbout = true }
         } label: {
             Image(systemName: "ellipsis.circle")
         }
         .accessibilityLabel("More")
     }
 
+    /// Keep WKWebView mounted so Home does not wipe back/forward history.
     @ViewBuilder
     private func content(for tab: BrowserTab, environment: AppEnvironment) -> some View {
+        let showStart = tab.isShowingStartPage && tab.navigation.lastErrorMessage == nil
+        let showError = tab.navigation.lastErrorMessage != nil
+
         ZStack {
-            if URLParser.isStartPage(tab.navigation.url), tab.navigation.lastErrorMessage == nil {
+            BrowserWebView(
+                tab: tab,
+                contentRuleList: environment.contentBlocker.compiledList,
+                blockThirdPartyCookies: environment.privacy.blockThirdPartyCookies,
+                contentBlockingEnabled: environment.contentBlockingEnabled(for: tab),
+                matchesBlockedHint: { url in
+                    environment.contentBlocker.matchesBlockedHostHint(url)
+                },
+                onBlockedNavigation: {
+                    environment.privacyStats.recordBlockedRequest()
+                },
+                onDownload: { url, name in
+                    environment.downloads.enqueue(url: url, suggestedFileName: name)
+                    environment.showDownloads = true
+                },
+                permissionManager: environment.permissions
+            )
+            .id(tab.id)
+            .opacity(showStart || showError ? 0 : 1)
+            .allowsHitTesting(!(showStart || showError))
+
+            if showStart {
                 StartPageView(tab: tab)
             } else if let message = tab.navigation.lastErrorMessage {
                 ErrorPageView(
@@ -260,21 +315,6 @@ struct BrowserShellView: View {
                     onRetry: { tab.reload() },
                     onHome: { tab.goHome() }
                 )
-            } else {
-                BrowserWebView(
-                    tab: tab,
-                    contentRuleList: environment.contentBlocker.compiledList,
-                    blockThirdPartyCookies: environment.privacy.blockThirdPartyCookies,
-                    contentBlockingEnabled: environment.contentBlockingEnabled(for: tab),
-                    matchesBlockedHint: { url in
-                        environment.contentBlocker.matchesBlockedHostHint(url)
-                    },
-                    onBlockedNavigation: {
-                        environment.privacyStats.recordBlockedRequest()
-                    }
-                )
-                .id("\(tab.id)-\(environment.contentBlockingEnabled(for: tab))-\(environment.contentBlocker.isReady)")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -282,7 +322,7 @@ struct BrowserShellView: View {
 
     @ViewBuilder
     private func progressBar(for tab: BrowserTab) -> some View {
-        if tab.navigation.isLoading && !URLParser.isStartPage(tab.navigation.url) {
+        if tab.navigation.isLoading && !tab.isShowingStartPage {
             ProgressView(value: tab.navigation.estimatedProgress)
                 .progressViewStyle(.linear)
                 .tint(Color.accentColor)

@@ -73,17 +73,17 @@ Success criteria: project builds for iOS Simulator and macOS; user can type a UR
 | **4** | Downloads, permissions, find-in-page, desktop site, shortcuts | Feature-complete MVP |
 | **5** | Accessibility, tests, performance, App Store readiness | Ship checklist |
 
-## Phase 3 status
+## Phase 4 status
 
 Implemented:
 
-- Private tabs (non-persistent `WKWebsiteDataStore`, no history / session restore)
-- Bundled example content-blocker ruleset + `ContentBlockerManager` compile pipeline
-- Global + per-site shield toggles
-- HTTPS upgrade heuristics with counters
-- Best-effort blocked-request counts (navigation-level hints; WebKit limitation documented)
-- Clear cookies / website data
-- Shields dashboard UI (`Shields` button / sheet)
+- Navigation chrome fix: WebView stays mounted under the start page so Home/Back/Forward keep history
+- Clearer back/forward/home/reload button disabled states and hit targets
+- Downloads manager + Downloads UI (cancel / retry)
+- Find in page bar (`⌘F`)
+- Request Desktop / Mobile Website
+- Per-site camera/mic/location permission decisions in Shields
+- Extra keyboard shortcuts (back/forward/home/find/downloads)
 
 ## Non-goals (all phases)
 

@@ -45,6 +45,25 @@ struct PrivacyShieldView: View {
                             set: { environment.privacy.setHTTPSUpgrade($0, forHost: host) }
                         ))
                     }
+
+                    Section("Permissions for \(host)") {
+                        ForEach(SitePermission.allCases) { permission in
+                            Picker(permission.displayName, selection: Binding(
+                                get: { environment.permissions.decision(for: host, permission: permission) },
+                                set: { environment.permissions.setDecision($0, for: host, permission: permission) }
+                            )) {
+                                Text("Ask").tag(PermissionDecision.ask)
+                                Text("Allow").tag(PermissionDecision.allow)
+                                Text("Deny").tag(PermissionDecision.deny)
+                            }
+                        }
+                        let granted = environment.permissions.grantedPermissions(for: host)
+                        if !granted.isEmpty {
+                            Text("Granted: " + granted.map(\.displayName).joined(separator: ", "))
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
 
                 Section("Private browsing") {

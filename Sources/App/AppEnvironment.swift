@@ -13,12 +13,17 @@ final class AppEnvironment {
     let privacy: PrivacySettings
     let privacyStats: PrivacyStats
     let contentBlocker: ContentBlockerManager
+    let downloads: DownloadManager
+    let permissions: WebsitePermissionManager
 
     var showAbout = false
     var showTabOverview = false
     var showBookmarks = false
     var showHistory = false
     var showPrivacyShield = false
+    var showDownloads = false
+    var showFindInPage = false
+    var findQuery = ""
 
     var activeTab: BrowserTab? { tabs.activeTab }
 
@@ -29,7 +34,9 @@ final class AppEnvironment {
         sessionStore: SessionStore? = nil,
         privacy: PrivacySettings? = nil,
         privacyStats: PrivacyStats? = nil,
-        contentBlocker: ContentBlockerManager? = nil
+        contentBlocker: ContentBlockerManager? = nil,
+        downloads: DownloadManager? = nil,
+        permissions: WebsitePermissionManager? = nil
     ) {
         let resolvedSettings = settings ?? BrowserSettings()
         let resolvedBookmarks = bookmarks ?? BookmarkStore()
@@ -38,6 +45,8 @@ final class AppEnvironment {
         let resolvedPrivacy = privacy ?? PrivacySettings()
         let resolvedStats = privacyStats ?? PrivacyStats()
         let resolvedBlocker = contentBlocker ?? ContentBlockerManager()
+        let resolvedDownloads = downloads ?? DownloadManager()
+        let resolvedPermissions = permissions ?? WebsitePermissionManager()
 
         self.settings = resolvedSettings
         self.bookmarks = resolvedBookmarks
@@ -46,6 +55,8 @@ final class AppEnvironment {
         self.privacy = resolvedPrivacy
         self.privacyStats = resolvedStats
         self.contentBlocker = resolvedBlocker
+        self.downloads = resolvedDownloads
+        self.permissions = resolvedPermissions
         resolvedSession.restorePreviousSession = resolvedSettings.restorePreviousSession
 
         let snapshot = resolvedSession.load()
@@ -87,6 +98,17 @@ final class AppEnvironment {
 
     func contentBlockingEnabled(for tab: BrowserTab) -> Bool {
         privacy.effectiveContentBlocking(forHost: tab.navigation.url?.host)
+    }
+
+    func performFind(forward: Bool = true) {
+        guard let tab = activeTab else { return }
+        tab.findInPage(findQuery, forward: forward)
+    }
+
+    func closeFind() {
+        showFindInPage = false
+        findQuery = ""
+        activeTab?.clearFindInPage()
     }
 
     func wireTabPrivacyHooks(for tab: BrowserTab? = nil) {

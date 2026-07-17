@@ -9,8 +9,9 @@ Least-privilege entitlements for Oriel by [inveil.net](https://inveil.net). Only
 | App Sandbox (macOS) | **Yes** | Mandatory for Mac App Store; limits file/network surface |
 | Outgoing network client (macOS sandbox) | **Yes** | Load websites |
 | Incoming network server | **No** | Not needed |
-| `com.apple.security.files.user-selected.read-write` (macOS) | Later (downloads) | User-picked download folder / save panels |
-| `com.apple.security.files.downloads.read-write` (macOS) | Later (downloads) | Default Downloads folder access if used |
+| `com.apple.security.files.downloads.read-write` (macOS) | **Yes (Phase 4)** | Save downloads to the Downloads folder |
+| `com.apple.security.files.user-selected.read-write` (macOS) | **Yes (Phase 4)** | Reveal / open user-selected files |
+| Camera / Microphone (macOS sandbox) | **Yes (Phase 4)** | Site media permission prompts |
 | App Groups | **No for Phase 1** | Only if sharing data with a Content Blocker extension later |
 | Keychain sharing / access groups | **No for Phase 1** | Local Keychain for this app is enough until sync/extensions |
 | Associated Domains | **No** | No universal links in MVP |

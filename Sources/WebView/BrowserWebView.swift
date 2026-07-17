@@ -15,6 +15,8 @@ struct BrowserWebView: PlatformViewRepresentable {
     var contentBlockingEnabled: Bool = true
     var matchesBlockedHint: (URL) -> Bool = { _ in false }
     var onBlockedNavigation: () -> Void = {}
+    var onDownload: ((URL, String?) -> Void)?
+    var permissionManager: WebsitePermissionManager?
 
     #if os(iOS)
     func makeUIView(context: Context) -> WKWebView {
@@ -39,7 +41,9 @@ struct BrowserWebView: PlatformViewRepresentable {
             tab: tab,
             contentBlockingEnabled: contentBlockingEnabled,
             matchesBlockedHint: matchesBlockedHint,
-            onBlockedNavigation: onBlockedNavigation
+            onBlockedNavigation: onBlockedNavigation,
+            onDownload: onDownload,
+            permissionManager: permissionManager
         )
     }
 
@@ -50,11 +54,6 @@ struct BrowserWebView: PlatformViewRepresentable {
             : .default()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.preferences.isElementFullscreenEnabled = true
-
-        if blockThirdPartyCookies {
-            // Best-effort: prefer stricter cookie accept policy where available.
-            configuration.websiteDataStore.httpCookieStore.getAllCookies { _ in }
-        }
 
         if contentBlockingEnabled, let contentRuleList {
             configuration.userContentController.add(contentRuleList)
@@ -68,8 +67,13 @@ struct BrowserWebView: PlatformViewRepresentable {
         webView.scrollView.contentInsetAdjustmentBehavior = .automatic
         #endif
 
+        if tab.requestsDesktopSite {
+            webView.customUserAgent = BrowserConstants.desktopUserAgent
+        }
+
         context.coordinator.observe(webView)
         tab.webView = webView
+        tab.refreshNavigationChrome()
 
         if let url = tab.navigation.url, !URLParser.isStartPage(url) {
             webView.load(URLRequest(url: url))
@@ -86,5 +90,12 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.contentBlockingEnabled = contentBlockingEnabled
         context.coordinator.matchesBlockedHint = matchesBlockedHint
         context.coordinator.onBlockedNavigation = onBlockedNavigation
+        context.coordinator.onDownload = onDownload
+        context.coordinator.permissionManager = permissionManager
+
+        let desiredUA = tab.requestsDesktopSite ? BrowserConstants.desktopUserAgent : nil
+        if webView.customUserAgent != desiredUA {
+            webView.customUserAgent = desiredUA
+        }
     }
 }

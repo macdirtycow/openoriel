@@ -44,6 +44,21 @@ struct OrielApp: App {
             }
 
             CommandGroup(after: .sidebar) {
+                Button("Back") {
+                    environment.activeTab?.goBack()
+                }
+                .keyboardShortcut("[", modifiers: .command)
+
+                Button("Forward") {
+                    environment.activeTab?.goForward()
+                }
+                .keyboardShortcut("]", modifiers: .command)
+
+                Button("Home") {
+                    environment.activeTab?.goHome()
+                }
+                .keyboardShortcut("h", modifiers: [.command, .shift])
+
                 Button("Reload") {
                     environment.activeTab?.reload()
                 }
@@ -53,6 +68,15 @@ struct OrielApp: App {
                     environment.activeTab?.stopLoading()
                 }
                 .keyboardShortcut(".", modifiers: .command)
+
+                Button("Find…") {
+                    environment.showFindInPage = true
+                }
+                .keyboardShortcut("f", modifiers: .command)
+
+                Button("Request Desktop Website") {
+                    environment.activeTab?.toggleDesktopSite()
+                }
 
                 Button("Show Tab Overview") {
                     environment.showTabOverview = true
@@ -68,6 +92,11 @@ struct OrielApp: App {
                     environment.showHistory = true
                 }
                 .keyboardShortcut("y", modifiers: .command)
+
+                Button("Downloads") {
+                    environment.showDownloads = true
+                }
+                .keyboardShortcut("j", modifiers: [.command, .shift])
 
                 Button("Shields") {
                     environment.showPrivacyShield = true

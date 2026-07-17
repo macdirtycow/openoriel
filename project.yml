@@ -60,6 +60,9 @@ targets:
       INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
       INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
       INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+      INFOPLIST_KEY_NSCameraUsageDescription: "Oriel needs camera access when a website requests it."
+      INFOPLIST_KEY_NSMicrophoneUsageDescription: "Oriel needs microphone access when a website requests it."
+      INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Oriel needs location access when a website requests it."
       TARGETED_DEVICE_FAMILY: "1,2"
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       ENABLE_PREVIEWS: YES
