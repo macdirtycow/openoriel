@@ -46,7 +46,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Search engine")
                 } footer: {
-                    Text("Used when you type words in the address bar instead of a website address. Current: \(settings.searchEngine.displayName).")
+                    Text("Oriel does not host its own search index. Queries open \(settings.searchEngine.displayName)'s results page. Also used when you type words in the address bar instead of a website address.")
                         .fixedSize(horizontal: false, vertical: true)
                 }
 

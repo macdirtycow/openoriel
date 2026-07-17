@@ -90,6 +90,8 @@ Implemented:
 Implemented:
 
 - Explicit search-engine choice (DuckDuckGo, **Google**, Bing, Ecosia) on start page + Settings
+- Oriel-branded start-page search field (opens the selected provider; no own index)
+- Google searches use web-results params (`udm=14`) for a calmer results page
 - Address bar placeholder shows the active engine (“Search with Google…”)
 - Settings gear in chrome; appearance (system/light/dark)
 - New-tab behavior (start page or homepage URL)
