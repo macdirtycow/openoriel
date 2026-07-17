@@ -7,7 +7,11 @@
 
 ## Naming
 
-Oriel is a privacy-focused native browser by **inveil.net**. The name reflects a protective layer over browsing without implying impossible guarantees. Branding, icons, and UI are original — not copies of Safari or Brave.
+**Oriel** is a privacy-focused native browser by **inveil.net**.
+
+An *oriel* is a projecting bay window — a sheltered place to look out at the world. That metaphor fits a calm, private-minded browser: you see the web clearly, from a protected frame of your own.
+
+The name is original product branding (not Safari/Brave, and not Veil). Publisher remains **inveil.net**. Branding, icons, and UI are original.
 
 ## Proposed directory structure
 

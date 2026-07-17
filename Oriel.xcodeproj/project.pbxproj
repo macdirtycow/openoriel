@@ -1,0 +1,750 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		031CD0495C873598AF6F38C4 /* NavigationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C223CB51AB8532708D4195C6 /* NavigationPolicy.swift */; };
+		062CFFBE06CF8D1B9D60EAAD /* StartPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137A3D8074BF71FCA60476D1 /* StartPageView.swift */; };
+		08347FFA0F20DF4B5C438EA3 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BEFD3827F6D61B94816542 /* AppEnvironment.swift */; };
+		1ADCF553BB2449889BF1E2A5 /* BrowserShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9596246F720EF499196A3B2 /* BrowserShellView.swift */; };
+		1D1FE1CB23854CA116937A27 /* URLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE1527CE617BF10774B6D67 /* URLParser.swift */; };
+		24661EE7DF1F76D44B03023D /* BrowserConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77C0F612CCA391C44840B85 /* BrowserConstants.swift */; };
+		31CD8FE1951535233E663D49 /* NavigationControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */; };
+		31E51D1FB99CE01A6477B29C /* WebViewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0135155E8C8C82FFAD7A65B /* WebViewCoordinator.swift */; };
+		68C0D3A56B2B78146A91293E /* AddressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161F0A55C73E58B7E28FEF17 /* AddressBarView.swift */; };
+		69037969A87CFB02AC73F00F /* BrowserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F59F3AD82F32EA43EF0D179 /* BrowserSettings.swift */; };
+		69B41FC7A2BD0CF80337C338 /* URLParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CAA503AA1BB5B6FE0606DF0 /* URLParserTests.swift */; };
+		782C2C4F7354EA78F9239794 /* BrowserTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A34690536302270522B7B4 /* BrowserTab.swift */; };
+		8E8A6FDFAD6F1304987AAEC0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7AA6FA08B917C0F4A81D7E1C /* Assets.xcassets */; };
+		C0D710DE823E78C7F52F7F02 /* OrielTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */; };
+		D7E704953945FC2B3CE55422 /* NavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1808B252AD7CA5B9316D569 /* NavigationState.swift */; };
+		E5EB1A0B4E5FDD540720A749 /* ErrorPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02CBC7705D9621792C8BF524 /* ErrorPageView.swift */; };
+		EA61CA2644CE7FEE170C6664 /* BrowserWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1809F1262455BCB12BC805A /* BrowserWebView.swift */; };
+		EA8342244336627EE154A27D /* SearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F54728DFA5496279551E4EA /* SearchEngine.swift */; };
+		EF2FF8C6FB1DC6C617AEDFAA /* AboutOrielView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8DE8EFCF1E30C51C131D42F /* AboutOrielView.swift */; };
+		F65077EB32B9828050571EBE /* OrielUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58FEB09C6E8430F39C280882 /* OrielUITests.swift */; };
+		FF5F8E058A1A7C1D9328AC1B /* OrielApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAB969C9258A7150A1F20633 /* OrielApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		20F89A89C3F36ABD8E473BE8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3D91E3067FD308405E6AE387 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01DDED6C12EB2255654EF05D;
+			remoteInfo = Oriel;
+		};
+		DCA029FDE5E1056950B6F962 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3D91E3067FD308405E6AE387 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01DDED6C12EB2255654EF05D;
+			remoteInfo = Oriel;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		02CBC7705D9621792C8BF524 /* ErrorPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorPageView.swift; sourceTree = "<group>"; };
+		1274D8E8A0638DAF2DBD4CD3 /* Oriel.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Oriel.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		137A3D8074BF71FCA60476D1 /* StartPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartPageView.swift; sourceTree = "<group>"; };
+		161F0A55C73E58B7E28FEF17 /* AddressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressBarView.swift; sourceTree = "<group>"; };
+		184A1F63A6D4A135C3297AFE /* OrielUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OrielUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2CAA503AA1BB5B6FE0606DF0 /* URLParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLParserTests.swift; sourceTree = "<group>"; };
+		3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielTheme.swift; sourceTree = "<group>"; };
+		58FEB09C6E8430F39C280882 /* OrielUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielUITests.swift; sourceTree = "<group>"; };
+		6F54728DFA5496279551E4EA /* SearchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchEngine.swift; sourceTree = "<group>"; };
+		7AA6FA08B917C0F4A81D7E1C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7F59F3AD82F32EA43EF0D179 /* BrowserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserSettings.swift; sourceTree = "<group>"; };
+		899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationControlsView.swift; sourceTree = "<group>"; };
+		9AE1527CE617BF10774B6D67 /* URLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLParser.swift; sourceTree = "<group>"; };
+		A0135155E8C8C82FFAD7A65B /* WebViewCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewCoordinator.swift; sourceTree = "<group>"; };
+		B1809F1262455BCB12BC805A /* BrowserWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserWebView.swift; sourceTree = "<group>"; };
+		B809DD2283CD4045BA7442C0 /* OrielTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OrielTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B8DE8EFCF1E30C51C131D42F /* AboutOrielView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutOrielView.swift; sourceTree = "<group>"; };
+		C1808B252AD7CA5B9316D569 /* NavigationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationState.swift; sourceTree = "<group>"; };
+		C223CB51AB8532708D4195C6 /* NavigationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicy.swift; sourceTree = "<group>"; };
+		C3BEFD3827F6D61B94816542 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		C9596246F720EF499196A3B2 /* BrowserShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserShellView.swift; sourceTree = "<group>"; };
+		D1A34690536302270522B7B4 /* BrowserTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTab.swift; sourceTree = "<group>"; };
+		DAB969C9258A7150A1F20633 /* OrielApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielApp.swift; sourceTree = "<group>"; };
+		F77C0F612CCA391C44840B85 /* BrowserConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserConstants.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1E1A291CCF0885F5C5BF1F6D /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		395D595E81BAC94C5CDEB6CA /* History */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		453A172B46DF09152B7191EF /* OrielUITests */ = {
+			isa = PBXGroup;
+			children = (
+				58FEB09C6E8430F39C280882 /* OrielUITests.swift */,
+			);
+			path = OrielUITests;
+			sourceTree = "<group>";
+		};
+		4647E01A9DBE11B445960A5B /* Downloads */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Downloads;
+			sourceTree = "<group>";
+		};
+		6A91AE6ED2C3208FA9FB9703 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				7AA6FA08B917C0F4A81D7E1C /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		8D0F0FB058587A31583640A2 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				92573FB191B89EF740616840 /* OrielTests */,
+				453A172B46DF09152B7191EF /* OrielUITests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		8FD0BA2C584893393FBBC938 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1274D8E8A0638DAF2DBD4CD3 /* Oriel.app */,
+				B809DD2283CD4045BA7442C0 /* OrielTests.xctest */,
+				184A1F63A6D4A135C3297AFE /* OrielUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		92573FB191B89EF740616840 /* OrielTests */ = {
+			isa = PBXGroup;
+			children = (
+				2CAA503AA1BB5B6FE0606DF0 /* URLParserTests.swift */,
+			);
+			path = OrielTests;
+			sourceTree = "<group>";
+		};
+		ABB153C6CB5DAED4DE0C2790 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				7F59F3AD82F32EA43EF0D179 /* BrowserSettings.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		B072441E5A7647BC0FC8D6E1 /* Privacy */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Privacy;
+			sourceTree = "<group>";
+		};
+		BCD52F5731D511C76314647E /* Tabs */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Tabs;
+			sourceTree = "<group>";
+		};
+		C724DBB7371C6134B4F49958 /* WebView */ = {
+			isa = PBXGroup;
+			children = (
+				B1809F1262455BCB12BC805A /* BrowserWebView.swift */,
+				C223CB51AB8532708D4195C6 /* NavigationPolicy.swift */,
+				A0135155E8C8C82FFAD7A65B /* WebViewCoordinator.swift */,
+			);
+			path = WebView;
+			sourceTree = "<group>";
+		};
+		C850C88265CA9829CF1C301D = {
+			isa = PBXGroup;
+			children = (
+				6A91AE6ED2C3208FA9FB9703 /* Resources */,
+				E888F9045ECBE77F9699147D /* Sources */,
+				8D0F0FB058587A31583640A2 /* Tests */,
+				8FD0BA2C584893393FBBC938 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CC4D5E5ADC537CAE9A9D94C0 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				C3BEFD3827F6D61B94816542 /* AppEnvironment.swift */,
+				DAB969C9258A7150A1F20633 /* OrielApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		DAAEFA357E432123327E2569 /* BrowserCore */ = {
+			isa = PBXGroup;
+			children = (
+				F77C0F612CCA391C44840B85 /* BrowserConstants.swift */,
+				D1A34690536302270522B7B4 /* BrowserTab.swift */,
+				C1808B252AD7CA5B9316D569 /* NavigationState.swift */,
+				6F54728DFA5496279551E4EA /* SearchEngine.swift */,
+				9AE1527CE617BF10774B6D67 /* URLParser.swift */,
+			);
+			path = BrowserCore;
+			sourceTree = "<group>";
+		};
+		E396DBE6BF4F7E3A206FD3D5 /* ContentBlocking */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ContentBlocking;
+			sourceTree = "<group>";
+		};
+		E563573CBD2854D51EB085CE /* Bookmarks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Bookmarks;
+			sourceTree = "<group>";
+		};
+		E888F9045ECBE77F9699147D /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				CC4D5E5ADC537CAE9A9D94C0 /* App */,
+				E563573CBD2854D51EB085CE /* Bookmarks */,
+				DAAEFA357E432123327E2569 /* BrowserCore */,
+				E396DBE6BF4F7E3A206FD3D5 /* ContentBlocking */,
+				4647E01A9DBE11B445960A5B /* Downloads */,
+				395D595E81BAC94C5CDEB6CA /* History */,
+				1E1A291CCF0885F5C5BF1F6D /* Persistence */,
+				EDEBC1B20E7B2AF5159A138D /* PlatformUI */,
+				B072441E5A7647BC0FC8D6E1 /* Privacy */,
+				ABB153C6CB5DAED4DE0C2790 /* Settings */,
+				BCD52F5731D511C76314647E /* Tabs */,
+				C724DBB7371C6134B4F49958 /* WebView */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		EDEBC1B20E7B2AF5159A138D /* PlatformUI */ = {
+			isa = PBXGroup;
+			children = (
+				B8DE8EFCF1E30C51C131D42F /* AboutOrielView.swift */,
+				161F0A55C73E58B7E28FEF17 /* AddressBarView.swift */,
+				C9596246F720EF499196A3B2 /* BrowserShellView.swift */,
+				02CBC7705D9621792C8BF524 /* ErrorPageView.swift */,
+				899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */,
+				3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */,
+				137A3D8074BF71FCA60476D1 /* StartPageView.swift */,
+			);
+			path = PlatformUI;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		01DDED6C12EB2255654EF05D /* Oriel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 039E83014D97139CD2042875 /* Build configuration list for PBXNativeTarget "Oriel" */;
+			buildPhases = (
+				7A30D6BF1A21F01951BA6F76 /* Sources */,
+				D1E9A40691796E931F948B66 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Oriel;
+			packageProductDependencies = (
+			);
+			productName = Oriel;
+			productReference = 1274D8E8A0638DAF2DBD4CD3 /* Oriel.app */;
+			productType = "com.apple.product-type.application";
+		};
+		61C25CF57981AFB2A4D32FCC /* OrielUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 875E35E3D3481CCC939B88F7 /* Build configuration list for PBXNativeTarget "OrielUITests" */;
+			buildPhases = (
+				96881CC3235A753518E8675A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4F20630C7B9EE60D5D9CD941 /* PBXTargetDependency */,
+			);
+			name = OrielUITests;
+			packageProductDependencies = (
+			);
+			productName = OrielUITests;
+			productReference = 184A1F63A6D4A135C3297AFE /* OrielUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		B4230AB4994CB42E10935699 /* OrielTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8FB072A8657CAC9442084E6F /* Build configuration list for PBXNativeTarget "OrielTests" */;
+			buildPhases = (
+				D84861F5CF224F74CBC6D636 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				93A479A661EEE0750DC6AE76 /* PBXTargetDependency */,
+			);
+			name = OrielTests;
+			packageProductDependencies = (
+			);
+			productName = OrielTests;
+			productReference = B809DD2283CD4045BA7442C0 /* OrielTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3D91E3067FD308405E6AE387 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					01DDED6C12EB2255654EF05D = {
+						DevelopmentTeam = 2PP6UH4PWA;
+						ProvisioningStyle = Automatic;
+					};
+					61C25CF57981AFB2A4D32FCC = {
+						DevelopmentTeam = 2PP6UH4PWA;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 01DDED6C12EB2255654EF05D;
+					};
+					B4230AB4994CB42E10935699 = {
+						DevelopmentTeam = 2PP6UH4PWA;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = C1F430963ABBB49F6680A39B /* Build configuration list for PBXProject "Oriel" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = C850C88265CA9829CF1C301D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8FD0BA2C584893393FBBC938 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				01DDED6C12EB2255654EF05D /* Oriel */,
+				B4230AB4994CB42E10935699 /* OrielTests */,
+				61C25CF57981AFB2A4D32FCC /* OrielUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D1E9A40691796E931F948B66 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8E8A6FDFAD6F1304987AAEC0 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7A30D6BF1A21F01951BA6F76 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF2FF8C6FB1DC6C617AEDFAA /* AboutOrielView.swift in Sources */,
+				68C0D3A56B2B78146A91293E /* AddressBarView.swift in Sources */,
+				08347FFA0F20DF4B5C438EA3 /* AppEnvironment.swift in Sources */,
+				24661EE7DF1F76D44B03023D /* BrowserConstants.swift in Sources */,
+				69037969A87CFB02AC73F00F /* BrowserSettings.swift in Sources */,
+				1ADCF553BB2449889BF1E2A5 /* BrowserShellView.swift in Sources */,
+				782C2C4F7354EA78F9239794 /* BrowserTab.swift in Sources */,
+				EA61CA2644CE7FEE170C6664 /* BrowserWebView.swift in Sources */,
+				E5EB1A0B4E5FDD540720A749 /* ErrorPageView.swift in Sources */,
+				31CD8FE1951535233E663D49 /* NavigationControlsView.swift in Sources */,
+				031CD0495C873598AF6F38C4 /* NavigationPolicy.swift in Sources */,
+				D7E704953945FC2B3CE55422 /* NavigationState.swift in Sources */,
+				FF5F8E058A1A7C1D9328AC1B /* OrielApp.swift in Sources */,
+				C0D710DE823E78C7F52F7F02 /* OrielTheme.swift in Sources */,
+				EA8342244336627EE154A27D /* SearchEngine.swift in Sources */,
+				062CFFBE06CF8D1B9D60EAAD /* StartPageView.swift in Sources */,
+				1D1FE1CB23854CA116937A27 /* URLParser.swift in Sources */,
+				31E51D1FB99CE01A6477B29C /* WebViewCoordinator.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96881CC3235A753518E8675A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F65077EB32B9828050571EBE /* OrielUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D84861F5CF224F74CBC6D636 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				69B41FC7A2BD0CF80337C338 /* URLParserTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4F20630C7B9EE60D5D9CD941 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01DDED6C12EB2255654EF05D /* Oriel */;
+			targetProxy = DCA029FDE5E1056950B6F962 /* PBXContainerItemProxy */;
+		};
+		93A479A661EEE0750DC6AE76 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01DDED6C12EB2255654EF05D /* Oriel */;
+			targetProxy = 20F89A89C3F36ABD8E473BE8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		505A4D83E90D3A561DB784EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BASE_SDK = "";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+		80155CABD31E22819A54ECB8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2PP6UH4PWA;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Oriel;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © inveil.net";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = net.inveil.oriel;
+				PRODUCT_NAME = Oriel;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B64FA66C5D90DB22A4DADDDF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2PP6UH4PWA;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = net.inveil.oriel.tests;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Oriel.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Oriel";
+			};
+			name = Debug;
+		};
+		C5A32F31C56C4D59D33D1159 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2PP6UH4PWA;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = net.inveil.oriel.tests;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Oriel.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Oriel";
+			};
+			name = Release;
+		};
+		DD5E7DCA45092C01E5E6B0F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2PP6UH4PWA;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Oriel;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © inveil.net";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = net.inveil.oriel;
+				PRODUCT_NAME = Oriel;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E37E47C808F308356D0E9507 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BASE_SDK = "";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		F41C30E6C76E2A16469F9034 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2PP6UH4PWA;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = net.inveil.oriel.uitests;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Oriel;
+			};
+			name = Release;
+		};
+		F9A766FCD2728A29865D7D5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2PP6UH4PWA;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = net.inveil.oriel.uitests;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Oriel;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		039E83014D97139CD2042875 /* Build configuration list for PBXNativeTarget "Oriel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD5E7DCA45092C01E5E6B0F8 /* Debug */,
+				80155CABD31E22819A54ECB8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		875E35E3D3481CCC939B88F7 /* Build configuration list for PBXNativeTarget "OrielUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F9A766FCD2728A29865D7D5B /* Debug */,
+				F41C30E6C76E2A16469F9034 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8FB072A8657CAC9442084E6F /* Build configuration list for PBXNativeTarget "OrielTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B64FA66C5D90DB22A4DADDDF /* Debug */,
+				C5A32F31C56C4D59D33D1159 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C1F430963ABBB49F6680A39B /* Build configuration list for PBXProject "Oriel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E37E47C808F308356D0E9507 /* Debug */,
+				505A4D83E90D3A561DB784EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3D91E3067FD308405E6AE387 /* Project object */;
+}
