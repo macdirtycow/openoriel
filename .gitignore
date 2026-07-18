@@ -10,10 +10,6 @@ xcuserdata/
 *.dSYM.zip
 *.dSYM
 
-# XcodeGen
-# Keep project.yml; regenerate .xcodeproj as needed
-# Optionally ignore generated project — we commit it for convenience after generate
-
 # macOS
 .DS_Store
 
@@ -21,7 +17,8 @@ xcuserdata/
 .build/
 .swiftpm/
 
-# Secrets
+# Secrets / signing
 *.p12
 *.mobileprovision
 .env
+*.pem

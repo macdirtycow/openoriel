@@ -1,20 +1,22 @@
-# Oriel (openoriel)
+# Oriel
 
-**Oriel** is a privacy-minded native browser for iOS, iPadOS, and macOS — named after a bay window: a sheltered place to look out at the world.
+Native browser for iOS, iPadOS, and macOS. Swift, SwiftUI, WebKit.
 
-- **Official website:** [openoriel.com](https://openoriel.com)
-- **Made by:** [inveil.net](https://inveil.net)
-- **GitHub:** [github.com/macdirtycow/openoriel](https://github.com/macdirtycow/openoriel)
+Site: [openoriel.com](https://openoriel.com) · Publisher: [inveil.net](https://inveil.net)
 
-Built with Swift, SwiftUI, and Apple’s WebKit (`WKWebView`). Original UI and branding — not a Safari or Brave clone.
+## What it is
+
+A multiplatform `WKWebView` browser with tabs, bookmarks, history, downloads, private browsing, Shields (content blocking), and — on macOS 15.4+ — WebExtensions including install from the Chrome Web Store.
+
+It is not Chromium, not Safari, and not Brave. Rendering and privacy are bounded by Apple’s WebKit APIs. See [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Requirements
 
 - Xcode 16+
-- iOS 17+ / iPadOS 17+ / macOS 14+
+- iOS / iPadOS 17+, macOS 14+ (extensions need macOS 15.4+)
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 
-## Setup
+## Build
 
 ```bash
 git clone https://github.com/macdirtycow/openoriel.git
@@ -23,23 +25,40 @@ xcodegen generate
 open Oriel.xcodeproj
 ```
 
-## Build (CLI)
+CLI:
 
 ```bash
 xcodegen generate
+xcodebuild -scheme Oriel -destination 'platform=macOS,arch=arm64' build
 xcodebuild -scheme Oriel -destination 'platform=iOS Simulator,name=iPhone 16' build
-xcodebuild -scheme Oriel -destination 'platform=macOS' build
 ```
+
+## Shields
+
+Shields compile bundled EasyList/EasyPrivacy-derived `WKContentRuleList` rules plus YouTube-oriented filters and a skip script. Toggle from the toolbar; defaults on.
+
+Regenerate lists: see [Resources/ContentBlocker/README.md](Resources/ContentBlocker/README.md).
 
 ## Docs
 
-- [Implementation plan](docs/IMPLEMENTATION_PLAN.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Privacy limitations](docs/PRIVACY_LIMITATIONS.md)
-- [Entitlements](docs/ENTITLEMENTS.md)
-- [App Store readiness](docs/APP_STORE_READINESS.md)
-- [QA checklist](docs/QA_CHECKLIST.md)
+| Doc | Topic |
+|-----|--------|
+| [Architecture](docs/ARCHITECTURE.md) | Layout of the source tree |
+| [Privacy](docs/PRIVACY.md) | What WebKit can and cannot do |
+| [Extensions](docs/EXTENSIONS.md) | macOS WebExtensions / Chrome Web Store |
+| [Entitlements](docs/ENTITLEMENTS.md) | Sandbox and capabilities |
+| [App Store](docs/APP_STORE.md) | Shipping checklist |
+| [Contributing](CONTRIBUTING.md) | How to send changes |
+| [Security](SECURITY.md) | How to report issues |
 
 ## Non-goals
 
-No AI assistant, no Qadbak, no crypto/rewards/ads network, no custom browser engine.
+- Custom browser engine
+- AI assistant / chatbot
+- Crypto, rewards, or an ads network
+- Matching Chromium extension or adblock parity 1:1
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Filter-list provenance is documented in `NOTICE`.

@@ -1,0 +1,16 @@
+Oriel
+Copyright 2025–2026 inveil.net
+
+This product includes software developed at inveil.net
+(https://inveil.net/).
+
+---
+
+Bundled filter lists under Resources/ContentBlocker/oriel-easylist.json
+are derived from EasyList and EasyPrivacy
+(https://easylist.to/), © The EasyList authors.
+Licence: https://easylist.to/pages/licence.html
+(GNU GPLv3 or later / Creative Commons Attribution-ShareAlike 3.0 Unported,
+at your option, as published by EasyList).
+
+Conversion tooling: Scripts/convert_easylist_to_webkit.py
