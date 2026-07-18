@@ -247,7 +247,6 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             .joined(separator: ",")
         let script = "window.__orielInstalledExtensionIDs = [\(idsJSON)];"
         webView.evaluateJavaScript(script, in: nil, in: .page) { _ in }
-        webView.evaluateJavaScript(script, in: nil, in: .defaultClient) { _ in }
     }
     #endif
 

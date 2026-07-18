@@ -196,11 +196,14 @@ struct BrowserShellView: View {
     // MARK: - macOS
 
     #if os(macOS)
+    /// Below this width we use in-content chrome so AppKit doesn’t dump a laundry-list overflow menu.
+    private static let compactChromeWidth: CGFloat = 980
+
     @ViewBuilder
     private func macShell(tab: BrowserTab, environment: AppEnvironment) -> some View {
         @Bindable var environment = environment
         GeometryReader { proxy in
-            let isCompact = proxy.size.width < 780
+            let isCompact = proxy.size.width < Self.compactChromeWidth
             VStack(spacing: 0) {
                 if tab.isPrivate { privateBanner }
                 if environment.tabs.tabs.count > 1 {
@@ -224,31 +227,16 @@ struct BrowserShellView: View {
             .toolbar {
                 if !isCompact {
                     ToolbarItemGroup(placement: .navigation) {
-                        Button {
-                            environment.tabs.activeTab?.goHome()
-                        } label: {
-                            OrielMark(size: 20)
-                        }
-                        .buttonStyle(.plain)
-                        .help(BrowserConstants.productName)
-
-                        NavigationControlsView(tab: tab)
+                        NavigationControlsView(tab: tab, style: .full)
                     }
                     ToolbarItem(placement: .principal) {
                         AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
                             tab.searchEngine = environment.settings.searchEngine
                             tab.submitAddressBar()
                         }
-                        .frame(minWidth: 200, idealWidth: 520, maxWidth: 720)
+                        .frame(minWidth: 240, idealWidth: 560, maxWidth: 760)
                     }
                     ToolbarItemGroup(placement: .primaryAction) {
-                        Button {
-                            openAppSettings()
-                        } label: {
-                            Image(systemName: "gearshape")
-                        }
-                        .help("Settings")
-
                         Button {
                             environment.tabs.createTab(select: true)
                             environment.wireTabPrivacyHooks()
@@ -257,16 +245,7 @@ struct BrowserShellView: View {
                         }
                         .help("New Tab")
 
-                        shieldButton(environment: environment)
-                        javaScriptButton(tab: tab)
                         extensionToolbarMenu(environment: environment)
-
-                        Button {
-                            environment.showDownloads = true
-                        } label: {
-                            Image(systemName: environment.downloads.hasActiveDownloads ? "arrow.down.circle.fill" : "arrow.down.circle")
-                        }
-                        .help("Downloads")
 
                         Button {
                             environment.showTabOverview = true
@@ -282,28 +261,16 @@ struct BrowserShellView: View {
         }
     }
 
-    /// Always-visible chrome when the window is too narrow for the full toolbar.
+    /// Single clean row: nav · centered address · tabs / more. No duplicate Settings/JS/Shields row.
     private func macCompactChrome(tab: BrowserTab, environment: AppEnvironment) -> some View {
-        HStack(spacing: 10) {
-            Button {
-                environment.tabs.activeTab?.goHome()
-            } label: {
-                OrielMark(size: 22)
-            }
-            .buttonStyle(.plain)
-            .help(BrowserConstants.productName)
-
-            NavigationControlsView(tab: tab)
-
-            Spacer(minLength: 6)
+        HStack(spacing: 8) {
+            NavigationControlsView(tab: tab, style: .compact)
 
             AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
                 tab.searchEngine = environment.settings.searchEngine
                 tab.submitAddressBar()
             }
-            .frame(maxWidth: 560)
-
-            Spacer(minLength: 6)
+            .frame(maxWidth: .infinity)
 
             Button {
                 environment.tabs.createTab(select: true)
@@ -314,22 +281,19 @@ struct BrowserShellView: View {
             .help("New Tab")
             .buttonStyle(.borderless)
 
-            extensionToolbarMenu(environment: environment)
-                .buttonStyle(.borderless)
-
             Button {
                 environment.showTabOverview = true
             } label: {
                 Image(systemName: "square.on.square")
             }
-            .help("Tab Overview")
+            .help("Tabs")
             .buttonStyle(.borderless)
 
             chromeMenu(environment: environment, tab: tab, compact: true)
                 .buttonStyle(.borderless)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
         .background(.bar)
     }
 
@@ -453,99 +417,107 @@ struct BrowserShellView: View {
     @ViewBuilder
     private func chromeMenu(environment: AppEnvironment, tab: BrowserTab, compact: Bool) -> some View {
         Menu {
-            if !compact {
+            if compact {
+                // Short menu only — no laundry list in narrow windows.
+                Button("New Private Tab") {
+                    environment.tabs.createPrivateTab(select: true)
+                    environment.wireTabPrivacyHooks()
+                }
+                Button("Close Tab") { environment.tabs.closeActiveTab() }
+                Button("Find in Page…") { environment.showFindInPage = true }
+                    .disabled(tab.isShowingStartPage)
+                Button("Reload") { tab.reload() }
+                    .disabled(tab.isShowingStartPage)
+                Button("Home") { tab.goHome() }
+                    .disabled(tab.isShowingStartPage)
+
+                Divider()
+
+                Button("Bookmarks") { environment.showBookmarks = true }
+                Button("History") { environment.showHistory = true }
+                Button("Downloads") { environment.showDownloads = true }
+                Button("Extensions") { environment.showExtensions = true }
+                Button("Shields") { environment.showPrivacyShield = true }
+                Button("Settings") { openAppSettings() }
+            } else {
                 Button("New Tab") {
                     environment.tabs.createTab(select: true)
                     environment.wireTabPrivacyHooks()
                 }
-            }
-            Button("New Private Tab") {
-                environment.tabs.createPrivateTab(select: true)
-                environment.wireTabPrivacyHooks()
-            }
-            Button("Duplicate Tab") {
-                environment.tabs.duplicateActiveTab()
-                environment.wireTabPrivacyHooks()
-            }
-            Button("Close Tab") { environment.tabs.closeActiveTab() }
-            Button(tab.isPinned ? "Unpin Tab" : "Pin Tab") {
-                environment.tabs.togglePin(id: tab.id)
-            }
-            Button("Reopen Closed Tab") {
-                _ = environment.tabs.restoreClosedTab()
-                environment.wireTabPrivacyHooks()
-            }
-            .disabled(!environment.tabs.canRestoreClosedTab)
-
-            Divider()
-
-            Button("Find in Page…") { environment.showFindInPage = true }
-                .disabled(tab.isShowingStartPage)
-
-            Button(tab.isReaderMode ? "Exit Reader Mode" : "Reader Mode") {
-                tab.toggleReaderMode()
-            }
-            .disabled(tab.isShowingStartPage)
-
-            Button(tab.forceDarkEnabled ? "Disable Force Dark" : "Force Dark on Page") {
-                tab.toggleForceDark()
-            }
-            .disabled(tab.isShowingStartPage)
-
-            Button("Zoom In") { tab.zoomIn() }
-                .disabled(tab.isShowingStartPage)
-            Button("Zoom Out") { tab.zoomOut() }
-                .disabled(tab.isShowingStartPage)
-            Button("Actual Size") { tab.resetZoom() }
-                .disabled(tab.isShowingStartPage || tab.zoomFactor == 1.0)
-
-            Button("Print…") { tab.printPage() }
-                .disabled(tab.isShowingStartPage)
-
-            Button(tab.requestsDesktopSite ? "Request Mobile Website" : "Request Desktop Website") {
-                tab.toggleDesktopSite()
-            }
-            .disabled(tab.isShowingStartPage)
-
-            if !compact {
-                Button(tab.javaScriptEnabled ? "Disable JavaScript" : "Enable JavaScript") {
-                    tab.toggleJavaScript()
+                Button("New Private Tab") {
+                    environment.tabs.createPrivateTab(select: true)
+                    environment.wireTabPrivacyHooks()
                 }
-                .disabled(tab.isShowingStartPage)
-            }
-
-            Button("Copy URL") {
-                environment.copyCurrentURL()
-            }
-            .disabled(environment.shareURL == nil)
-
-            if let shareURL = environment.shareURL {
-                ShareLink(item: shareURL) {
-                    Label("Share…", systemImage: "square.and.arrow.up")
+                Button("Duplicate Tab") {
+                    environment.tabs.duplicateActiveTab()
+                    environment.wireTabPrivacyHooks()
                 }
-            }
+                Button("Close Tab") { environment.tabs.closeActiveTab() }
+                Button(tab.isPinned ? "Unpin Tab" : "Pin Tab") {
+                    environment.tabs.togglePin(id: tab.id)
+                }
+                Button("Reopen Closed Tab") {
+                    _ = environment.tabs.restoreClosedTab()
+                    environment.wireTabPrivacyHooks()
+                }
+                .disabled(!environment.tabs.canRestoreClosedTab)
 
-            Divider()
+                Divider()
 
-            Button("Bookmark This Page") { environment.bookmarkActivePage() }
-                .disabled(tab.isShowingStartPage || tab.isPrivate)
+                Menu("Page") {
+                    Button("Find in Page…") { environment.showFindInPage = true }
+                        .disabled(tab.isShowingStartPage)
+                    Button(tab.isReaderMode ? "Exit Reader Mode" : "Reader Mode") {
+                        tab.toggleReaderMode()
+                    }
+                    .disabled(tab.isShowingStartPage)
+                    Button(tab.forceDarkEnabled ? "Disable Force Dark" : "Force Dark on Page") {
+                        tab.toggleForceDark()
+                    }
+                    .disabled(tab.isShowingStartPage)
+                    Button("Zoom In") { tab.zoomIn() }
+                        .disabled(tab.isShowingStartPage)
+                    Button("Zoom Out") { tab.zoomOut() }
+                        .disabled(tab.isShowingStartPage)
+                    Button("Actual Size") { tab.resetZoom() }
+                        .disabled(tab.isShowingStartPage || tab.zoomFactor == 1.0)
+                    Button("Print…") { tab.printPage() }
+                        .disabled(tab.isShowingStartPage)
+                    Button(tab.requestsDesktopSite ? "Request Mobile Website" : "Request Desktop Website") {
+                        tab.toggleDesktopSite()
+                    }
+                    .disabled(tab.isShowingStartPage)
+                    Button(tab.javaScriptEnabled ? "Disable JavaScript" : "Enable JavaScript") {
+                        tab.toggleJavaScript()
+                    }
+                    .disabled(tab.isShowingStartPage)
+                }
 
-            Button("Bookmarks") { environment.showBookmarks = true }
-            Button("History") { environment.showHistory = true }
-            Button("Downloads") { environment.showDownloads = true }
-            if compact {
+                Divider()
+
+                Button("Bookmark This Page") { environment.bookmarkActivePage() }
+                    .disabled(tab.isShowingStartPage || tab.isPrivate)
+                Button("Copy URL") { environment.copyCurrentURL() }
+                    .disabled(environment.shareURL == nil)
+                if let shareURL = environment.shareURL {
+                    ShareLink(item: shareURL) {
+                        Label("Share…", systemImage: "square.and.arrow.up")
+                    }
+                }
+
+                Divider()
+
+                Button("Bookmarks") { environment.showBookmarks = true }
+                Button("History") { environment.showHistory = true }
+                Button("Downloads") { environment.showDownloads = true }
                 Button("Shields") { environment.showPrivacyShield = true }
                 Button("Settings") { openAppSettings() }
-            } else {
-                Button("Extensions") { environment.showExtensions = true }
-                Button("Shields") { environment.showPrivacyShield = true }
-                Button("Settings") { openAppSettings() }
+
+                Divider()
+
+                Button("Visit \(BrowserConstants.productWebsiteHost)") { tab.openProductSite() }
+                Button("About Oriel") { environment.showAbout = true }
             }
-
-            Divider()
-
-            Button("Visit \(BrowserConstants.productWebsiteHost)") { tab.openProductSite() }
-            Button("About Oriel") { environment.showAbout = true }
         } label: {
             Image(systemName: "ellipsis.circle")
         }

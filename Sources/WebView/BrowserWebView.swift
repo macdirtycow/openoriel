@@ -79,9 +79,7 @@ struct BrowserWebView: PlatformViewRepresentable {
             let handler = context.coordinator.chromeWebStoreScriptMessageHandler()
             ucc.removeScriptMessageHandler(forName: ChromeWebStoreBridge.handlerName, contentWorld: .page)
             ucc.removeScriptMessageHandler(forName: ChromeWebStoreBridge.handlerName, contentWorld: .defaultClient)
-            // Page world: chrome.webstorePrivate stub. Client world: DOM “Add to Oriel” UI.
             ucc.add(handler, contentWorld: .page, name: ChromeWebStoreBridge.handlerName)
-            ucc.add(handler, contentWorld: .defaultClient, name: ChromeWebStoreBridge.handlerName)
 
             let apiStub = WKUserScript(
                 source: ChromeWebStoreBridge.chromeAPIStubSource,
@@ -93,7 +91,7 @@ struct BrowserWebView: PlatformViewRepresentable {
                 source: ChromeWebStoreBridge.userScriptSource,
                 injectionTime: .atDocumentEnd,
                 forMainFrameOnly: true,
-                in: .defaultClient
+                in: .page
             )
             ucc.addUserScript(apiStub)
             ucc.addUserScript(uiBridge)

@@ -3,18 +3,20 @@ import SwiftUI
 /// Back / forward / reload / home controls with clear disabled states and hit targets.
 struct NavigationControlsView: View {
     @Bindable var tab: BrowserTab
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    /// Narrow chrome: only back/forward so the address bar stays centered.
+    var style: Style = .full
+
+    enum Style {
+        case full
+        case compact
+    }
 
     private var isStartPage: Bool {
         URLParser.isStartPage(tab.navigation.url)
     }
 
-    private var buttonSize: CGFloat {
-        horizontalSizeClass == .compact ? OrielLayout.compactNavButtonSize : OrielLayout.navButtonSize
-    }
-
     var body: some View {
-        HStack(spacing: horizontalSizeClass == .compact ? 2 : 6) {
+        HStack(spacing: style == .compact ? 0 : 4) {
             navButton(
                 systemName: "chevron.backward",
                 label: "Back",
@@ -31,26 +33,32 @@ struct NavigationControlsView: View {
                 tab.goForward()
             }
 
-            navButton(
-                systemName: tab.navigation.isLoading ? "xmark" : "arrow.clockwise",
-                label: tab.navigation.isLoading ? "Stop" : "Reload",
-                enabled: !isStartPage || tab.navigation.isLoading
-            ) {
-                if tab.navigation.isLoading {
-                    tab.stopLoading()
-                } else {
-                    tab.reload()
+            if style == .full {
+                navButton(
+                    systemName: tab.navigation.isLoading ? "xmark" : "arrow.clockwise",
+                    label: tab.navigation.isLoading ? "Stop" : "Reload",
+                    enabled: !isStartPage || tab.navigation.isLoading
+                ) {
+                    if tab.navigation.isLoading {
+                        tab.stopLoading()
+                    } else {
+                        tab.reload()
+                    }
+                }
+
+                navButton(
+                    systemName: "house",
+                    label: "Home",
+                    enabled: !isStartPage
+                ) {
+                    tab.goHome()
                 }
             }
-
-            navButton(
-                systemName: "house",
-                label: "Home",
-                enabled: !isStartPage
-            ) {
-                tab.goHome()
-            }
         }
+    }
+
+    private var buttonSize: CGFloat {
+        style == .compact ? 30 : OrielLayout.navButtonSize
     }
 
     private func navButton(

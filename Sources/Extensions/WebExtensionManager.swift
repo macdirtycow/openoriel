@@ -60,21 +60,17 @@ final class WebExtensionManager {
         return nil
     }
 
-    /// Stable Chrome Web Store IDs (and matching unique IDs) for store page “already installed” UI.
+    /// Stable Chrome Web Store IDs only (never WebKit-generated unique IDs).
     var installedChromeStoreIDs: [String] {
-        var ids = Set<String>()
-        for item in extensions {
-            if let storeID = item.chromeStoreID, ChromeWebStoreAPI.isValidExtensionID(storeID) {
-                ids.insert(storeID)
-            }
-            if ChromeWebStoreAPI.isValidExtensionID(item.id) {
-                ids.insert(item.id)
-            }
-            if ChromeWebStoreAPI.isValidExtensionID(item.directoryName) {
-                ids.insert(item.directoryName)
-            }
-        }
-        return Array(ids).sorted()
+        Array(
+            Set(
+                extensions.compactMap { item -> String? in
+                    guard let storeID = item.chromeStoreID?.lowercased(),
+                          ChromeWebStoreAPI.isValidExtensionID(storeID) else { return nil }
+                    return storeID
+                }
+            )
+        ).sorted()
     }
 
     func isInstalledFromChromeWebStore(extensionID: String) -> Bool {
@@ -215,8 +211,8 @@ final class WebExtensionManager {
         }
 
         if isInstalledFromChromeWebStore(extensionID: id) {
-            statusMessage = "Already installed. Use Extensions to open, disable, or remove it."
-            return
+            // Re-download updates the package instead of no-oping (felt like “Add to Oriel broken”).
+            statusMessage = "Updating…"
         }
 
         guard let downloadURL = ChromeWebStoreAPI.downloadURL(forExtensionID: id) else {
@@ -225,7 +221,9 @@ final class WebExtensionManager {
         }
 
         isInstallingFromStore = true
-        statusMessage = "Downloading from Chrome Web Store…"
+        if statusMessage == nil {
+            statusMessage = "Downloading from Chrome Web Store…"
+        }
         defer { isInstallingFromStore = false }
 
         do {
