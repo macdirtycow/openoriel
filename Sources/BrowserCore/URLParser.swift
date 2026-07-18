@@ -70,18 +70,6 @@ enum URLParser: Sendable {
             && url.host?.lowercased() == BrowserConstants.startPageHost
     }
 
-    static func isDuckPlayerPage(_ url: URL?) -> Bool {
-        guard let url else { return false }
-        return url.scheme?.lowercased() == BrowserConstants.aboutScheme
-            && url.host?.lowercased() == "player"
-    }
-
-    static func duckPlayerVideoID(from url: URL) -> String? {
-        guard isDuckPlayerPage(url) else { return nil }
-        let id = url.path.split(separator: "/").first.map(String.init)
-        return id?.isEmpty == false ? id : nil
-    }
-
     static func isAllowedNavigation(_ url: URL) -> Bool {
         guard let scheme = url.scheme?.lowercased() else { return false }
         if rejectedSchemes.contains(scheme) { return false }

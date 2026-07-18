@@ -54,7 +54,7 @@ struct TabOverviewView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }
                 }
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItem(placement: newTabButtonPlacement) {
                     Button {
                         environment.tabs.createTab(select: true)
                         environment.wireTabPrivacyHooks()
@@ -102,6 +102,14 @@ struct TabOverviewView: View {
                 }
             }
         }
+    }
+
+    private var newTabButtonPlacement: ToolbarItemPlacement {
+        #if os(macOS)
+        .automatic
+        #else
+        .primaryAction
+        #endif
     }
 
     private func groupSection(_ group: TabGroup, tabs: [BrowserTab]) -> some View {

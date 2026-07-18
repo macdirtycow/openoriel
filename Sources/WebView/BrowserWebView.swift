@@ -24,7 +24,6 @@ struct BrowserWebView: PlatformViewRepresentable {
     var onOpenURLInNewTab: ((URL) -> Void)?
     var onEnqueueURLForLater: ((URL) -> Void)?
     var shouldStripTracking: () -> Bool = { true }
-    var shouldUseDuckPlayer: () -> Bool = { true }
     var onElementHidden: ((String, String) -> Void)?
     var onInstallChromeExtension: ((String) -> Void)?
     var onManageChromeExtensions: (() -> Void)?
@@ -69,7 +68,6 @@ struct BrowserWebView: PlatformViewRepresentable {
             onOpenURLInNewTab: onOpenURLInNewTab,
             onEnqueueURLForLater: onEnqueueURLForLater,
             shouldStripTracking: shouldStripTracking,
-            shouldUseDuckPlayer: shouldUseDuckPlayer,
             onElementHidden: onElementHidden,
             onInstallChromeExtension: onInstallChromeExtension,
             onManageChromeExtensions: onManageChromeExtensions,
@@ -177,7 +175,6 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.onOpenURLInNewTab = onOpenURLInNewTab
         context.coordinator.onEnqueueURLForLater = onEnqueueURLForLater
         context.coordinator.shouldStripTracking = shouldStripTracking
-        context.coordinator.shouldUseDuckPlayer = shouldUseDuckPlayer
         context.coordinator.onElementHidden = onElementHidden
         context.coordinator.onInstallChromeExtension = onInstallChromeExtension
         context.coordinator.onManageChromeExtensions = onManageChromeExtensions

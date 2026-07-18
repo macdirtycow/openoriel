@@ -12,13 +12,12 @@ struct PrivacySettingsSnapshot: Codable, Equatable, Sendable {
     var httpsUpgradeEnabled: Bool = true
     var blockThirdPartyCookies: Bool = false
     var fingerprintingProtection: Bool = true
-    var duckPlayerEnabled: Bool = true
     var httpsOnlyMode: Bool = false
     var siteSettings: [String: SiteShieldSettings] = [:]
 
     enum CodingKeys: String, CodingKey {
         case contentBlockingEnabled, httpsUpgradeEnabled, blockThirdPartyCookies
-        case fingerprintingProtection, duckPlayerEnabled, httpsOnlyMode, siteSettings
+        case fingerprintingProtection, httpsOnlyMode, siteSettings
     }
 
     init(
@@ -26,7 +25,6 @@ struct PrivacySettingsSnapshot: Codable, Equatable, Sendable {
         httpsUpgradeEnabled: Bool = true,
         blockThirdPartyCookies: Bool = false,
         fingerprintingProtection: Bool = true,
-        duckPlayerEnabled: Bool = true,
         httpsOnlyMode: Bool = false,
         siteSettings: [String: SiteShieldSettings] = [:]
     ) {
@@ -34,7 +32,6 @@ struct PrivacySettingsSnapshot: Codable, Equatable, Sendable {
         self.httpsUpgradeEnabled = httpsUpgradeEnabled
         self.blockThirdPartyCookies = blockThirdPartyCookies
         self.fingerprintingProtection = fingerprintingProtection
-        self.duckPlayerEnabled = duckPlayerEnabled
         self.httpsOnlyMode = httpsOnlyMode
         self.siteSettings = siteSettings
     }
@@ -45,7 +42,6 @@ struct PrivacySettingsSnapshot: Codable, Equatable, Sendable {
         httpsUpgradeEnabled = try c.decodeIfPresent(Bool.self, forKey: .httpsUpgradeEnabled) ?? true
         blockThirdPartyCookies = try c.decodeIfPresent(Bool.self, forKey: .blockThirdPartyCookies) ?? false
         fingerprintingProtection = try c.decodeIfPresent(Bool.self, forKey: .fingerprintingProtection) ?? true
-        duckPlayerEnabled = try c.decodeIfPresent(Bool.self, forKey: .duckPlayerEnabled) ?? true
         httpsOnlyMode = try c.decodeIfPresent(Bool.self, forKey: .httpsOnlyMode) ?? false
         siteSettings = try c.decodeIfPresent([String: SiteShieldSettings].self, forKey: .siteSettings) ?? [:]
     }
@@ -72,11 +68,6 @@ final class PrivacySettings {
         didSet { persist() }
     }
 
-    /// Open YouTube watch links in Oriel Player (youtube-nocookie embed).
-    var duckPlayerEnabled: Bool {
-        didSet { persist() }
-    }
-
     /// Block plain HTTP navigations that cannot be upgraded (localhost exempt).
     var httpsOnlyMode: Bool {
         didSet { persist() }
@@ -91,7 +82,6 @@ final class PrivacySettings {
             httpsUpgradeEnabled = loaded.httpsUpgradeEnabled
             blockThirdPartyCookies = loaded.blockThirdPartyCookies
             fingerprintingProtection = loaded.fingerprintingProtection
-            duckPlayerEnabled = loaded.duckPlayerEnabled
             httpsOnlyMode = loaded.httpsOnlyMode
             siteSettings = loaded.siteSettings
         } else {
@@ -100,7 +90,6 @@ final class PrivacySettings {
             // Off by default so Google Account and similar OAuth popups can keep session cookies.
             blockThirdPartyCookies = false
             fingerprintingProtection = true
-            duckPlayerEnabled = true
             httpsOnlyMode = false
             siteSettings = [:]
         }
@@ -147,7 +136,6 @@ final class PrivacySettings {
             httpsUpgradeEnabled: httpsUpgradeEnabled,
             blockThirdPartyCookies: blockThirdPartyCookies,
             fingerprintingProtection: fingerprintingProtection,
-            duckPlayerEnabled: duckPlayerEnabled,
             httpsOnlyMode: httpsOnlyMode,
             siteSettings: siteSettings
         )

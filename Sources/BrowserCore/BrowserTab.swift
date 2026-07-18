@@ -47,7 +47,6 @@ final class BrowserTab: Identifiable {
     var shouldUpgradeHTTPS: ((URL) -> Bool)?
     var onHTTPSUpgrade: (() -> Void)?
     var shouldStripTracking: (() -> Bool)?
-    var shouldUseDuckPlayer: (() -> Bool)?
     var isHTTPSOnlyMode: (() -> Bool)?
     var elementHideScript: (() -> String)?
 
@@ -96,7 +95,7 @@ final class BrowserTab: Identifiable {
         navigation.lastErrorMessage = nil
 
         var destination = url
-        if !URLParser.isStartPage(url) && !URLParser.isDuckPlayerPage(url) {
+        if !URLParser.isStartPage(url) {
             let upgradeEnabled = (shouldUpgradeHTTPS?(destination) ?? true) || (isHTTPSOnlyMode?() ?? false)
             let result = HTTPSUpgrade.upgradeIfNeeded(destination, enabled: upgradeEnabled)
             if result.didUpgrade {
@@ -122,12 +121,6 @@ final class BrowserTab: Identifiable {
             if stripped.didStrip {
                 destination = stripped.url
             }
-
-            if shouldUseDuckPlayer?() == true,
-               DuckPlayer.isYouTubeWatchURL(destination),
-               let videoID = DuckPlayer.videoID(from: destination) {
-                destination = DuckPlayer.playerURL(forVideoID: videoID)
-            }
         }
 
         navigation.url = destination
@@ -135,17 +128,6 @@ final class BrowserTab: Identifiable {
 
         if URLParser.isStartPage(destination) {
             showStartPagePreservingWebHistory()
-            return
-        }
-
-        if URLParser.isDuckPlayerPage(destination),
-           let videoID = URLParser.duckPlayerVideoID(from: destination) {
-            navigation.isLoading = true
-            let html = DuckPlayer.embedHTML(videoID: videoID)
-            webView?.loadHTMLString(html, baseURL: URL(string: "https://www.youtube-nocookie.com"))
-            navigation.isLoading = false
-            navigation.title = "Oriel Player"
-            refreshNavigationChrome()
             return
         }
 

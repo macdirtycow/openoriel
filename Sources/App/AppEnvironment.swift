@@ -237,9 +237,6 @@ final class AppEnvironment {
             item.shouldStripTracking = { [weak self] in
                 self?.settings.stripTrackingParameters ?? true
             }
-            item.shouldUseDuckPlayer = { [weak self] in
-                self?.privacy.duckPlayerEnabled ?? true
-            }
             item.isHTTPSOnlyMode = { [weak self] in
                 self?.privacy.httpsOnlyMode ?? false
             }

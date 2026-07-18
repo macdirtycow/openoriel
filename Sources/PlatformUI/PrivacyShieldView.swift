@@ -127,12 +127,6 @@ struct PrivacyShieldView: View {
                     subtitle: "Block plain HTTP pages that cannot be upgraded (localhost allowed)"
                 )
             }
-            Toggle(isOn: $privacy.duckPlayerEnabled) {
-                labeledToggle(
-                    "Oriel Player for YouTube",
-                    subtitle: "Open watch links in a clean youtube-nocookie player"
-                )
-            }
         } header: {
             Text("Global shields")
         } footer: {

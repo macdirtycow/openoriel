@@ -86,7 +86,6 @@
 		CDFE84BBED32A20145836CBC /* ProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835E9DA3F43215CF038F6A1B /* ProfilesView.swift */; };
 		D2F3BB2E16F00732CAA6CEBC /* oriel-annoyances.json in Resources */ = {isa = PBXBuildFile; fileRef = 44254BF36616C1587B3CD259 /* oriel-annoyances.json */; };
 		D474FA419C43BB337A404141 /* Phase3PrivacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45097DEF5699530F969BE06 /* Phase3PrivacyTests.swift */; };
-		D59F39A48B0EFA09FD7CF1F9 /* DuckPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D0EB75C9EDC5FD7331CBBF4 /* DuckPlayer.swift */; };
 		D7E704953945FC2B3CE55422 /* NavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1808B252AD7CA5B9316D569 /* NavigationState.swift */; };
 		DC20D1A5690DA59B33B6A001 /* PageEnhancementScripts.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93AAEDA2723236E7CE98DF6 /* PageEnhancementScripts.swift */; };
 		DDD96AA64FA9AA34C2F3AA0E /* oriel-privacy-2.json in Resources */ = {isa = PBXBuildFile; fileRef = 1FD44E208EC0D437878BD22A /* oriel-privacy-2.json */; };
@@ -145,7 +144,6 @@
 		1944001F22998F20E1E78D55 /* oriel-ads-3.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-ads-3.json"; sourceTree = "<group>"; };
 		195A21D08CFBBD324635C4BE /* ThemeAndPrivacyStatsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeAndPrivacyStatsTests.swift; sourceTree = "<group>"; };
 		1A5E7802EEE2452CAFA9B91E /* AuthHostAllowlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthHostAllowlist.swift; sourceTree = "<group>"; };
-		1D0EB75C9EDC5FD7331CBBF4 /* DuckPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuckPlayer.swift; sourceTree = "<group>"; };
 		1FD44E208EC0D437878BD22A /* oriel-privacy-2.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-privacy-2.json"; sourceTree = "<group>"; };
 		2217E60267513166ABDC37AF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		2667FA8649141F4D44987B08 /* FireButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireButtonView.swift; sourceTree = "<group>"; };
@@ -257,7 +255,6 @@
 		20C66DDE210659818844158C /* Features */ = {
 			isa = PBXGroup;
 			children = (
-				1D0EB75C9EDC5FD7331CBBF4 /* DuckPlayer.swift */,
 				B30F0796D1D125A4D22EF63A /* ElementHideStore.swift */,
 				81A28F5ED304EC4EC5C0E73E /* iCloudSyncService.swift */,
 				4AEFB633876B868B2EB68C3B /* LinkQueueStore.swift */,
@@ -677,7 +674,6 @@
 				95A9EC4E34689A7B91D39AB7 /* ContentBlockerManager.swift in Sources */,
 				6224D04B29955F0788EA7752 /* DownloadManager.swift in Sources */,
 				26759CC73B147E486F86A151 /* DownloadsView.swift in Sources */,
-				D59F39A48B0EFA09FD7CF1F9 /* DuckPlayer.swift in Sources */,
 				648B259C94473F2E287A7936 /* ElementHideStore.swift in Sources */,
 				E5EB1A0B4E5FDD540720A749 /* ErrorPageView.swift in Sources */,
 				A53B10583588B79D0D2C81C5 /* ExtensionsView.swift in Sources */,
@@ -812,7 +808,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -844,7 +840,7 @@
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -929,7 +925,7 @@
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -996,7 +992,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;

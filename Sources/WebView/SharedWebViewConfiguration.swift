@@ -3,8 +3,6 @@ import WebKit
 
 /// Shared WebKit plumbing so tabs can share process state (needed for web extensions).
 enum SharedWebViewConfiguration {
-    static let processPool = WKProcessPool()
-
     @MainActor
     static func make(
         isPrivate: Bool,
@@ -17,7 +15,6 @@ enum SharedWebViewConfiguration {
         websiteDataStore: WKWebsiteDataStore? = nil
     ) -> WKWebViewConfiguration {
         let configuration = WKWebViewConfiguration()
-        configuration.processPool = processPool
         if let websiteDataStore {
             configuration.websiteDataStore = websiteDataStore
         } else {

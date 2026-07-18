@@ -57,7 +57,6 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var onOpenURLInNewTab: ((URL) -> Void)?
     var onEnqueueURLForLater: ((URL) -> Void)?
     var shouldStripTracking: () -> Bool = { true }
-    var shouldUseDuckPlayer: () -> Bool = { true }
     var onElementHidden: ((String, String) -> Void)?
     var onInstallChromeExtension: ((String) -> Void)?
     var onManageChromeExtensions: (() -> Void)?
@@ -84,7 +83,6 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         onOpenURLInNewTab: ((URL) -> Void)? = nil,
         onEnqueueURLForLater: ((URL) -> Void)? = nil,
         shouldStripTracking: @escaping () -> Bool = { true },
-        shouldUseDuckPlayer: @escaping () -> Bool = { true },
         onElementHidden: ((String, String) -> Void)? = nil,
         onInstallChromeExtension: ((String) -> Void)? = nil,
         onManageChromeExtensions: (() -> Void)? = nil,
@@ -101,7 +99,6 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         self.onOpenURLInNewTab = onOpenURLInNewTab
         self.onEnqueueURLForLater = onEnqueueURLForLater
         self.shouldStripTracking = shouldStripTracking
-        self.shouldUseDuckPlayer = shouldUseDuckPlayer
         self.onElementHidden = onElementHidden
         self.onInstallChromeExtension = onInstallChromeExtension
         self.onManageChromeExtensions = onManageChromeExtensions
@@ -242,14 +239,6 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
                 }
             }
 
-            if isMainFrame,
-               shouldUseDuckPlayer(),
-               DuckPlayer.isYouTubeWatchURL(url),
-               let videoID = DuckPlayer.videoID(from: url) {
-                decisionHandler(.cancel, preferences)
-                tab.load(DuckPlayer.playerURL(forVideoID: videoID))
-                return
-            }
         }
         let context = NavigationPolicy.Context(
             contentBlockingEnabled: contentBlockingEnabled,
@@ -302,14 +291,10 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         if webView === tab.webView, !tab.isShowingStartPage {
             tab.navigation.isLoading = false
             tab.navigation.estimatedProgress = 1
-            if URLParser.isDuckPlayerPage(tab.navigation.url) {
-                tab.navigation.title = "Oriel Player"
-            } else {
-                tab.navigation.title = webView.title ?? ""
-                if let url = webView.url {
-                    tab.navigation.url = url
-                    tab.navigation.syncAddressBarFromURL()
-                }
+            tab.navigation.title = webView.title ?? ""
+            if let url = webView.url {
+                tab.navigation.url = url
+                tab.navigation.syncAddressBarFromURL()
             }
             tab.onNavigationFinished?(tab)
             tab.applyPageEnhancementsAfterLoad()

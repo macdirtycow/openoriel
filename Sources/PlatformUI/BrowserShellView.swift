@@ -193,7 +193,7 @@ struct BrowserShellView: View {
                 environment.showPrivacyShield = true
             }
 
-            chromeMenu(environment: environment, tab: tab, compact: false)
+            chromeMenu(environment: environment, tab: tab, compact: false, size: size, accent: accent)
 
             chromeIconButton(
                 systemName: "square.on.square",
@@ -273,7 +273,7 @@ struct BrowserShellView: View {
             ) {
                 environment.showFireButton = true
             }
-            chromeMenu(environment: environment, tab: tab, compact: false)
+            chromeMenu(environment: environment, tab: tab, compact: false, size: size, accent: accent)
             chromeIconButton(
                 systemName: "square.on.square",
                 label: "Tabs",
@@ -454,7 +454,7 @@ struct BrowserShellView: View {
                         }
                         .help("Tab Overview")
 
-                        chromeMenu(environment: environment, tab: tab, compact: false)
+                        chromeMenu(environment: environment, tab: tab, compact: false, chromeStyled: false)
                     }
                 }
             }
@@ -565,8 +565,12 @@ struct BrowserShellView: View {
             .help("Tabs")
             .buttonStyle(.borderless)
 
-            chromeMenu(environment: environment, tab: tab, compact: true)
-                .buttonStyle(.borderless)
+            chromeMenu(
+                environment: environment,
+                tab: tab,
+                compact: true,
+                chromeStyled: false
+            )
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
@@ -704,7 +708,14 @@ struct BrowserShellView: View {
     }
 
     @ViewBuilder
-    private func chromeMenu(environment: AppEnvironment, tab: BrowserTab, compact: Bool) -> some View {
+    private func chromeMenu(
+        environment: AppEnvironment,
+        tab: BrowserTab,
+        compact: Bool,
+        size: CGFloat = OrielLayout.navButtonSize,
+        accent: Color = OrielTheme.brandTeal,
+        chromeStyled: Bool = true
+    ) -> some View {
         Menu {
             if compact {
                 // macOS narrow window — keep denser but still include New Tab + share essentials.
@@ -868,19 +879,15 @@ struct BrowserShellView: View {
                 Button("About Oriel") { environment.showAbout = true }
             }
         } label: {
-            Image(systemName: "ellipsis.circle")
-                .font(.body.weight(.semibold))
-                .frame(width: OrielLayout.navButtonSize, height: OrielLayout.navButtonSize)
-                .background(
-                    RoundedRectangle(cornerRadius: OrielTheme.chromeButtonRadius, style: .continuous)
-                        .fill(Color.primary.opacity(0.06))
-                )
-                .overlay {
-                    RoundedRectangle(cornerRadius: OrielTheme.chromeButtonRadius, style: .continuous)
-                        .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
-                }
+            Image(systemName: chromeStyled ? "ellipsis" : "ellipsis.circle")
+                .symbolRenderingMode(.hierarchical)
+                .imageScale(.medium)
         }
-        .buttonStyle(.plain)
+        .modifier(ChromeMenuButtonStyleModifier(
+            chromeStyled: chromeStyled,
+            size: size,
+            accent: accent
+        ))
         .accessibilityLabel("More")
         .help("More")
     }
@@ -929,9 +936,6 @@ struct BrowserShellView: View {
                 },
                 shouldStripTracking: {
                     environment.settings.stripTrackingParameters
-                },
-                shouldUseDuckPlayer: {
-                    environment.privacy.duckPlayerEnabled
                 },
                 onElementHidden: { host, selector in
                     environment.elementHide.add(host: host, cssSelector: selector)
@@ -987,6 +991,29 @@ struct BrowserShellView: View {
                 .accessibilityValue("\(Int(tab.navigation.estimatedProgress * 100)) percent")
         } else {
             Color.clear.frame(height: 2)
+        }
+    }
+}
+
+// MARK: - Overflow menu chrome
+
+private struct ChromeMenuButtonStyleModifier: ViewModifier {
+    var chromeStyled: Bool
+    var size: CGFloat
+    var accent: Color
+
+    func body(content: Content) -> some View {
+        if chromeStyled {
+            content.buttonStyle(
+                OrielChromeButtonStyle(
+                    isEnabled: true,
+                    isEmphasized: false,
+                    accent: accent,
+                    size: size
+                )
+            )
+        } else {
+            content.buttonStyle(.borderless)
         }
     }
 }
