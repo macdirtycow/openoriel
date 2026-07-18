@@ -6,9 +6,9 @@ import UIKit
 
 /// Avoids a retain cycle: `WKUserContentController` strongly retains script message handlers.
 private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
-    weak var target: (any WKScriptMessageHandler)?
+    weak var target: WebViewCoordinator?
 
-    init(target: any WKScriptMessageHandler) {
+    init(target: WebViewCoordinator) {
         self.target = target
     }
 
@@ -16,12 +16,16 @@ private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
         _ userContentController: WKUserContentController,
         didReceive message: WKScriptMessage
     ) {
-        target?.userContentController(userContentController, didReceive: message)
+        let name = message.name
+        let body = message.body
+        Task { @MainActor [weak target] in
+            target?.handleChromeWebStoreMessage(name: name, body: body)
+        }
     }
 }
 
 @MainActor
-final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var tab: BrowserTab
     var contentBlockingEnabled: Bool
     var matchesBlockedHint: (URL) -> Bool
@@ -36,6 +40,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WK
     private var observations: [NSKeyValueObservation] = []
     private var popupTitleObservation: NSKeyValueObservation?
     private var chromeStoreMessageHandler: WeakScriptMessageHandler?
+    private var lastStoreInstallRequestAt: Date?
+    private var lastStoreInstallID: String?
 
     init(
         tab: BrowserTab,
@@ -71,19 +77,31 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WK
         return handler
     }
 
-    func userContentController(
-        _ userContentController: WKUserContentController,
-        didReceive message: WKScriptMessage
-    ) {
-        guard message.name == ChromeWebStoreBridge.handlerName else { return }
+    func handleChromeWebStoreMessage(name: String, body: Any) {
+        guard name == ChromeWebStoreBridge.handlerName else { return }
         let extensionID: String?
-        if let body = message.body as? [String: Any] {
+        if let body = body as? [String: Any] {
             extensionID = body["id"] as? String
+        } else if let body = body as? String {
+            extensionID = body
         } else {
-            extensionID = message.body as? String
+            extensionID = nil
         }
-        guard let extensionID, ChromeWebStoreAPI.isValidExtensionID(extensionID.lowercased()) else { return }
-        onInstallChromeExtension?(extensionID.lowercased())
+        requestChromeExtensionInstall(extensionID)
+    }
+
+    func requestChromeExtensionInstall(_ rawID: String?) {
+        guard let rawID, ChromeWebStoreAPI.isValidExtensionID(rawID.lowercased()) else { return }
+        let id = rawID.lowercased()
+        // messageHandlers + iframe fallback can fire twice for one click.
+        if lastStoreInstallID == id,
+           let lastStoreInstallRequestAt,
+           Date().timeIntervalSince(lastStoreInstallRequestAt) < 2 {
+            return
+        }
+        lastStoreInstallID = id
+        lastStoreInstallRequestAt = Date()
+        onInstallChromeExtension?(id)
     }
 
     func observe(_ webView: WKWebView) {
@@ -135,6 +153,14 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WK
     ) {
         preferences.allowsContentJavaScript = tab.javaScriptEnabled
         if let url = navigationAction.request.url {
+            #if os(macOS)
+            if let extensionID = ChromeWebStoreAPI.extensionID(fromInstallURL: url) {
+                requestChromeExtensionInstall(extensionID)
+                decisionHandler(.cancel, preferences)
+                return
+            }
+            #endif
+
             tab.syncUserAgentForNavigation(to: url)
 
             #if os(macOS)

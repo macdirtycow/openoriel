@@ -25,4 +25,12 @@ final class ChromeWebStoreAPITests: XCTestCase {
         XCTAssertTrue(url?.absoluteString.contains(id) == true)
         XCTAssertTrue(url?.absoluteString.contains("acceptformat=crx3") == true)
     }
+
+    func testInstallURLParsing() {
+        let id = "cjpalhdlnbpafiamejdnhcphjbkeiagm"
+        let url = ChromeWebStoreAPI.installURL(forExtensionID: id)!
+        XCTAssertEqual(ChromeWebStoreAPI.extensionID(fromInstallURL: url), id)
+        let bare = URL(string: "oriel-extension://\(id)")!
+        XCTAssertEqual(ChromeWebStoreAPI.extensionID(fromInstallURL: bare), id)
+    }
 }

@@ -72,13 +72,13 @@ struct BrowserWebView: PlatformViewRepresentable {
         #if os(macOS)
         if chromeWebStoreInstallEnabled, !tab.isPrivate {
             let ucc = configuration.userContentController
-            ucc.removeScriptMessageHandler(forName: ChromeWebStoreBridge.handlerName)
-            ucc.add(
-                context.coordinator.chromeWebStoreScriptMessageHandler(),
-                name: ChromeWebStoreBridge.handlerName
-            )
-            // Page world + document-start stubs so CWS scripts see chrome.webstorePrivate
-            // (same approach Brave / chromium-web-store use to avoid “Item currently unavailable”).
+            let handler = context.coordinator.chromeWebStoreScriptMessageHandler()
+            ucc.removeScriptMessageHandler(forName: ChromeWebStoreBridge.handlerName, contentWorld: .page)
+            ucc.removeScriptMessageHandler(forName: ChromeWebStoreBridge.handlerName, contentWorld: .defaultClient)
+            // Page world: chrome.webstorePrivate stub. Client world: DOM “Add to Oriel” UI.
+            ucc.add(handler, contentWorld: .page, name: ChromeWebStoreBridge.handlerName)
+            ucc.add(handler, contentWorld: .defaultClient, name: ChromeWebStoreBridge.handlerName)
+
             let apiStub = WKUserScript(
                 source: ChromeWebStoreBridge.chromeAPIStubSource,
                 injectionTime: .atDocumentStart,
@@ -89,7 +89,7 @@ struct BrowserWebView: PlatformViewRepresentable {
                 source: ChromeWebStoreBridge.userScriptSource,
                 injectionTime: .atDocumentEnd,
                 forMainFrameOnly: true,
-                in: .page
+                in: .defaultClient
             )
             ucc.addUserScript(apiStub)
             ucc.addUserScript(uiBridge)

@@ -183,13 +183,17 @@ final class WebExtensionManager {
                 throw ExtensionError.storeDownloadFailed
             }
             guard data.count > 16 else { throw ExtensionError.storeDownloadFailed }
+            let isCRX = data.starts(with: Array("Cr24".utf8))
+            let isZIP = data.starts(with: [0x50, 0x4B, 0x03, 0x04])
+            guard isCRX || isZIP else { throw ExtensionError.storeDownloadFailed }
 
-            let tempCRX = fileManager.temporaryDirectory
-                .appendingPathComponent("oriel-cws-\(id)-\(UUID().uuidString).crx")
-            try data.write(to: tempCRX, options: .atomic)
+            let fileExtension = isCRX ? "crx" : "zip"
+            let tempPackage = fileManager.temporaryDirectory
+                .appendingPathComponent("oriel-cws-\(id)-\(UUID().uuidString).\(fileExtension)")
+            try data.write(to: tempPackage, options: .atomic)
             statusMessage = "Installing…"
-            await installFromPackageMac(tempCRX)
-            try? fileManager.removeItem(at: tempCRX)
+            await installFromPackageMac(tempPackage)
+            try? fileManager.removeItem(at: tempPackage)
 
             if lastError == nil {
                 statusMessage = "Installed from Chrome Web Store."
