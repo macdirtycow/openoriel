@@ -77,12 +77,22 @@ struct BrowserWebView: PlatformViewRepresentable {
                 context.coordinator.chromeWebStoreScriptMessageHandler(),
                 name: ChromeWebStoreBridge.handlerName
             )
-            let script = WKUserScript(
+            // Page world + document-start stubs so CWS scripts see chrome.webstorePrivate
+            // (same approach Brave / chromium-web-store use to avoid “Item currently unavailable”).
+            let apiStub = WKUserScript(
+                source: ChromeWebStoreBridge.chromeAPIStubSource,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true,
+                in: .page
+            )
+            let uiBridge = WKUserScript(
                 source: ChromeWebStoreBridge.userScriptSource,
                 injectionTime: .atDocumentEnd,
-                forMainFrameOnly: true
+                forMainFrameOnly: true,
+                in: .page
             )
-            ucc.addUserScript(script)
+            ucc.addUserScript(apiStub)
+            ucc.addUserScript(uiBridge)
         }
         #endif
 
