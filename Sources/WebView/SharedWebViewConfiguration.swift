@@ -40,6 +40,14 @@ enum SharedWebViewConfiguration {
                     in: .page
                 )
             )
+            ucc.addUserScript(
+                WKUserScript(
+                    source: AdvancedPageCleanupScript.source,
+                    injectionTime: .atDocumentEnd,
+                    forMainFrameOnly: true,
+                    in: .page
+                )
+            )
         }
 
         #if os(macOS)

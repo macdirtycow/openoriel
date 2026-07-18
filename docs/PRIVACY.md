@@ -6,7 +6,7 @@ Shields and related features use Apple WebKit APIs.
 
 | Feature | Mechanism |
 |---------|-----------|
-| Tracker / ad blocking | `WKContentRuleList` (EasyList, EasyPrivacy, cosmetics, YouTube rules) |
+| Tracker / ad blocking | `WKContentRuleList` from EasyList, EasyPrivacy, AdGuard, and Fanboy lists (via SafariConverterLib at build time) |
 | YouTube ads | Network/CSS rules + skip script when Shields are on |
 | HTTPS upgrade | Prefer `https` when heuristics allow |
 | Third-party cookies | WebKit data-store preferences (OS-dependent) |

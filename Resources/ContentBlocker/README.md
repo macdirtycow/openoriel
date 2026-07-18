@@ -1,22 +1,24 @@
 # Content blocker lists
 
+Built with [AdGuard SafariConverterLib](https://github.com/AdguardTeam/SafariConverterLib) (build-time only; GPL tool, not linked into Oriel).
+
 | File | Source |
 |------|--------|
-| `oriel-base.json` | Common ad/tracker hosts |
-| `oriel-easylist-*.json` | [EasyList](https://easylist.to/) network rules |
-| `oriel-easyprivacy-*.json` | [EasyPrivacy](https://easylist.to/) network rules |
-| `oriel-cosmetic.json` | Element hiding (`##`) as `css-display-none` |
-| `oriel-youtube-ads.json` | YouTube ad endpoints + CSS hide |
+| `oriel-base.json` | Common ad hosts |
+| `oriel-ads-*.json` | EasyList + AdGuard Base |
+| `oriel-privacy-*.json` | EasyPrivacy + AdGuard Tracking |
+| `oriel-annoyances.json` | Fanboy Cookie + AdGuard Annoyances/Social |
+| `oriel-youtube-ads.json` | Curated YouTube ad endpoints |
 | `example-blocklist.json` | Fallback |
-
-YouTube, `googleapis`, `gstatic`, and related first-party hosts are not blocked as bare domains. Each list ends with an OAuth/login allowlist (`ignore-previous-rules` is per list).
 
 ## Regenerate
 
 ```bash
-curl -fsSL -o /tmp/easylist.txt https://easylist.to/easylist/easylist.txt
-curl -fsSL -o /tmp/easyprivacy.txt https://easylist.to/easylist/easyprivacy.txt
-python3 Scripts/convert_easylist_to_webkit.py
+git clone https://github.com/AdguardTeam/SafariConverterLib.git /tmp/SafariConverterLib
+cd /tmp/SafariConverterLib && swift build -c release --product ConverterTool
+export ORIEL_CONVERTER=/tmp/SafariConverterLib/.build/out/Products/Release/ConverterTool
+cd /path/to/openoriel
+python3 Scripts/build_content_blocker.py
 ```
 
-See `NOTICE` and https://easylist.to/pages/licence.html for attribution.
+Attribution: see repo `NOTICE`.

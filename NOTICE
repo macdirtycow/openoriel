@@ -11,13 +11,23 @@ See the LICENSE file in this repository.
 
 Third-party filter lists
 
-Files under Resources/ContentBlocker/ named oriel-easylist-*.json,
-oriel-easyprivacy-*.json, and oriel-cosmetic.json are derived from
-EasyList and EasyPrivacy (https://easylist.to/),
-Copyright The EasyList authors.
+Bundled `WKContentRuleList` JSON under Resources/ContentBlocker/ is
+converted (build-time) from:
 
-EasyList licence: https://easylist.to/pages/licence.html
-(GNU GPLv3 or later, or Creative Commons Attribution-ShareAlike 3.0
-Unported, at your option, as published by EasyList).
+- EasyList and EasyPrivacy (https://easylist.to/)
+  Copyright The EasyList authors
+  https://easylist.to/pages/licence.html
 
-Conversion script: Scripts/convert_easylist_to_webkit.py
+- Fanboy's Cookie List (https://www.fanboy.co.nz/)
+  Same family of licences as EasyList
+
+- AdGuard filters (Base, Tracking, Social, Annoyances)
+  https://adguard.com/ / https://filters.adtidy.org/
+  See AdGuard filter licence terms for each list
+
+Conversion uses AdGuard SafariConverterLib as an external build tool
+(https://github.com/AdguardTeam/SafariConverterLib, GNU GPLv3).
+That tool is not distributed or linked into Oriel; only the resulting
+JSON rule data is shipped.
+
+Script: Scripts/build_content_blocker.py

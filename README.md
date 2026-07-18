@@ -31,7 +31,7 @@ xcodebuild -scheme Oriel -destination 'platform=macOS,arch=arm64' build
 | [Extensions](docs/EXTENSIONS.md) | macOS WebExtensions |
 | [Entitlements](docs/ENTITLEMENTS.md) | Sandbox capabilities |
 | [App Store](docs/APP_STORE.md) | Release checklist |
-| [Content blocker](Resources/ContentBlocker/README.md) | Filter lists |
+| [Content blocker](Resources/ContentBlocker/README.md) | Filter lists (AdGuard converter) |
 | [Contributing](CONTRIBUTING.md) | Patches |
 | [Security](SECURITY.md) | Vulnerability reports |
 

@@ -13,7 +13,7 @@ Xcode 16+, iOS 17+ / macOS 14+.
 
 - Keep changes focused; avoid unrelated refactors
 - Update docs when behaviour changes
-- Regenerate filter lists with `Scripts/convert_easylist_to_webkit.py` when touching blockers; keep `NOTICE` accurate
+- Regenerate filter lists with `Scripts/build_content_blocker.py` (needs AdGuard `ConverterTool`; see `Resources/ContentBlocker/README.md`); keep `NOTICE` accurate
 
 ```bash
 xcodegen generate

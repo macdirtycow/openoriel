@@ -78,7 +78,7 @@ final class ContentBlockerManager {
     var compiledList: WKContentRuleList? { compiledLists.first }
 
     private let store = WKContentRuleListStore.default()
-    private let compileIdentifierPrefix = "oriel.rules.v3"
+    private let compileIdentifierPrefix = "oriel.rules.v4"
 
     func prepare() async {
         compiledLists = []
@@ -159,10 +159,14 @@ final class ContentBlockerManager {
     private func listSortKey(_ name: String) -> (Int, String) {
         let order: [(String, Int)] = [
             ("oriel-base", 0),
-            ("oriel-easylist", 1),
-            ("oriel-easyprivacy", 2),
-            ("oriel-cosmetic", 3),
+            ("oriel-ads", 1),
+            ("oriel-privacy", 2),
+            ("oriel-annoyances", 3),
             ("oriel-youtube-ads", 4),
+            // Legacy names (if present)
+            ("oriel-easylist", 10),
+            ("oriel-easyprivacy", 11),
+            ("oriel-cosmetic", 12),
         ]
         for (prefix, rank) in order where name.hasPrefix(prefix) {
             return (rank, name)
