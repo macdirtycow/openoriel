@@ -250,26 +250,27 @@ struct SettingsView: View {
                     } label: {
                         Label("Extensions…", systemImage: "puzzlepiece.extension")
                     }
-                    #if os(macOS)
-                    Button {
-                        environment.openURLInNewTab(BrowserConstants.chromeWebStoreURL)
-                        if showsDoneButton {
-                            dismiss()
+                    if environment.extensions.isSupported {
+                        Button {
+                            environment.openURLInNewTab(BrowserConstants.chromeWebStoreURL)
+                            if showsDoneButton {
+                                dismiss()
+                            }
+                        } label: {
+                            Label("Browse Chrome Web Store", systemImage: "safari")
                         }
-                    } label: {
-                        Label("Browse Chrome Web Store", systemImage: "safari")
                     }
-                    #endif
                 } header: {
                     Text("Extensions")
                 } footer: {
-                    #if os(macOS)
-                    Text("On chromewebstore.google.com, click Add to Oriel to install. You can also load a .zip / .crx / folder manually.")
-                        .fixedSize(horizontal: false, vertical: true)
-                    #else
-                    Text("Web extension install is available on macOS 15.4+. iPhone/iPad support is planned next.")
-                        .fixedSize(horizontal: false, vertical: true)
-                    #endif
+                    if environment.extensions.isSupported {
+                        Text("On chromewebstore.google.com, use Add to Oriel, or install a .zip / .crx package. Requires macOS 15.4+ or iOS 18.4+.")
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text(environment.extensions.lastError
+                              ?? "Web extensions require macOS 15.4+ or iOS 18.4+.")
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 Section {

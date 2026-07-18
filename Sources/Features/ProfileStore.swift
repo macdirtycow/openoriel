@@ -57,7 +57,9 @@ final class ProfileStore {
             profiles = loaded.profiles
             activeProfileID = loaded.activeProfileID
         } else {
-            let personal = BrowserProfile(name: "Personal", usesSharedDefaultStore: true)
+            // Fresh installs: Personal is already an isolated cookie container.
+            let personal = BrowserProfile(name: "Personal", usesSharedDefaultStore: false)
+            _ = WKWebsiteDataStore(forIdentifier: personal.id)
             profiles = [personal]
             activeProfileID = personal.id
             persist()
@@ -77,10 +79,21 @@ final class ProfileStore {
         if isPrivateTab || profile.isPrivateContainer {
             return .nonPersistent()
         }
+        // Legacy Personal profiles keep the shared default jar so existing logins survive.
+        // Every other profile (and new Personal installs) uses an isolated named store.
         if profile.usesSharedDefaultStore {
             return .default()
         }
         return WKWebsiteDataStore(forIdentifier: profile.id)
+    }
+
+    /// Move a legacy shared-default profile onto its own cookie jar (clears that profile’s prior default cookies from use).
+    func convertToIsolatedStore(id: UUID) {
+        guard let index = profiles.firstIndex(where: { $0.id == id }) else { return }
+        guard profiles[index].usesSharedDefaultStore else { return }
+        profiles[index].usesSharedDefaultStore = false
+        _ = WKWebsiteDataStore(forIdentifier: profiles[index].id)
+        persist()
     }
 
     @discardableResult

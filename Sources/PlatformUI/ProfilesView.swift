@@ -10,39 +10,48 @@ struct ProfilesView: View {
         NavigationStack {
             List {
                 Section {
-                    Text("Each profile has its own cookies and site data. Private tabs always use a temporary jar.")
+                    Text("Each profile has its own cookies and site data. Switching remounts tabs onto that jar. Private tabs always use a temporary store.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
                 ForEach(environment.profiles.profiles) { profile in
-                    Button {
-                        environment.profiles.select(id: profile.id)
-                        // Remount web views onto the selected cookie jar.
-                        for tab in environment.tabs.tabs where !tab.isPrivate {
-                            tab.webView = nil
+                    VStack(alignment: .leading, spacing: 8) {
+                        Button {
+                            environment.applyProfile(id: profile.id)
+                            dismiss()
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(profile.name)
+                                    Text(profileSubtitle(profile))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                if profile.id == environment.profiles.activeProfileID {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(environment.settings.brandColor)
+                                }
+                            }
                         }
-                        dismiss()
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(profile.name)
-                                Text(profileSubtitle(profile))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+
+                        if profile.usesSharedDefaultStore {
+                            Button("Convert to isolated cookie store") {
+                                environment.profiles.convertToIsolatedStore(id: profile.id)
+                                if profile.id == environment.profiles.activeProfileID {
+                                    environment.applyProfile(id: profile.id)
+                                }
                             }
-                            Spacer()
-                            if profile.id == environment.profiles.activeProfileID {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(environment.settings.brandColor)
-                            }
+                            .font(.caption.weight(.semibold))
                         }
                     }
                     .swipeActions {
                         if environment.profiles.profiles.count > 1 {
                             Button(role: .destructive) {
                                 environment.profiles.delete(id: profile.id)
+                                environment.applyProfile(id: environment.profiles.activeProfileID)
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
@@ -69,7 +78,8 @@ struct ProfilesView: View {
                 TextField("Name", text: $newName)
                 Button("Cancel", role: .cancel) {}
                 Button("Create") {
-                    _ = environment.profiles.create(name: newName)
+                    let profile = environment.profiles.create(name: newName)
+                    environment.applyProfile(id: profile.id)
                 }
             }
         }
@@ -80,7 +90,7 @@ struct ProfilesView: View {
             return "Temporary container"
         }
         if profile.usesSharedDefaultStore {
-            return "Default cookie store"
+            return "Shared default store (legacy)"
         }
         return "Isolated cookie store"
     }

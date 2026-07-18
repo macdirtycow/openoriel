@@ -89,7 +89,7 @@ struct BrowserWebView: PlatformViewRepresentable {
             websiteDataStore: websiteDataStore ?? (tab.isPrivate ? .nonPersistent() : .default())
         )
 
-        #if os(macOS)
+        #if os(macOS) || os(iOS)
         if chromeWebStoreInstallEnabled, !tab.isPrivate {
             let ucc = configuration.userContentController
             let handler = context.coordinator.chromeWebStoreScriptMessageHandler()

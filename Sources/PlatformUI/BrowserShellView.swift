@@ -736,9 +736,9 @@ struct BrowserShellView: View {
                 Button("Bookmarks") { environment.showBookmarks = true }
                 Button("History") { environment.showHistory = true }
                 Button("Downloads") { environment.showDownloads = true }
-                #if os(macOS)
-                Button("Extensions") { environment.showExtensions = true }
-                #endif
+                if environment.extensions.isSupported {
+                    Button("Extensions") { environment.showExtensions = true }
+                }
                 Button(environment.linkQueue.count == 0 ? "Open Later" : "Open Later (\(environment.linkQueue.count))") {
                     environment.showLinkQueue = true
                 }

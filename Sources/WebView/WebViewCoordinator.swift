@@ -201,7 +201,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
                 return
             }
 
-            #if os(macOS)
+            #if os(macOS) || os(iOS)
             if ChromeWebStoreAPI.isManageExtensionsURL(url) {
                 onManageChromeExtensions?()
                 decisionHandler(.cancel, preferences)
@@ -314,7 +314,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             tab.onNavigationFinished?(tab)
             tab.applyPageEnhancementsAfterLoad()
             tab.applyElementHideRules()
-            #if os(macOS)
+            #if os(macOS) || os(iOS)
             injectInstalledExtensionIDs(into: webView)
             #endif
             injectYouTubeAdBlockIfNeeded(into: webView)
@@ -325,7 +325,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         }
     }
 
-    #if os(macOS)
+    #if os(macOS) || os(iOS)
     func injectInstalledExtensionIDs(into webView: WKWebView) {
         guard let host = webView.url?.host?.lowercased(),
               host == "chromewebstore.google.com"

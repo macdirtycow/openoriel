@@ -180,6 +180,20 @@ final class AppEnvironment {
         icloudSync.noteLocalChange()
     }
 
+    /// Switch cookie jar and remount every non-private tab onto the active profile store.
+    func applyProfile(id: UUID) {
+        profiles.select(id: id)
+        for tab in tabs.tabs where !tab.isPrivate {
+            let url = tab.restorableURL
+            tab.webView = nil
+            if !URLParser.isStartPage(url) {
+                tab.load(url)
+            }
+        }
+        wireTabPrivacyHooks()
+        persistSession()
+    }
+
     func copyCurrentURL() {
         guard let url = activeTab?.navigation.url,
               !URLParser.isStartPage(url) else { return }

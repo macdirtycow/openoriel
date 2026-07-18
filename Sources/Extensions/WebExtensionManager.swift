@@ -1,8 +1,11 @@
 import Foundation
 import Observation
 import WebKit
+import ZIPFoundation
 #if os(macOS)
 import AppKit
+#elseif os(iOS)
+import UIKit
 #endif
 
 struct InstalledExtensionInfo: Identifiable, Equatable, Sendable {
@@ -15,7 +18,7 @@ struct InstalledExtensionInfo: Identifiable, Equatable, Sendable {
     var chromeStoreID: String?
 }
 
-/// Loads Chrome/Firefox-style WebExtensions via Apple’s `WKWebExtension` (macOS 15.4+).
+/// Loads Chrome/Firefox-style WebExtensions via Apple’s `WKWebExtension` (macOS 15.4+ / iOS 18.4+).
 @Observable
 @MainActor
 final class WebExtensionManager {
@@ -33,31 +36,43 @@ final class WebExtensionManager {
     init() {
         #if os(macOS)
         if #available(macOS 15.4, *) {
-            isSupported = true
-            let controller = WKWebExtensionController()
-            let host = WebExtensionHost()
-            controller.delegate = host
-            controllerStorage = controller
-            hostStorage = host
-            Task { await reloadFromDisk() }
+            bootstrapController()
         } else {
             isSupported = false
             lastError = "Web extensions require macOS 15.4 or later."
         }
         #elseif os(iOS)
-        // WKWebExtension exists on newer iOS, but Oriel’s package/CWS install pipeline is still macOS-first.
-        isSupported = false
-        lastError = "Web extension install is available on macOS 15.4+. iPhone/iPad support is coming next."
+        if #available(iOS 18.4, *) {
+            bootstrapController()
+        } else {
+            isSupported = false
+            lastError = "Web extensions require iOS 18.4 or later."
+        }
         #else
         isSupported = false
         lastError = "Web extensions are not available on this platform."
         #endif
     }
 
+    @available(macOS 15.4, iOS 18.4, *)
+    private func bootstrapController() {
+        isSupported = true
+        let controller = WKWebExtensionController()
+        let host = WebExtensionHost()
+        controller.delegate = host
+        controllerStorage = controller
+        hostStorage = host
+        Task { await reloadFromDisk() }
+    }
+
     /// Attached to normal-tab `WKWebViewConfiguration` when supported.
     var webExtensionControllerForConfiguration: AnyObject? {
         #if os(macOS)
         if #available(macOS 15.4, *), isSupported {
+            return controllerStorage
+        }
+        #elseif os(iOS)
+        if #available(iOS 18.4, *), isSupported {
             return controllerStorage
         }
         #endif
@@ -92,64 +107,74 @@ final class WebExtensionManager {
 
     func reloadFromDisk() async {
         #if os(macOS)
-        if #available(macOS 15.4, *) {
-            await reloadFromDiskMac()
-        }
+        if #available(macOS 15.4, *) { await reloadFromDiskImpl() }
+        #elseif os(iOS)
+        if #available(iOS 18.4, *) { await reloadFromDiskImpl() }
         #endif
     }
 
     func installFromPackage(at url: URL) async {
         #if os(macOS)
         if #available(macOS 15.4, *) {
-            await installFromPackageMac(url, preferredUniqueID: nil, chromeStoreID: nil)
+            await installFromPackageImpl(url, preferredUniqueID: nil, chromeStoreID: nil)
+        }
+        #elseif os(iOS)
+        if #available(iOS 18.4, *) {
+            await installFromPackageImpl(url, preferredUniqueID: nil, chromeStoreID: nil)
         }
         #endif
     }
 
-    /// Downloads a CRX from the Chrome Web Store (same endpoint Chromium/Brave use) and installs it.
+    /// Downloads a CRX from the Chrome Web Store and installs it.
     func installFromChromeWebStore(extensionID: String) async {
         #if os(macOS)
         if #available(macOS 15.4, *) {
-            await installFromChromeWebStoreMac(extensionID)
+            await installFromChromeWebStoreImpl(extensionID)
+            return
         }
-        #else
-        lastError = "Chrome Web Store install requires macOS 15.4+ with Oriel extensions."
+        #elseif os(iOS)
+        if #available(iOS 18.4, *) {
+            await installFromChromeWebStoreImpl(extensionID)
+            return
+        }
         #endif
+        lastError = "Chrome Web Store install requires a newer OS with Oriel extensions."
     }
 
     func setEnabled(_ enabled: Bool, id: String) async {
         #if os(macOS)
-        if #available(macOS 15.4, *) {
-            await setEnabledMac(enabled, id: id)
-        }
+        if #available(macOS 15.4, *) { await setEnabledImpl(enabled, id: id) }
+        #elseif os(iOS)
+        if #available(iOS 18.4, *) { await setEnabledImpl(enabled, id: id) }
         #endif
     }
 
     func remove(id: String) async {
         #if os(macOS)
-        if #available(macOS 15.4, *) {
-            await removeMac(id: id)
-        }
+        if #available(macOS 15.4, *) { await removeImpl(id: id) }
+        #elseif os(iOS)
+        if #available(iOS 18.4, *) { await removeImpl(id: id) }
         #endif
     }
 
     /// Runs the extension’s browser action / popup (toolbar-style click).
     func openAction(for id: String) {
         #if os(macOS)
-        if #available(macOS 15.4, *) {
-            openActionMac(id: id)
-        }
+        if #available(macOS 15.4, *) { openActionImpl(id: id) }
+        #elseif os(iOS)
+        if #available(iOS 18.4, *) { openActionImpl(id: id) }
         #endif
     }
 
-    #if os(macOS)
-    @available(macOS 15.4, *)
+    // MARK: - Shared implementation (macOS 15.4+ / iOS 18.4+)
+
+    @available(macOS 15.4, iOS 18.4, *)
     private var controller: WKWebExtensionController? {
         controllerStorage as? WKWebExtensionController
     }
 
-    @available(macOS 15.4, *)
-    private func reloadFromDiskMac() async {
+    @available(macOS 15.4, iOS 18.4, *)
+    private func reloadFromDiskImpl() async {
         lastError = nil
         guard let controller else { return }
 
@@ -167,7 +192,6 @@ final class WebExtensionManager {
             do {
                 let webExtension = try await WKWebExtension(resourceBaseURL: folder)
                 let context = WKWebExtensionContext(for: webExtension)
-                // Keep identity stable across launches (and match CWS id when we have one).
                 context.uniqueIdentifier = entry.directoryName
                 for permission in webExtension.requestedPermissions {
                     context.setPermissionStatus(.grantedExplicitly, for: permission)
@@ -204,8 +228,8 @@ final class WebExtensionManager {
         }
     }
 
-    @available(macOS 15.4, *)
-    private func installFromChromeWebStoreMac(_ extensionID: String) async {
+    @available(macOS 15.4, iOS 18.4, *)
+    private func installFromChromeWebStoreImpl(_ extensionID: String) async {
         lastError = nil
         statusMessage = nil
         let id = extensionID.lowercased()
@@ -215,7 +239,6 @@ final class WebExtensionManager {
         }
 
         if isInstalledFromChromeWebStore(extensionID: id) {
-            // Re-download updates the package instead of no-oping (felt like “Add to Oriel broken”).
             statusMessage = "Updating…"
         }
 
@@ -248,7 +271,7 @@ final class WebExtensionManager {
                 .appendingPathComponent("oriel-cws-\(id)-\(UUID().uuidString).\(fileExtension)")
             try data.write(to: tempPackage, options: .atomic)
             statusMessage = "Installing…"
-            await installFromPackageMac(tempPackage, preferredUniqueID: id, chromeStoreID: id)
+            await installFromPackageImpl(tempPackage, preferredUniqueID: id, chromeStoreID: id)
             try? fileManager.removeItem(at: tempPackage)
 
             if lastError == nil {
@@ -262,8 +285,8 @@ final class WebExtensionManager {
         }
     }
 
-    @available(macOS 15.4, *)
-    private func installFromPackageMac(
+    @available(macOS 15.4, iOS 18.4, *)
+    private func installFromPackageImpl(
         _ url: URL,
         preferredUniqueID: String?,
         chromeStoreID: String?
@@ -302,24 +325,24 @@ final class WebExtensionManager {
                 )
             )
             saveCatalog(catalog)
-            await reloadFromDiskMac()
+            await reloadFromDiskImpl()
         } catch {
             lastError = error.localizedDescription
         }
     }
 
-    @available(macOS 15.4, *)
-    private func setEnabledMac(_ enabled: Bool, id: String) async {
+    @available(macOS 15.4, iOS 18.4, *)
+    private func setEnabledImpl(_ enabled: Bool, id: String) async {
         guard let info = extensions.first(where: { $0.id == id }) else { return }
         var catalog = loadCatalog()
         guard let index = catalog.firstIndex(where: { $0.directoryName == info.directoryName }) else { return }
         catalog[index].isEnabled = enabled
         saveCatalog(catalog)
-        await reloadFromDiskMac()
+        await reloadFromDiskImpl()
     }
 
-    @available(macOS 15.4, *)
-    private func removeMac(id: String) async {
+    @available(macOS 15.4, iOS 18.4, *)
+    private func removeImpl(id: String) async {
         guard let info = extensions.first(where: { $0.id == id }) else { return }
         let folder = extensionsDirectory.appendingPathComponent(info.directoryName, isDirectory: true)
         try? fileManager.removeItem(at: folder)
@@ -329,11 +352,11 @@ final class WebExtensionManager {
                 || ($0.chromeStoreID != nil && $0.chromeStoreID == info.chromeStoreID)
         }
         saveCatalog(catalog)
-        await reloadFromDiskMac()
+        await reloadFromDiskImpl()
     }
 
-    @available(macOS 15.4, *)
-    private func openActionMac(id: String) {
+    @available(macOS 15.4, iOS 18.4, *)
+    private func openActionImpl(id: String) {
         lastError = nil
         guard let info = extensions.first(where: { $0.id == id }) else { return }
         guard info.isEnabled else {
@@ -348,7 +371,7 @@ final class WebExtensionManager {
         statusMessage = "Opened \(info.displayName)."
     }
 
-    @available(macOS 15.4, *)
+    @available(macOS 15.4, iOS 18.4, *)
     private func stagePackage(at url: URL) throws -> URL {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
@@ -400,13 +423,12 @@ final class WebExtensionManager {
             tempZip = out
         }
 
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-        process.arguments = ["-o", source.path, "-d", destination.path]
-        try process.run()
-        process.waitUntilExit()
+        do {
+            try fileManager.unzipItem(at: source, to: destination)
+        } catch {
+            throw ExtensionError.unzipFailed
+        }
         if let tempZip { try? fileManager.removeItem(at: tempZip) }
-        guard process.terminationStatus == 0 else { throw ExtensionError.unzipFailed }
     }
 
     private func stripCRXHeader(from data: Data) throws -> Data {
@@ -442,7 +464,6 @@ final class WebExtensionManager {
         return nil
     }
 
-    /// Collapse duplicate catalog rows that share a Chrome Web Store id or directory.
     private func dedupeCatalog(_ entries: [CatalogEntry]) -> [CatalogEntry] {
         var result: [CatalogEntry] = []
         var seenDirectories = Set<String>()
@@ -456,7 +477,6 @@ final class WebExtensionManager {
         }
         return result.reversed()
     }
-    #endif
 
     private struct CatalogEntry: Codable, Equatable {
         var directoryName: String
@@ -509,7 +529,7 @@ final class WebExtensionHost: NSObject, WKWebExtensionControllerDelegate {
     }
 }
 #elseif os(iOS)
-/// iOS host for WKWebExtension — popup presentation is limited; actions still load.
+/// iOS host for WKWebExtension — content scripts/background run; popup UI is best-effort.
 @available(iOS 18.4, *)
 final class WebExtensionHost: NSObject, WKWebExtensionControllerDelegate {
     func webExtensionController(
@@ -517,7 +537,7 @@ final class WebExtensionHost: NSObject, WKWebExtensionControllerDelegate {
         presentActionPopup action: WKWebExtension.Action,
         for extensionContext: WKWebExtensionContext
     ) async throws {
-        // Popup UI varies by OS version; content scripts / background still run.
+        // Popups on iOS are limited; performing the action still wakes background pages.
         _ = action
         _ = extensionContext
     }

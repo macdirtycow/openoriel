@@ -48,6 +48,7 @@
 		694BC4E42FADB73185148D51 /* TrackingParameterStripper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C94752846BA7E952CD7DC6E /* TrackingParameterStripper.swift */; };
 		69B41FC7A2BD0CF80337C338 /* URLParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CAA503AA1BB5B6FE0606DF0 /* URLParserTests.swift */; };
 		6BCC9DD388B445302C2D67B6 /* oriel-ads-2.json in Resources */ = {isa = PBXBuildFile; fileRef = 092239664755EDC7A6047129 /* oriel-ads-2.json */; };
+		71E5EEB8C16C1393BC744032 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = EA288EF1A8895EEB4586306B /* ZIPFoundation */; };
 		72D9552640F72E6ACFB43826 /* oriel-privacy-4.json in Resources */ = {isa = PBXBuildFile; fileRef = F6B791AA352BE979887D4528 /* oriel-privacy-4.json */; };
 		73BA7D3AF4D5029086A017C3 /* BookmarkHTMLExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2553D75FD8C1384E8F39357 /* BookmarkHTMLExporter.swift */; };
 		782C2C4F7354EA78F9239794 /* BrowserTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A34690536302270522B7B4 /* BrowserTab.swift */; };
@@ -231,6 +232,17 @@
 		FAB28852533E6B41B8EC12A3 /* YouTubeAdBlockScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouTubeAdBlockScript.swift; sourceTree = "<group>"; };
 		FEB95E162E556859616C2DA9 /* PrivacyShieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyShieldView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D0CCF556E20E53A4E839EFEB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				71E5EEB8C16C1393BC744032 /* ZIPFoundation in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		1E1A291CCF0885F5C5BF1F6D /* Persistence */ = {
@@ -519,6 +531,7 @@
 			buildPhases = (
 				7A30D6BF1A21F01951BA6F76 /* Sources */,
 				D1E9A40691796E931F948B66 /* Resources */,
+				D0CCF556E20E53A4E839EFEB /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -526,6 +539,7 @@
 			);
 			name = Oriel;
 			packageProductDependencies = (
+				EA288EF1A8895EEB4586306B /* ZIPFoundation */,
 			);
 			productName = Oriel;
 			productReference = 1274D8E8A0638DAF2DBD4CD3 /* Oriel.app */;
@@ -600,6 +614,9 @@
 			);
 			mainGroup = C850C88265CA9829CF1C301D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C6FF96DA6D53E0AB61945AFE /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8FD0BA2C584893393FBBC938 /* Products */;
 			projectDirPath = "";
@@ -795,7 +812,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -827,7 +844,7 @@
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -912,7 +929,7 @@
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -979,7 +996,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -1097,6 +1114,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C6FF96DA6D53E0AB61945AFE /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.19;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EA288EF1A8895EEB4586306B /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C6FF96DA6D53E0AB61945AFE /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3D91E3067FD308405E6AE387 /* Project object */;
 }

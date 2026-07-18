@@ -8,6 +8,7 @@ struct ExtensionsView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
     @State private var isInstalling = false
+    @State private var showImporter = false
 
     var body: some View {
         NavigationStack {
@@ -20,23 +21,38 @@ struct ExtensionsView: View {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Done") { dismiss() }
                     }
-                    #if os(macOS)
                     if environment.extensions.isSupported {
                         ToolbarItem(placement: .primaryAction) {
                             Button {
-                                Task { await pickAndInstall() }
+                                #if os(macOS)
+                                Task { await pickAndInstallMac() }
+                                #else
+                                showImporter = true
+                                #endif
                             } label: {
                                 if isInstalling {
                                     ProgressView()
                                         .controlSize(.small)
                                 } else {
-                                    Text("Install…")
+                                    Image(systemName: "plus")
                                 }
                             }
                             .disabled(isInstalling)
+                            .accessibilityLabel("Install extension")
                         }
                     }
-                    #endif
+                }
+                .fileImporter(
+                    isPresented: $showImporter,
+                    allowedContentTypes: [
+                        .zip,
+                        UTType(filenameExtension: "crx") ?? .data,
+                        .folder
+                    ],
+                    allowsMultipleSelection: false
+                ) { result in
+                    guard case .success(let urls) = result, let url = urls.first else { return }
+                    Task { await install(from: url) }
                 }
         }
     }
@@ -54,14 +70,16 @@ struct ExtensionsView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Use Add to Oriel on the Chrome Web Store. Already installed extensions show as Installed and won’t duplicate.")
+                    Text("Install from the Chrome Web Store or a .zip / .crx package. Content scripts and background pages run in Oriel tabs.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text("Open an extension from the list or the puzzle menu in the toolbar.")
+                    #if os(iOS)
+                    Text("Requires iOS 18.4+. Extension popups are limited on iPhone/iPad; most extensions still work via content scripts.")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
+                    #endif
                 }
                 .padding(.vertical, 4)
                 .listRowBackground(Color.clear)
@@ -83,14 +101,16 @@ struct ExtensionsView: View {
                     Label("Open Chrome Web Store", systemImage: "safari")
                 }
 
-                #if os(macOS)
                 Button {
-                    Task { await pickAndInstall() }
+                    #if os(macOS)
+                    Task { await pickAndInstallMac() }
+                    #else
+                    showImporter = true
+                    #endif
                 } label: {
                     Label(isInstalling ? "Installing…" : "Install from file…", systemImage: "plus.square.on.square")
                 }
                 .disabled(isInstalling || environment.extensions.isInstallingFromStore)
-                #endif
             } header: {
                 Text("Get extensions")
             }
@@ -139,7 +159,7 @@ struct ExtensionsView: View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: "puzzlepiece.extension.fill")
                 .font(.title3)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(environment.settings.brandColor)
                 .frame(width: 28)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -153,17 +173,14 @@ struct ExtensionsView: View {
 
             Spacer(minLength: 8)
 
-            #if os(macOS)
             Button {
                 environment.extensions.openAction(for: item.id)
             } label: {
                 Image(systemName: "arrow.up.forward.app")
             }
             .buttonStyle(.borderless)
-            .help("Open extension")
             .disabled(!item.isEnabled)
             .accessibilityLabel("Open \(item.displayName)")
-            #endif
 
             Toggle(
                 "Enabled",
@@ -185,7 +202,6 @@ struct ExtensionsView: View {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
-            .help("Remove")
             .accessibilityLabel("Remove \(item.displayName)")
         }
         .padding(.vertical, 4)
@@ -196,13 +212,13 @@ struct ExtensionsView: View {
             Label("Extensions unavailable", systemImage: "puzzlepiece.extension")
         } description: {
             Text(environment.extensions.lastError
-                  ?? "Chrome-style extensions require macOS 15.4+. They are not available on this device yet.")
+                  ?? "Chrome-style extensions require macOS 15.4+ or iOS 18.4+.")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     #if os(macOS)
-    private func pickAndInstall() async {
+    private func pickAndInstallMac() async {
         let panel = NSOpenPanel()
         panel.canChooseFiles = true
         panel.canChooseDirectories = true
@@ -212,11 +228,15 @@ struct ExtensionsView: View {
             UTType(filenameExtension: "crx") ?? .data,
             .folder
         ]
-        panel.message = "Choose an unpacked extension folder, .zip, or .crx package"
+        panel.prompt = "Install"
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        await install(from: url)
+    }
+    #endif
+
+    private func install(from url: URL) async {
         isInstalling = true
         defer { isInstalling = false }
         await environment.extensions.installFromPackage(at: url)
     }
-    #endif
 }
