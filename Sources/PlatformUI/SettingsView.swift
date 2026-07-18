@@ -121,7 +121,7 @@ struct SettingsView: View {
                     Text("Extensions")
                 } footer: {
                     #if os(macOS)
-                    Text("Install .zip / .crx / unpacked Manifest V2–V3 extensions. Chrome Web Store one-click install is not available; download a package, then install it in Oriel.")
+                    Text("On chromewebstore.google.com, click Add to Oriel to install. You can also load a .zip / .crx / folder manually.")
                         .fixedSize(horizontal: false, vertical: true)
                     #else
                     Text("Full Chrome-style extensions are not available on iPhone and iPad.")

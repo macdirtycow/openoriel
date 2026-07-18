@@ -557,8 +557,15 @@ struct BrowserShellView: View {
                 onOpenURLInNewTab: { url in
                     environment.openURLInNewTab(url, isPrivate: tab.isPrivate)
                 },
+                onInstallChromeExtension: { extensionID in
+                    Task { @MainActor in
+                        await environment.extensions.installFromChromeWebStore(extensionID: extensionID)
+                        environment.showExtensions = true
+                    }
+                },
                 webExtensionController: environment.extensions.webExtensionControllerForConfiguration,
-                blockAutoplay: environment.settings.blockAutoplay
+                blockAutoplay: environment.settings.blockAutoplay,
+                chromeWebStoreInstallEnabled: environment.extensions.isSupported
             )
             .id(tab.id)
             .opacity(showStart || showError ? 0 : 1)

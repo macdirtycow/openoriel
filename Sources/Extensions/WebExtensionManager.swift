@@ -17,6 +17,8 @@ final class WebExtensionManager {
     private(set) var extensions: [InstalledExtensionInfo] = []
     private(set) var lastError: String?
     private(set) var isSupported: Bool = false
+    private(set) var statusMessage: String?
+    private(set) var isInstallingFromStore = false
 
     private var controllerStorage: AnyObject?
     private let fileManager = FileManager.default
@@ -69,6 +71,17 @@ final class WebExtensionManager {
         if #available(macOS 15.4, *) {
             await installFromPackageMac(url)
         }
+        #endif
+    }
+
+    /// Downloads a CRX from the Chrome Web Store (same endpoint Chromium/Brave use) and installs it.
+    func installFromChromeWebStore(extensionID: String) async {
+        #if os(macOS)
+        if #available(macOS 15.4, *) {
+            await installFromChromeWebStoreMac(extensionID)
+        }
+        #else
+        lastError = "Chrome Web Store install requires macOS 15.4+ with Oriel extensions."
         #endif
     }
 
@@ -140,6 +153,52 @@ final class WebExtensionManager {
 
         extensions = loaded.sorted {
             $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
+        }
+    }
+
+    @available(macOS 15.4, *)
+    private func installFromChromeWebStoreMac(_ extensionID: String) async {
+        lastError = nil
+        statusMessage = nil
+        let id = extensionID.lowercased()
+        guard ChromeWebStoreAPI.isValidExtensionID(id) else {
+            lastError = "That Chrome Web Store page does not look like an extension."
+            return
+        }
+        guard let downloadURL = ChromeWebStoreAPI.downloadURL(forExtensionID: id) else {
+            lastError = "Could not build a download URL for this extension."
+            return
+        }
+
+        isInstallingFromStore = true
+        statusMessage = "Downloading from Chrome Web Store…"
+        defer { isInstallingFromStore = false }
+
+        do {
+            var request = URLRequest(url: downloadURL)
+            request.setValue(UserAgentPolicy.chromeDesktop, forHTTPHeaderField: "User-Agent")
+            request.setValue("https://chromewebstore.google.com/", forHTTPHeaderField: "Referer")
+            let (data, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                throw ExtensionError.storeDownloadFailed
+            }
+            guard data.count > 16 else { throw ExtensionError.storeDownloadFailed }
+
+            let tempCRX = fileManager.temporaryDirectory
+                .appendingPathComponent("oriel-cws-\(id)-\(UUID().uuidString).crx")
+            try data.write(to: tempCRX, options: .atomic)
+            statusMessage = "Installing…"
+            await installFromPackageMac(tempCRX)
+            try? fileManager.removeItem(at: tempCRX)
+
+            if lastError == nil {
+                statusMessage = "Installed from Chrome Web Store."
+            } else {
+                statusMessage = nil
+            }
+        } catch {
+            lastError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            statusMessage = nil
         }
     }
 
@@ -321,6 +380,7 @@ enum ExtensionError: LocalizedError {
     case unsupportedFormat
     case missingManifest
     case unzipFailed
+    case storeDownloadFailed
 
     var errorDescription: String? {
         switch self {
@@ -328,6 +388,7 @@ enum ExtensionError: LocalizedError {
         case .unsupportedFormat: "Use an unpacked folder, .zip, or .crx extension package."
         case .missingManifest: "No manifest.json found in the package."
         case .unzipFailed: "Could not extract the extension archive."
+        case .storeDownloadFailed: "Could not download this extension from the Chrome Web Store."
         }
     }
 }

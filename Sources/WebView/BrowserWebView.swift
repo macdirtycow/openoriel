@@ -21,8 +21,10 @@ struct BrowserWebView: PlatformViewRepresentable {
     var onPopupClosed: ((WKWebView) -> Void)?
     var onPopupTitleChanged: ((String?) -> Void)?
     var onOpenURLInNewTab: ((URL) -> Void)?
+    var onInstallChromeExtension: ((String) -> Void)?
     var webExtensionController: AnyObject?
     var blockAutoplay: Bool = true
+    var chromeWebStoreInstallEnabled: Bool = false
 
     #if os(iOS)
     func makeUIView(context: Context) -> WKWebView {
@@ -52,7 +54,8 @@ struct BrowserWebView: PlatformViewRepresentable {
             permissionManager: permissionManager,
             onPopupCreated: onPopupCreated,
             onPopupClosed: onPopupClosed,
-            onOpenURLInNewTab: onOpenURLInNewTab
+            onOpenURLInNewTab: onOpenURLInNewTab,
+            onInstallChromeExtension: onInstallChromeExtension
         )
     }
 
@@ -65,6 +68,23 @@ struct BrowserWebView: PlatformViewRepresentable {
             blockAutoplay: blockAutoplay,
             webExtensionController: webExtensionController
         )
+
+        #if os(macOS)
+        if chromeWebStoreInstallEnabled, !tab.isPrivate {
+            let ucc = configuration.userContentController
+            ucc.removeScriptMessageHandler(forName: ChromeWebStoreBridge.handlerName)
+            ucc.add(
+                context.coordinator.chromeWebStoreScriptMessageHandler(),
+                name: ChromeWebStoreBridge.handlerName
+            )
+            let script = WKUserScript(
+                source: ChromeWebStoreBridge.userScriptSource,
+                injectionTime: .atDocumentEnd,
+                forMainFrameOnly: true
+            )
+            ucc.addUserScript(script)
+        }
+        #endif
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
@@ -107,6 +127,7 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.onPopupClosed = onPopupClosed
         context.coordinator.onPopupTitleChanged = onPopupTitleChanged
         context.coordinator.onOpenURLInNewTab = onOpenURLInNewTab
+        context.coordinator.onInstallChromeExtension = onInstallChromeExtension
 
         webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = tab.javaScriptEnabled
 

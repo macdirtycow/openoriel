@@ -54,11 +54,11 @@ struct ExtensionsView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Add Manifest V2 or V3 packages from a folder, .zip, or .crx.")
+                    Text("On the Chrome Web Store, use Add to Oriel (same idea as Brave’s Add to Brave). Oriel downloads the CRX and installs it with WebKit.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text("Chrome Web Store one-click install is not available — download a package, then install it here.")
+                    Text("You can also install a folder, .zip, or .crx manually.")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -67,12 +67,20 @@ struct ExtensionsView: View {
                 .listRowBackground(Color.clear)
             }
 
+            if let status = environment.extensions.statusMessage {
+                Section {
+                    Label(status, systemImage: environment.extensions.isInstallingFromStore ? "arrow.down.circle" : "checkmark.circle")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             Section {
                 Button {
                     environment.openURLInNewTab(BrowserConstants.chromeWebStoreURL)
                     dismiss()
                 } label: {
-                    Label("Browse Chrome Web Store", systemImage: "safari")
+                    Label("Open Chrome Web Store", systemImage: "safari")
                 }
 
                 #if os(macOS)
@@ -81,7 +89,7 @@ struct ExtensionsView: View {
                 } label: {
                     Label(isInstalling ? "Installing…" : "Install from file…", systemImage: "plus.square.on.square")
                 }
-                .disabled(isInstalling)
+                .disabled(isInstalling || environment.extensions.isInstallingFromStore)
                 #endif
             } header: {
                 Text("Get extensions")

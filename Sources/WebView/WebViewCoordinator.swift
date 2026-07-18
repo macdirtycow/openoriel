@@ -4,8 +4,24 @@ import WebKit
 import UIKit
 #endif
 
+/// Avoids a retain cycle: `WKUserContentController` strongly retains script message handlers.
+private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    weak var target: (any WKScriptMessageHandler)?
+
+    init(target: any WKScriptMessageHandler) {
+        self.target = target
+    }
+
+    func userContentController(
+        _ userContentController: WKUserContentController,
+        didReceive message: WKScriptMessage
+    ) {
+        target?.userContentController(userContentController, didReceive: message)
+    }
+}
+
 @MainActor
-final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     var tab: BrowserTab
     var contentBlockingEnabled: Bool
     var matchesBlockedHint: (URL) -> Bool
@@ -15,9 +31,11 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var onPopupCreated: ((WKWebView) -> Void)?
     var onPopupClosed: ((WKWebView) -> Void)?
     var onOpenURLInNewTab: ((URL) -> Void)?
+    var onInstallChromeExtension: ((String) -> Void)?
 
     private var observations: [NSKeyValueObservation] = []
     private var popupTitleObservation: NSKeyValueObservation?
+    private var chromeStoreMessageHandler: WeakScriptMessageHandler?
 
     init(
         tab: BrowserTab,
@@ -28,7 +46,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         permissionManager: WebsitePermissionManager? = nil,
         onPopupCreated: ((WKWebView) -> Void)? = nil,
         onPopupClosed: ((WKWebView) -> Void)? = nil,
-        onOpenURLInNewTab: ((URL) -> Void)? = nil
+        onOpenURLInNewTab: ((URL) -> Void)? = nil,
+        onInstallChromeExtension: ((String) -> Void)? = nil
     ) {
         self.tab = tab
         self.contentBlockingEnabled = contentBlockingEnabled
@@ -39,6 +58,32 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         self.onPopupCreated = onPopupCreated
         self.onPopupClosed = onPopupClosed
         self.onOpenURLInNewTab = onOpenURLInNewTab
+        self.onInstallChromeExtension = onInstallChromeExtension
+    }
+
+    /// Retained weakly by `WKUserContentController`; keep the proxy alive on the coordinator.
+    func chromeWebStoreScriptMessageHandler() -> WKScriptMessageHandler {
+        if let chromeStoreMessageHandler {
+            return chromeStoreMessageHandler
+        }
+        let handler = WeakScriptMessageHandler(target: self)
+        chromeStoreMessageHandler = handler
+        return handler
+    }
+
+    func userContentController(
+        _ userContentController: WKUserContentController,
+        didReceive message: WKScriptMessage
+    ) {
+        guard message.name == ChromeWebStoreBridge.handlerName else { return }
+        let extensionID: String?
+        if let body = message.body as? [String: Any] {
+            extensionID = body["id"] as? String
+        } else {
+            extensionID = message.body as? String
+        }
+        guard let extensionID, ChromeWebStoreAPI.isValidExtensionID(extensionID.lowercased()) else { return }
+        onInstallChromeExtension?(extensionID.lowercased())
     }
 
     func observe(_ webView: WKWebView) {

@@ -7,7 +7,7 @@ Oriel is a **native WebKit** browser. Brave, Chrome, and Opera GX are **Chromium
 | Feature | Who has it | Why Oriel cannot fully ship it |
 |---------|------------|--------------------------------|
 | Chromium engine / Chrome rendering | Brave, Chrome, Opera GX | iOS App Store requires WebKit; macOS Oriel stays WebKit by design |
-| Full Chrome Web Store one-click | Chrome, Brave, Opera | Store install APIs are Chromium-only; macOS can load packages via `WKWebExtension` |
+| Full Chrome Web Store one-click | Chrome, Brave, Opera | Chromium store APIs differ; Oriel on macOS injects **Add to Oriel** and installs via CRX download + `WKWebExtension` |
 | Brave Rewards / ads / crypto | Brave | Explicit non-goal |
 | Opera GX gaming sidebar, CPU/RAM limters, Discord/WhatsApp panels | Opera GX | Product-specific; out of scope |
 | iCloud Tabs / Passwords / Keychain deep Safari sync | Safari | Requires Apple private APIs / Safari entitlements |
