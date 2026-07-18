@@ -1,18 +1,16 @@
 # Entitlements
 
-Least privilege. Only what browsing needs.
-
 | Capability | Status | Reason |
 |------------|--------|--------|
-| App Sandbox (macOS) | Required | Mac App Store / notarization baseline |
-| Outgoing network client | Required | Load websites |
+| App Sandbox (macOS) | On | Mac App Store / notarization |
+| Outgoing network client | On | Load websites |
 | Incoming network server | Off | Unused |
-| Downloads folder read-write | On | Save downloads |
-| User-selected file read-write | On | Import/export, open files |
+| Downloads folder read-write | On | Downloads |
+| User-selected file read-write | On | Import / export / open |
 | Camera / microphone (sandbox) | On | Site media prompts |
-| App Groups | Off | No companion extension target yet |
-| Associated Domains | Off | No universal links yet |
+| App Groups | Off | No companion extension target |
+| Associated Domains | Off | Unused |
 | Push Notifications | Off | Unused |
-| Personal VPN / Network Extension | Off | Out of scope |
+| Personal VPN / Network Extension | Off | Unused |
 
-Hardened Runtime is expected for notarized macOS builds. Camera, microphone, and location also need Info.plist usage strings (already set in `project.yml`).
+Hardened Runtime is expected for notarized macOS builds. Usage strings for camera, microphone, and location are set in `project.yml`.

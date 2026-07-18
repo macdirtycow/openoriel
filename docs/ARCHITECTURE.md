@@ -43,4 +43,3 @@ Use `#if os(macOS)` / `#if os(iOS)` only where UIKit/AppKit or API differences r
 - Native bridges from page JS are allowlisted and narrow (e.g. extension install).
 - Private tabs use a non-persistent `WKWebsiteDataStore`.
 - Secrets belong in the Keychain.
-- Privacy claims must match [PRIVACY.md](PRIVACY.md).

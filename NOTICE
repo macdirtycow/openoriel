@@ -1,16 +1,23 @@
 Oriel
-Copyright 2025–2026 inveil.net
+Copyright 2025-2026 inveil.net
 
-This product includes software developed at inveil.net
+This product includes software developed by inveil.net
 (https://inveil.net/).
+
+Licensed under the Apache License, Version 2.0.
+See the LICENSE file in this repository.
 
 ---
 
-Bundled filter lists under Resources/ContentBlocker/oriel-easylist.json
-are derived from EasyList and EasyPrivacy
-(https://easylist.to/), © The EasyList authors.
-Licence: https://easylist.to/pages/licence.html
-(GNU GPLv3 or later / Creative Commons Attribution-ShareAlike 3.0 Unported,
-at your option, as published by EasyList).
+Third-party filter lists
 
-Conversion tooling: Scripts/convert_easylist_to_webkit.py
+Files under Resources/ContentBlocker/ named oriel-easylist-*.json,
+oriel-easyprivacy-*.json, and oriel-cosmetic.json are derived from
+EasyList and EasyPrivacy (https://easylist.to/),
+Copyright The EasyList authors.
+
+EasyList licence: https://easylist.to/pages/licence.html
+(GNU GPLv3 or later, or Creative Commons Attribution-ShareAlike 3.0
+Unported, at your option, as published by EasyList).
+
+Conversion script: Scripts/convert_easylist_to_webkit.py

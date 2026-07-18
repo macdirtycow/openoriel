@@ -1,13 +1,12 @@
 # App Store checklist
 
-**Bundle ID:** `net.inveil.oriel` · **Site:** https://openoriel.com · **Publisher:** inveil.net
+Bundle ID `net.inveil.oriel` · https://openoriel.com · inveil.net
 
 ## Privacy
 
-- [x] No absolute “100% private” claims
-- [x] Shields copy matches [PRIVACY.md](PRIVACY.md)
-- [ ] App Privacy nutrition labels in App Store Connect
-- [ ] Privacy policy URL live (e.g. openoriel.com/privacy)
+- [x] Copy aligned with [PRIVACY.md](PRIVACY.md)
+- [ ] App Privacy nutrition labels
+- [ ] Privacy policy URL
 
 ## Capabilities
 
@@ -19,20 +18,20 @@
 ## Accessibility
 
 - [x] VoiceOver labels on primary chrome
-- [x] Reduce Motion respected on start page
-- [ ] Full VoiceOver pass (iPhone, iPad, Mac)
-- [ ] Increase Contrast spot-check
+- [x] Reduce Motion on start page
+- [ ] Full VoiceOver pass
+- [ ] Increase Contrast check
 
 ## Quality
 
 - [x] Unit tests for URL parsing, tabs, privacy helpers
-- [ ] Release build on physical iPhone, iPad, Mac
+- [ ] Release build on device (iPhone, iPad, Mac)
 - [ ] Private tab does not write history
 - [ ] Shields compile on first launch
-- [ ] Extension install smoke-test (macOS 15.4+)
+- [ ] Extension install on macOS 15.4+
 
 ## Metadata
 
-- [ ] Screenshots for each device class
+- [ ] Screenshots
 - [ ] Support URL
-- [ ] Age rating / content rights answered honestly
+- [ ] Age rating / content rights
