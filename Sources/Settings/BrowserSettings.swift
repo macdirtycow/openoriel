@@ -86,6 +86,11 @@ final class BrowserSettings {
         didSet { defaults.set(stripTrackingParameters, forKey: stripTrackingKey) }
     }
 
+    /// First-launch product tour completed.
+    var hasCompletedOnboarding: Bool {
+        didSet { defaults.set(hasCompletedOnboarding, forKey: onboardingKey) }
+    }
+
     var homepageURL: URL {
         if let url = URL(string: homepageURLString), url.scheme != nil {
             return url
@@ -108,6 +113,7 @@ final class BrowserSettings {
     private let javaScriptKey = "oriel.javaScriptEnabled"
     private let blockAutoplayKey = "oriel.blockAutoplay"
     private let stripTrackingKey = "oriel.stripTrackingParameters"
+    private let onboardingKey = "oriel.hasCompletedOnboarding"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -163,6 +169,7 @@ final class BrowserSettings {
         } else {
             self.stripTrackingParameters = defaults.bool(forKey: stripTrackingKey)
         }
+        self.hasCompletedOnboarding = defaults.bool(forKey: onboardingKey)
         // Repair Soft/Paper/Sand stored with Dark (or Midnight with Light) from older builds.
         if let forced = backgroundTheme.forcedColorScheme {
             let repaired: AppAppearance = forced == .dark ? .dark : .light

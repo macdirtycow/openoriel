@@ -198,6 +198,7 @@ struct StartPageView: View {
 
     private var quickActions: some View {
         HStack(spacing: 6) {
+            ProfileSwitcherControl(style: .chip)
             quickChip(systemImage: "gearshape", title: "Settings") {
                 environment.showSettings = true
             }

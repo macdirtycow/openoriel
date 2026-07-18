@@ -12,7 +12,7 @@ settings:
   SWIFT_VERSION: "5.10"
   BASE_SDK: ""
   MARKETING_VERSION: "1.0.0"
-  CURRENT_PROJECT_VERSION: "14"
+  CURRENT_PROJECT_VERSION: "15"
 
 packages:
   ZIPFoundation:
@@ -62,11 +62,34 @@ targets:
         com.apple.security.device.camera: true
         com.apple.security.device.microphone: true
         com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Viewer
+            CFBundleURLName: net.inveil.oriel.web
+            CFBundleURLSchemes:
+              - http
+              - https
+            LSHandlerRank: Owner
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: HTML document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - public.html
+              - public.xhtml
+          - CFBundleTypeName: URL
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - public.url
+              - public.url-book
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: net.inveil.oriel
       PRODUCT_NAME: Oriel
       MARKETING_VERSION: "1.0.0"
-      CURRENT_PROJECT_VERSION: "14"
+      CURRENT_PROJECT_VERSION: "15"
       DEVELOPMENT_TEAM: 2PP6UH4PWA
       CODE_SIGN_STYLE: Automatic
       GENERATE_INFOPLIST_FILE: YES

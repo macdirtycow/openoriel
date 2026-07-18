@@ -8,6 +8,9 @@ struct OrielApp: App {
         WindowGroup {
             // Theming must live in a View body — Scene.body does not track @Observable settings.
             OrielRootView(environment: environment)
+                .onOpenURL { url in
+                    environment.handleIncomingURL(url)
+                }
         }
         #if os(macOS)
         .defaultSize(width: 1100, height: 760)
@@ -142,6 +145,11 @@ struct OrielApp: App {
             }
             .keyboardShortcut("e", modifiers: [.command, .shift])
 
+            Button("Profiles…") {
+                environment.showProfiles = true
+            }
+            .keyboardShortcut("p", modifiers: [.command, .shift])
+
             Button("Shields") {
                 environment.showPrivacyShield = true
             }
@@ -165,10 +173,33 @@ struct OrielApp: App {
 private struct OrielRootView: View {
     @Bindable var environment: AppEnvironment
 
+    private var showOnboarding: Binding<Bool> {
+        Binding(
+            get: { !environment.settings.hasCompletedOnboarding },
+            set: { if !$0 { environment.settings.hasCompletedOnboarding = true } }
+        )
+    }
+
     var body: some View {
         BrowserShellView()
             .environment(environment)
             .orielTheming(settings: environment.settings)
+            #if os(iOS)
+            .fullScreenCover(isPresented: showOnboarding) {
+                OnboardingView()
+                    .environment(environment)
+                    .orielTheming(settings: environment.settings)
+                    .interactiveDismissDisabled()
+            }
+            #else
+            .sheet(isPresented: showOnboarding) {
+                OnboardingView()
+                    .environment(environment)
+                    .orielTheming(settings: environment.settings)
+                    .frame(minWidth: 520, idealWidth: 560, minHeight: 620, idealHeight: 680)
+                    .interactiveDismissDisabled()
+            }
+            #endif
     }
 }
 

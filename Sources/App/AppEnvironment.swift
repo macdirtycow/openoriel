@@ -29,6 +29,7 @@ final class AppEnvironment {
     let profiles: ProfileStore
     let installedWebApps: InstalledWebAppStore
     let workspaces: WorkspaceStore
+    let defaultBrowser: DefaultBrowserService
 
     var showAbout = false
     var showTabOverview = false
@@ -77,7 +78,8 @@ final class AppEnvironment {
         icloudSync: iCloudSyncService? = nil,
         profiles: ProfileStore? = nil,
         installedWebApps: InstalledWebAppStore? = nil,
-        workspaces: WorkspaceStore? = nil
+        workspaces: WorkspaceStore? = nil,
+        defaultBrowser: DefaultBrowserService? = nil
     ) {
         let resolvedSettings = settings ?? BrowserSettings()
         let resolvedBookmarks = bookmarks ?? BookmarkStore()
@@ -108,6 +110,7 @@ final class AppEnvironment {
         self.profiles = profiles ?? ProfileStore()
         self.installedWebApps = installedWebApps ?? InstalledWebAppStore()
         self.workspaces = workspaces ?? WorkspaceStore()
+        self.defaultBrowser = defaultBrowser ?? DefaultBrowserService()
         resolvedSession.restorePreviousSession = resolvedSettings.restorePreviousSession
 
         let snapshot = resolvedSession.load()
@@ -233,6 +236,17 @@ final class AppEnvironment {
     func openURLInNewTab(_ url: URL, isPrivate: Bool = false) {
         tabs.createTab(url: url, isPrivate: isPrivate, select: true)
         wireTabPrivacyHooks()
+    }
+
+    /// Opens an http/https link handed to Oriel as the system browser (or via Share).
+    func handleIncomingURL(_ url: URL) {
+        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else { return }
+        if let tab = activeTab, tab.isShowingStartPage {
+            tab.load(url)
+            wireTabPrivacyHooks()
+        } else {
+            openURLInNewTab(url)
+        }
     }
 
     func contentBlockingEnabled(for tab: BrowserTab) -> Bool {

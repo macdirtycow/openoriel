@@ -385,8 +385,10 @@ final class WebExtensionManager {
             throw ExtensionError.invalidPackage
         }
 
-        if isDirectory.boolValue {
-            for item in try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil) {
+        if isDirectory.boolValue || ["appex", "bundle"].contains(url.pathExtension.lowercased()) {
+            // Copy package contents (folder or Safari .appex bundle).
+            let sourceRoot = url
+            for item in try fileManager.contentsOfDirectory(at: sourceRoot, includingPropertiesForKeys: nil) {
                 try fileManager.copyItem(
                     at: item,
                     to: tempRoot.appendingPathComponent(item.lastPathComponent)
@@ -529,7 +531,7 @@ final class WebExtensionHost: NSObject, WKWebExtensionControllerDelegate {
     }
 }
 #elseif os(iOS)
-/// iOS host for WKWebExtension — content scripts/background run; popup UI is best-effort.
+/// Presents extension action popups as sheets on iPhone/iPad.
 @available(iOS 18.4, *)
 final class WebExtensionHost: NSObject, WKWebExtensionControllerDelegate {
     func webExtensionController(
@@ -537,9 +539,29 @@ final class WebExtensionHost: NSObject, WKWebExtensionControllerDelegate {
         presentActionPopup action: WKWebExtension.Action,
         for extensionContext: WKWebExtensionContext
     ) async throws {
-        // Popups on iOS are limited; performing the action still wakes background pages.
-        _ = action
-        _ = extensionContext
+        guard action.presentsPopup, let popup = action.popupViewController else { return }
+        await MainActor.run {
+            guard let presenter = Self.topViewController() else { return }
+            if popup.presentingViewController != nil {
+                popup.dismiss(animated: true)
+                return
+            }
+            popup.modalPresentationStyle = .pageSheet
+            presenter.present(popup, animated: true)
+        }
+    }
+
+    private static func topViewController() -> UIViewController? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let window = scenes
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)
+            ?? scenes.flatMap(\.windows).first
+        guard var top = window?.rootViewController else { return nil }
+        while let presented = top.presentedViewController {
+            top = presented
+        }
+        return top
     }
 }
 #endif
@@ -554,8 +576,10 @@ enum ExtensionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidPackage: "This package could not be read as a web extension."
-        case .unsupportedFormat: "Use an unpacked folder, .zip, or .crx extension package."
-        case .missingManifest: "No manifest.json found in the package."
+        case .unsupportedFormat:
+            "Use an unpacked folder with manifest.json, a .zip / .crx package, or a Safari Web Extension source folder. Safari App Store .appex installs are not transferable."
+        case .missingManifest:
+            "No manifest.json found. Safari App Store extensions are not compatible — use a WebExtension package instead."
         case .unzipFailed: "Could not extract the extension archive."
         case .storeDownloadFailed: "Could not download this extension from the Chrome Web Store."
         }

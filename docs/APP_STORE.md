@@ -2,7 +2,7 @@
 
 Bundle ID `net.inveil.oriel` · Team `2PP6UH4PWA` · https://openoriel.com · inveil.net
 
-Version **1.0.0 (12)** — bump `CURRENT_PROJECT_VERSION` in `project.yml` for each TestFlight upload, then run `xcodegen generate`.
+Version **1.0.0 (15)** — bump `CURRENT_PROJECT_VERSION` in `project.yml` for each TestFlight upload, then run `xcodegen generate`.
 
 ## Privacy
 
@@ -16,6 +16,8 @@ Version **1.0.0 (12)** — bump `CURRENT_PROJECT_VERSION` in `project.yml` for e
 - [x] Sandbox + network client (macOS)
 - [x] Downloads / user-selected files (macOS)
 - [x] Camera / mic / location usage strings
+- [x] http/https URL types for default-browser / open-in-Oriel
+- [ ] iOS Default Browser entitlement (`com.apple.developer.web-browser`) — request from Apple before enabling
 - [x] No private APIs
 
 ## Accessibility

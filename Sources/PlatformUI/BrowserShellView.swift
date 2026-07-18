@@ -171,6 +171,7 @@ struct BrowserShellView: View {
             HStack(spacing: 10) {
                 NavigationControlsView(tab: tab, style: .compact, showsShields: false)
                 Spacer(minLength: 4)
+                ProfileSwitcherControl(style: .chip)
                 phoneTrailingChrome(environment: environment, tab: tab)
             }
         }
@@ -258,6 +259,7 @@ struct BrowserShellView: View {
         let accent = environment.settings.brandColor
         let size = OrielLayout.navButtonSize
         return HStack(spacing: 8) {
+            ProfileSwitcherControl(style: .chip)
             chromeIconButton(
                 systemName: "plus",
                 label: "New Tab",
@@ -447,6 +449,8 @@ struct BrowserShellView: View {
                         .frame(minWidth: 240, idealWidth: 560, maxWidth: 760)
                     }
                     ToolbarItemGroup(placement: .primaryAction) {
+                        ProfileSwitcherControl(style: .icon)
+
                         Button {
                             environment.tabs.createTab(select: true)
                             environment.wireTabPrivacyHooks()
@@ -478,6 +482,7 @@ struct BrowserShellView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
+                ProfileSwitcherControl(style: .icon)
                 Button {
                     environment.tabs.createTab(select: true)
                     environment.wireTabPrivacyHooks()
@@ -557,6 +562,8 @@ struct BrowserShellView: View {
                 tab.submitAddressBar()
             }
             .frame(maxWidth: .infinity)
+
+            ProfileSwitcherControl(style: .icon)
 
             Button {
                 environment.tabs.createTab(select: true)
@@ -765,7 +772,11 @@ struct BrowserShellView: View {
                 }
                 Button("Shields") { environment.showPrivacyShield = true }
                 Button("Fire…", role: .destructive) { environment.showFireButton = true }
-                Button("Profiles…") { environment.showProfiles = true }
+                Button {
+                    environment.showProfiles = true
+                } label: {
+                    Label("Profiles…", systemImage: "person.crop.circle")
+                }
                 Button("Workspaces…") { environment.showWorkspaces = true }
                 Button("Settings") { openAppSettings() }
             } else {
@@ -882,6 +893,9 @@ struct BrowserShellView: View {
                 Button("Bookmarks") { environment.showBookmarks = true }
                 Button("History") { environment.showHistory = true }
                 Button("Downloads") { environment.showDownloads = true }
+                if environment.extensions.isSupported {
+                    Button("Extensions") { environment.showExtensions = true }
+                }
                 Button(environment.linkQueue.count == 0 ? "Open Later" : "Open Later (\(environment.linkQueue.count))") {
                     environment.showLinkQueue = true
                 }
@@ -891,7 +905,11 @@ struct BrowserShellView: View {
                 .disabled(tab.isShowingStartPage)
                 Button("Shields") { environment.showPrivacyShield = true }
                 Button("Fire…", role: .destructive) { environment.showFireButton = true }
-                Button("Profiles…") { environment.showProfiles = true }
+                Button {
+                    environment.showProfiles = true
+                } label: {
+                    Label("Profiles…", systemImage: "person.crop.circle")
+                }
                 Button("Workspaces…") { environment.showWorkspaces = true }
                 Button("Settings") { openAppSettings() }
 

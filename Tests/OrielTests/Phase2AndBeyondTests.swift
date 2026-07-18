@@ -32,6 +32,32 @@ final class Phase2AndBeyondTests: XCTestCase {
         }
     }
 
+    func testOnboardingFlagDefaultsFalseThenPersists() async {
+        await MainActor.run {
+            let suiteName = "oriel.tests.onboarding.\(UUID().uuidString)"
+            let suite = UserDefaults(suiteName: suiteName)!
+            defer { suite.removePersistentDomain(forName: suiteName) }
+            let settings = BrowserSettings(defaults: suite)
+            XCTAssertFalse(settings.hasCompletedOnboarding)
+            settings.hasCompletedOnboarding = true
+            let reloaded = BrowserSettings(defaults: suite)
+            XCTAssertTrue(reloaded.hasCompletedOnboarding)
+        }
+    }
+
+    func testDefaultBrowserServiceGuidanceIsNonEmpty() async {
+        await MainActor.run {
+            let service = DefaultBrowserService()
+            XCTAssertFalse(service.platformGuidance.isEmpty)
+            service.refreshStatus()
+            #if os(macOS)
+            XCTAssertTrue(service.canSetAsDefaultDirectly)
+            #else
+            XCTAssertFalse(service.canSetAsDefaultDirectly)
+            #endif
+        }
+    }
+
     func testSuggestionURLsExist() {
         XCTAssertNotNil(SearchEngine.duckDuckGo.suggestionURL(for: "test"))
         XCTAssertNotNil(SearchEngine.google.suggestionURL(for: "test"))

@@ -193,6 +193,41 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "person.crop.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(settings.brandColor)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(environment.profiles.activeProfile.name)
+                                    .font(.headline)
+                                Text("Active profile · isolated cookies & site data")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        ProfileSwitcherControl(style: .chip)
+                        Button {
+                            if showsDoneButton {
+                                environment.showProfiles = true
+                                dismiss()
+                            } else {
+                                showProfilesSheet = true
+                            }
+                        } label: {
+                            Label("Manage Profiles…", systemImage: "person.2")
+                        }
+                    }
+                    .padding(.vertical, 4)
+                } header: {
+                    Text("Profiles")
+                } footer: {
+                    Text("Switch profiles from the toolbar chip, start page, or here. Each profile keeps its own logins.")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Section {
                     Toggle("iCloud Sync", isOn: Binding(
                         get: { environment.icloudSync.isEnabled },
                         set: {
@@ -202,15 +237,6 @@ struct SettingsView: View {
                     ))
                     Button("Autofill Password for This Site") {
                         Task { await environment.autofillPasswordForActivePage() }
-                    }
-                    Button("Profiles…") {
-                        // From the macOS Settings scene, present locally — the browser window sheet is often behind.
-                        if showsDoneButton {
-                            environment.showProfiles = true
-                            dismiss()
-                        } else {
-                            showProfilesSheet = true
-                        }
                     }
                     Button("Workspaces…") {
                         if showsDoneButton {
@@ -231,6 +257,52 @@ struct SettingsView: View {
                 } footer: {
                     Text("iCloud Sync mirrors bookmarks, Open Later, history, open tabs, and appearance settings via iCloud Key-Value storage. Workspaces keep separate tab sets on this device. Passwords use the system Keychain picker.")
                         .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Section {
+                    let browser = environment.defaultBrowser
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(browser.platformGuidance)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        if let status = browser.lastStatusMessage {
+                            Label(status, systemImage: browser.isDefaultBrowser ? "checkmark.seal.fill" : "safari")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        if let error = browser.lastError {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
+
+                        if browser.canSetAsDefaultDirectly {
+                            Button("Set Oriel as Default Browser") {
+                                browser.promoteToDefaultBrowser()
+                            }
+                            Button("Open System Settings…") {
+                                browser.openDefaultBrowserSettings()
+                            }
+                        } else {
+                            Button("Open Default Browser Settings") {
+                                browser.promoteToDefaultBrowser()
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                    .onAppear { browser.refreshStatus() }
+                } header: {
+                    Text("Default browser")
+                } footer: {
+                    #if os(macOS)
+                    Text("Oriel registers for http and https links so it can be chosen as your Mac’s default browser.")
+                        .fixedSize(horizontal: false, vertical: true)
+                    #else
+                    Text("Apple requires the Default Browser entitlement before Oriel appears in Settings → Apps → Default Browser App. See docs/ENTITLEMENTS.md.")
+                        .fixedSize(horizontal: false, vertical: true)
+                    #endif
                 }
 
                 Section("Homepage") {
@@ -272,7 +344,7 @@ struct SettingsView: View {
                     Text("Extensions")
                 } footer: {
                     if environment.extensions.isSupported {
-                        Text("On chromewebstore.google.com, use Add to Oriel, or install a .zip / .crx package. Requires macOS 15.4+ or iOS 18.4+.")
+                        Text("Install Chrome Web Store or WebExtension packages (.zip / .crx / folder with manifest.json). Safari App Store extensions cannot run outside Safari.")
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text(environment.extensions.lastError
@@ -304,6 +376,10 @@ struct SettingsView: View {
                     LabeledContent("Website", value: BrowserConstants.productWebsiteHost)
                     LabeledContent("Publisher", value: BrowserConstants.publisherName)
                     Link("Open \(BrowserConstants.productWebsiteHost)", destination: BrowserConstants.productWebsiteURL)
+                    Button("Show Welcome Tour Again") {
+                        settings.hasCompletedOnboarding = false
+                        if showsDoneButton { dismiss() }
+                    }
                 }
             }
             .navigationTitle("Settings")

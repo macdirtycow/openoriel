@@ -25,6 +25,7 @@
 		2BF1D951C177553684C2D402 /* oriel-ads-1.json in Resources */ = {isa = PBXBuildFile; fileRef = D5C228FA37F9581D9D78386C /* oriel-ads-1.json */; };
 		2C8EE9DBDF524FF12870288C /* oriel-youtube-ads.json in Resources */ = {isa = PBXBuildFile; fileRef = B06D1B6676704EE54E899EA0 /* oriel-youtube-ads.json */; };
 		2C979EAC1971EEC277DA434A /* AuthHostAllowlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E7802EEE2452CAFA9B91E /* AuthHostAllowlist.swift */; };
+		2CB9F3A149EA674A5A55A6E7 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03C2BA1CA17C36F4696A6FFA /* OnboardingView.swift */; };
 		2F18BCF424E376CFAF72E780 /* FireButtonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF712E1CE661D9AC39D29643 /* FireButtonService.swift */; };
 		31CD8FE1951535233E663D49 /* NavigationControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */; };
 		31E51D1FB99CE01A6477B29C /* WebViewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0135155E8C8C82FFAD7A65B /* WebViewCoordinator.swift */; };
@@ -43,6 +44,7 @@
 		6224D04B29955F0788EA7752 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FF4D181DFA1DDA6883D30DC /* DownloadManager.swift */; };
 		648B259C94473F2E287A7936 /* ElementHideStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30F0796D1D125A4D22EF63A /* ElementHideStore.swift */; };
 		64CD74DA1E3F121404C0DA82 /* Phase2StoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80CF124D5D1BB84658AB30EF /* Phase2StoreTests.swift */; };
+		67A05230EC9345F371F9C6B1 /* ProfileSwitcherControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E71E92ED9AC72D87C237EB /* ProfileSwitcherControl.swift */; };
 		68C0D3A56B2B78146A91293E /* AddressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161F0A55C73E58B7E28FEF17 /* AddressBarView.swift */; };
 		69037969A87CFB02AC73F00F /* BrowserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F59F3AD82F32EA43EF0D179 /* BrowserSettings.swift */; };
 		694BC4E42FADB73185148D51 /* TrackingParameterStripper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C94752846BA7E952CD7DC6E /* TrackingParameterStripper.swift */; };
@@ -77,6 +79,7 @@
 		B3F82F73100905AEFFD03844 /* PrivacySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEAD19F44096849D14681327 /* PrivacySettings.swift */; };
 		B6A458C5A9AA3C43ED86CE1A /* FaviconResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569DD3AFE40E29611E281BAB /* FaviconResolver.swift */; };
 		B6F31BBEFE3A71309253DE09 /* LinkQueueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEFB633876B868B2EB68C3B /* LinkQueueStore.swift */; };
+		B79D77E5C1A22C09B7CBBF8C /* DefaultBrowserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13F77A632C915C0734948 /* DefaultBrowserService.swift */; };
 		B7F16BCF50A5CC9DC8DDC973 /* ThemeAndPrivacyStatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195A21D08CFBBD324635C4BE /* ThemeAndPrivacyStatsTests.swift */; };
 		C0BD3793ED8CC1D2AA182A05 /* UserAgentPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 184E467146BEAAB9C3005FC9 /* UserAgentPolicy.swift */; };
 		C0D710DE823E78C7F52F7F02 /* OrielTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */; };
@@ -135,6 +138,8 @@
 		01381C90C042AFCE3C1AC613 /* ThirdPartyCookieBlocker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThirdPartyCookieBlocker.swift; sourceTree = "<group>"; };
 		02CBC7705D9621792C8BF524 /* ErrorPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorPageView.swift; sourceTree = "<group>"; };
 		03AAE52BC150A766491FA089 /* ChromeWebStoreBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeWebStoreBridge.swift; sourceTree = "<group>"; };
+		03C2BA1CA17C36F4696A6FFA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		04E71E92ED9AC72D87C237EB /* ProfileSwitcherControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSwitcherControl.swift; sourceTree = "<group>"; };
 		092239664755EDC7A6047129 /* oriel-ads-2.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-ads-2.json"; sourceTree = "<group>"; };
 		0C336481A6174DB573E8F7BE /* OrielMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielMark.swift; sourceTree = "<group>"; };
 		0F64E5EADB8EC24B65AAD5FC /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
@@ -189,6 +194,7 @@
 		91FADAFD7D5FF406A6D6E367 /* HTTPSUpgrade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPSUpgrade.swift; sourceTree = "<group>"; };
 		92DEC41377429AF5865F7209 /* BookmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksView.swift; sourceTree = "<group>"; };
 		964B007F398281F78B5719E7 /* OrielLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielLayout.swift; sourceTree = "<group>"; };
+		96E13F77A632C915C0734948 /* DefaultBrowserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultBrowserService.swift; sourceTree = "<group>"; };
 		99E8BB3AC2188B2EE45BDF32 /* PageTranslator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTranslator.swift; sourceTree = "<group>"; };
 		9AE1527CE617BF10774B6D67 /* URLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLParser.swift; sourceTree = "<group>"; };
 		9E1060ADCB8E8D21A1D5CBC2 /* WebsitePermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitePermissionManager.swift; sourceTree = "<group>"; };
@@ -263,6 +269,7 @@
 		20C66DDE210659818844158C /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				96E13F77A632C915C0734948 /* DefaultBrowserService.swift */,
 				B30F0796D1D125A4D22EF63A /* ElementHideStore.swift */,
 				81A28F5ED304EC4EC5C0E73E /* iCloudSyncService.swift */,
 				4AEFB633876B868B2EB68C3B /* LinkQueueStore.swift */,
@@ -516,12 +523,14 @@
 				83AC3BB6323513845985F125 /* HistoryView.swift */,
 				6BE95EFA41B2F3C82255E31F /* LinkQueueView.swift */,
 				899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */,
+				03C2BA1CA17C36F4696A6FFA /* OnboardingView.swift */,
 				964B007F398281F78B5719E7 /* OrielLayout.swift */,
 				0C336481A6174DB573E8F7BE /* OrielMark.swift */,
 				3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */,
 				33220F0F6C92AD80A700CA66 /* PictureInPicturePickerView.swift */,
 				FEB95E162E556859616C2DA9 /* PrivacyShieldView.swift */,
 				835E9DA3F43215CF038F6A1B /* ProfilesView.swift */,
+				04E71E92ED9AC72D87C237EB /* ProfileSwitcherControl.swift */,
 				2217E60267513166ABDC37AF /* SettingsView.swift */,
 				137A3D8074BF71FCA60476D1 /* StartPageView.swift */,
 				E57EB5D6608140050A9EF32F /* TabOverviewView.swift */,
@@ -684,6 +693,7 @@
 				EA61CA2644CE7FEE170C6664 /* BrowserWebView.swift in Sources */,
 				7D63DB298B0A9D2C153B99DE /* ChromeWebStoreBridge.swift in Sources */,
 				95A9EC4E34689A7B91D39AB7 /* ContentBlockerManager.swift in Sources */,
+				B79D77E5C1A22C09B7CBBF8C /* DefaultBrowserService.swift in Sources */,
 				6224D04B29955F0788EA7752 /* DownloadManager.swift in Sources */,
 				26759CC73B147E486F86A151 /* DownloadsView.swift in Sources */,
 				648B259C94473F2E287A7936 /* ElementHideStore.swift in Sources */,
@@ -705,6 +715,7 @@
 				31CD8FE1951535233E663D49 /* NavigationControlsView.swift in Sources */,
 				031CD0495C873598AF6F38C4 /* NavigationPolicy.swift in Sources */,
 				D7E704953945FC2B3CE55422 /* NavigationState.swift in Sources */,
+				2CB9F3A149EA674A5A55A6E7 /* OnboardingView.swift in Sources */,
 				FF5F8E058A1A7C1D9328AC1B /* OrielApp.swift in Sources */,
 				0B37DDC67D87E467B4FBF91E /* OrielLayout.swift in Sources */,
 				7C93B0B1A9EA03185AA143E4 /* OrielMark.swift in Sources */,
@@ -718,6 +729,7 @@
 				E3D3EB1F2FE8C46B503557E1 /* PrivacyShieldView.swift in Sources */,
 				AC30E92C2EF5916B7B7FD08B /* PrivacyStats.swift in Sources */,
 				AEF2D7FC4B6EBB552C00DE96 /* ProfileStore.swift in Sources */,
+				67A05230EC9345F371F9C6B1 /* ProfileSwitcherControl.swift in Sources */,
 				CDFE84BBED32A20145836CBC /* ProfilesView.swift in Sources */,
 				EB20D1337FE6B694D5DE59CA /* ProgressiveWebApp.swift in Sources */,
 				EA8342244336627EE154A27D /* SearchEngine.swift in Sources */,
@@ -824,7 +836,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -856,10 +868,11 @@
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Oriel;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -941,10 +954,11 @@
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Oriel;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -1008,7 +1022,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;

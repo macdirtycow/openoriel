@@ -47,6 +47,7 @@ struct ExtensionsView: View {
                     allowedContentTypes: [
                         .zip,
                         UTType(filenameExtension: "crx") ?? .data,
+                        UTType(filenameExtension: "appex") ?? .data,
                         .folder
                     ],
                     allowsMultipleSelection: false
@@ -69,13 +70,29 @@ struct ExtensionsView: View {
     private var supportedList: some View {
         List {
             Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Install from the Chrome Web Store or a .zip / .crx package. Content scripts and background pages run in Oriel tabs.")
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Oriel runs Chrome/Firefox-style WebExtensions via Apple’s WKWebExtension API on macOS 15.4+ and iOS/iPadOS 18.4+.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    Label {
+                        Text("Safari App Store extensions (.appex sold for Safari) cannot be loaded into Oriel. Apple binds those packages to Safari only.")
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                    Text("You can still install WebExtension packages: Chrome Web Store, .zip / .crx files, unpacked folders with manifest.json, or Safari Web Extension source folders that include a WebExtension manifest.")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+
                     #if os(iOS)
-                    Text("Requires iOS 18.4+. Extension popups are limited on iPhone/iPad; most extensions still work via content scripts.")
+                    Text("On iPhone and iPad, extension action popups open as sheets when the extension provides one. Content scripts and background pages still run in tabs.")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -98,7 +115,7 @@ struct ExtensionsView: View {
                     environment.openURLInNewTab(BrowserConstants.chromeWebStoreURL)
                     dismiss()
                 } label: {
-                    Label("Open Chrome Web Store", systemImage: "safari")
+                    Label("Open Chrome Web Store", systemImage: "bag")
                 }
 
                 Button {
@@ -108,11 +125,14 @@ struct ExtensionsView: View {
                     showImporter = true
                     #endif
                 } label: {
-                    Label(isInstalling ? "Installing…" : "Install from file…", systemImage: "plus.square.on.square")
+                    Label(isInstalling ? "Installing…" : "Install from file or folder…", systemImage: "plus.square.on.square")
                 }
                 .disabled(isInstalling || environment.extensions.isInstallingFromStore)
             } header: {
                 Text("Get extensions")
+            } footer: {
+                Text("Prefer Add to Oriel on chromewebstore.google.com, or import a package that contains manifest.json (including Safari Web Extension project folders).")
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Section {
@@ -226,8 +246,10 @@ struct ExtensionsView: View {
         panel.allowedContentTypes = [
             .zip,
             UTType(filenameExtension: "crx") ?? .data,
+            UTType(filenameExtension: "appex") ?? .data,
             .folder
         ]
+        panel.message = "Choose a WebExtension folder, .zip, .crx, or a package that contains manifest.json."
         panel.prompt = "Install"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         await install(from: url)
