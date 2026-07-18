@@ -6,6 +6,8 @@ struct NavigationControlsView: View {
     @Bindable var tab: BrowserTab
     /// Narrow chrome: back/forward + Oriel Shields only.
     var style: Style = .full
+    /// When false, omit the Shields mark (phone chrome uses a dedicated shield button).
+    var showsShields: Bool = true
 
     enum Style {
         case full
@@ -65,8 +67,10 @@ struct NavigationControlsView: View {
             }
 
             // App-icon Shields toggle — sits with nav, next to Home (like Brave’s lion).
-            OrielShieldButton(size: markSize)
-                .padding(.leading, style == .compact ? 2 : 4)
+            if showsShields {
+                OrielShieldButton(size: markSize)
+                    .padding(.leading, style == .compact ? 2 : 4)
+            }
         }
     }
 

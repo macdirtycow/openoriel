@@ -16,6 +16,7 @@ struct BookmarksView: View {
     @State private var newFolderName = ""
     @State private var showNewFolderAlert = false
     @State private var showExporter = false
+    @State private var showImporter = false
     @State private var exportFile = BookmarksHTMLFile(html: "")
 
     private var isSearching: Bool {
@@ -127,6 +128,28 @@ struct BookmarksView: View {
                     importMessage = "Export failed."
                 }
             }
+            .fileImporter(
+                isPresented: $showImporter,
+                allowedContentTypes: [.html],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    let scoped = url.startAccessingSecurityScopedResource()
+                    defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+                    guard let data = try? Data(contentsOf: url),
+                          let html = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1)
+                    else {
+                        importMessage = "Could not read that file."
+                        return
+                    }
+                    let count = environment.bookmarks.importHTML(html)
+                    importMessage = count == 0 ? "No new bookmarks found." : "Imported \(count) bookmarks."
+                case .failure:
+                    importMessage = "Import failed."
+                }
+            }
         }
     }
 
@@ -212,12 +235,7 @@ struct BookmarksView: View {
         let count = environment.bookmarks.importHTML(html)
         importMessage = count == 0 ? "No new bookmarks found." : "Imported \(count) bookmarks."
         #else
-        if let html = UIPasteboard.general.string, html.lowercased().contains("<a") {
-            let count = environment.bookmarks.importHTML(html)
-            importMessage = count == 0 ? "No new bookmarks in clipboard." : "Imported \(count) from clipboard."
-        } else {
-            importMessage = "Copy a bookmarks HTML export, then tap Import again."
-        }
+        showImporter = true
         #endif
     }
 

@@ -55,26 +55,30 @@ struct TabOverviewView: View {
                     Button("Done") { dismiss() }
                 }
                 ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        environment.tabs.createTab(select: true)
+                        environment.wireTabPrivacyHooks()
+                        dismiss()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("New Tab")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button("New Tab") {
-                            environment.tabs.createTab(select: true)
-                            environment.wireTabPrivacyHooks()
-                            dismiss()
-                        }
                         Button("New Private Tab") {
                             environment.tabs.createPrivateTab(select: true)
                             environment.wireTabPrivacyHooks()
                             dismiss()
                         }
-                        Divider()
                         Button("New Tab Group…") {
                             newGroupName = ""
                             showNewGroupAlert = true
                         }
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "ellipsis.circle")
                     }
-                    .accessibilityLabel("New Tab")
+                    .accessibilityLabel("More tab actions")
                 }
             }
             .alert("New Tab Group", isPresented: $showNewGroupAlert) {

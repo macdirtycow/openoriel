@@ -1,9 +1,15 @@
 import SwiftUI
 
 struct AddressBarView: View {
+    enum SuggestionsPlacement {
+        case below
+        case above
+    }
+
     @Environment(AppEnvironment.self) private var environment
     @Bindable var tab: BrowserTab
     var searchEngine: SearchEngine = .duckDuckGo
+    var suggestionsPlacement: SuggestionsPlacement = .below
     var onSubmit: () -> Void
 
     @State private var suggestions: [SearchSuggestion] = []
@@ -22,6 +28,12 @@ struct AddressBarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            if showSuggestions && suggestionsPlacement == .above {
+                suggestionList
+                    .padding(.bottom, 6)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+
             HStack(spacing: 8) {
                 Image(systemName: securitySymbol)
                     .font(.footnote.weight(.semibold))
@@ -71,8 +83,9 @@ struct AddressBarView: View {
                     .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
             }
 
-            if showSuggestions {
+            if showSuggestions && suggestionsPlacement == .below {
                 suggestionList
+                    .padding(.top, 6)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
@@ -142,7 +155,6 @@ struct AddressBarView: View {
             RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
                 .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
         }
-        .padding(.top, 6)
         .zIndex(20)
     }
 

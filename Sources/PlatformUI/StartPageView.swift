@@ -101,6 +101,15 @@ struct StartPageView: View {
                     tileSection(title: "Suggested", items: suggestedItems)
                 }
 
+                if !environment.installedWebApps.apps.isEmpty {
+                    tileSection(
+                        title: "Web Apps",
+                        items: environment.installedWebApps.apps.prefix(8).map {
+                            ($0.name, $0.startURL.absoluteString)
+                        }
+                    )
+                }
+
                 footerLinks
                 Spacer(minLength: 40)
             }
@@ -122,13 +131,19 @@ struct StartPageView: View {
         .onAppear {
             if reduceMotion {
                 appeared = true
-                searchFocused = true
             } else {
                 withAnimation(.easeOut(duration: 0.45)) {
                     appeared = true
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            }
+            // On phone-width layouts the bottom address bar is primary — don't steal focus.
+            if isWide {
+                if reduceMotion {
                     searchFocused = true
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        searchFocused = true
+                    }
                 }
             }
         }

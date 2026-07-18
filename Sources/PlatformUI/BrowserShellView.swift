@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct BrowserShellView: View {
+    /// Prefer iPad chrome (top bar + tab strip) at this width and above — even in Split View.
+    private static let padChromeMinWidth: CGFloat = 700
+
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -9,21 +12,24 @@ struct BrowserShellView: View {
         @Bindable var environment = environment
         let tab = environment.tabs.activeTab
 
-        Group {
-            if let tab {
-                #if os(macOS)
-                macShell(tab: tab, environment: environment)
-                #else
-                if horizontalSizeClass == .regular {
-                    iPadShell(tab: tab, environment: environment)
+        GeometryReader { proxy in
+            Group {
+                if let tab {
+                    #if os(macOS)
+                    macShell(tab: tab, environment: environment)
+                    #else
+                    if proxy.size.width >= Self.padChromeMinWidth {
+                        iPadShell(tab: tab, environment: environment)
+                    } else {
+                        iPhoneShell(tab: tab, environment: environment)
+                    }
+                    #endif
                 } else {
-                    iPhoneShell(tab: tab, environment: environment)
+                    ProgressView("Starting Oriel…")
+                        .accessibilityLabel("Starting Oriel")
                 }
-                #endif
-            } else {
-                ProgressView("Starting Oriel…")
-                    .accessibilityLabel("Starting Oriel")
             }
+            .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .sheet(isPresented: $environment.showAbout) {
             AboutOrielView()
@@ -104,27 +110,76 @@ struct BrowserShellView: View {
             if tab.isPrivate { privateBanner }
             progressBar(for: tab)
             content(for: tab, environment: environment)
-            if environment.showFindInPage {
-                findBar(environment: environment)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    VStack(spacing: 0) {
+                        if environment.showFindInPage {
+                            findBar(environment: environment)
+                        }
+                        phoneBottomChrome(tab: tab, environment: environment)
+                    }
+                    .background(.bar)
+                }
+        }
+    }
+
+    private func phoneBottomChrome(tab: BrowserTab, environment: AppEnvironment) -> some View {
+        VStack(spacing: 8) {
+            AddressBarView(
+                tab: tab,
+                searchEngine: environment.settings.searchEngine,
+                suggestionsPlacement: .above
+            ) {
+                tab.searchEngine = environment.settings.searchEngine
+                tab.submitAddressBar()
+                hideKeyboard()
             }
 
-            VStack(spacing: 8) {
-                AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
-                    tab.searchEngine = environment.settings.searchEngine
-                    tab.submitAddressBar()
-                    hideKeyboard()
-                }
-
-                HStack(spacing: 8) {
-                    NavigationControlsView(tab: tab)
-                    Spacer(minLength: 4)
-                    trailingChrome(environment: environment, tab: tab, compact: true)
-                }
+            HStack(spacing: 10) {
+                NavigationControlsView(tab: tab, style: .compact, showsShields: false)
+                Spacer(minLength: 4)
+                phoneTrailingChrome(environment: environment, tab: tab)
             }
-            .padding(.horizontal, OrielLayout.phoneChromePadding)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
-            .background(.bar)
+        }
+        .padding(.horizontal, OrielLayout.phoneChromePadding)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+    }
+
+    private func phoneTrailingChrome(environment: AppEnvironment, tab: BrowserTab) -> some View {
+        let accent = environment.settings.brandColor
+        let size: CGFloat = 34
+        return HStack(spacing: 8) {
+            chromeIconButton(
+                systemName: "plus",
+                label: "New Tab",
+                accent: accent,
+                size: size
+            ) {
+                environment.tabs.createTab(select: true)
+                environment.wireTabPrivacyHooks()
+            }
+
+            chromeIconButton(
+                systemName: environment.privacy.contentBlockingEnabled ? "shield.lefthalf.filled" : "shield.slash",
+                label: "Privacy Shields",
+                accent: accent,
+                size: size,
+                emphasized: environment.privacy.contentBlockingEnabled
+            ) {
+                environment.showPrivacyShield = true
+            }
+
+            chromeMenu(environment: environment, tab: tab, compact: false)
+
+            chromeIconButton(
+                systemName: "square.on.square",
+                label: "Tabs",
+                accent: accent,
+                size: size,
+                badge: "\(environment.tabs.tabs.count)"
+            ) {
+                environment.showTabOverview = true
+            }
         }
     }
 
@@ -136,14 +191,22 @@ struct BrowserShellView: View {
         VStack(spacing: 0) {
             if tab.isPrivate { privateBanner }
 
+            if environment.tabs.tabs.count > 1 {
+                iPadTabStrip(environment: environment)
+            }
+
             HStack(spacing: 12) {
-                NavigationControlsView(tab: tab)
-                AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
+                NavigationControlsView(tab: tab, showsShields: true)
+                AddressBarView(
+                    tab: tab,
+                    searchEngine: environment.settings.searchEngine,
+                    suggestionsPlacement: .below
+                ) {
                     tab.searchEngine = environment.settings.searchEngine
                     tab.submitAddressBar()
                     hideKeyboard()
                 }
-                trailingChrome(environment: environment, tab: tab, compact: false)
+                padTrailingChrome(environment: environment, tab: tab)
             }
             .padding(.horizontal, OrielLayout.padChromePadding)
             .padding(.vertical, 10)
@@ -157,24 +220,26 @@ struct BrowserShellView: View {
         }
     }
 
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-
-    @ViewBuilder
-    private func trailingChrome(environment: AppEnvironment, tab: BrowserTab, compact: Bool) -> some View {
+    private func padTrailingChrome(environment: AppEnvironment, tab: BrowserTab) -> some View {
         let accent = environment.settings.brandColor
-        let size: CGFloat = compact ? 34 : OrielLayout.navButtonSize
-        HStack(spacing: compact ? 6 : 8) {
-            javaScriptButton(tab: tab)
+        let size = OrielLayout.navButtonSize
+        return HStack(spacing: 8) {
             chromeIconButton(
-                systemName: environment.privacy.contentBlockingEnabled ? "shield.lefthalf.filled" : "shield.slash",
-                label: "Privacy Shields",
+                systemName: "plus",
+                label: "New Tab",
                 accent: accent,
-                size: size,
-                emphasized: environment.privacy.contentBlockingEnabled
+                size: size
             ) {
-                environment.showPrivacyShield = true
+                environment.tabs.createTab(select: true)
+                environment.wireTabPrivacyHooks()
+            }
+            chromeIconButton(
+                systemName: environment.downloads.hasActiveDownloads ? "arrow.down.circle.fill" : "arrow.down.circle",
+                label: "Downloads",
+                accent: accent,
+                size: size
+            ) {
+                environment.showDownloads = true
             }
             chromeIconButton(
                 systemName: "flame.fill",
@@ -184,69 +249,76 @@ struct BrowserShellView: View {
             ) {
                 environment.showFireButton = true
             }
-            if !compact {
-                chromeIconButton(
-                    systemName: environment.downloads.hasActiveDownloads ? "arrow.down.circle.fill" : "arrow.down.circle",
-                    label: "Downloads",
-                    accent: accent,
-                    size: size
-                ) {
-                    environment.showDownloads = true
-                }
-            }
-            chromeIconButton(
-                systemName: "gearshape",
-                label: "Settings",
-                accent: accent,
-                size: size
-            ) {
-                openAppSettings()
-            }
-            chromeMenu(environment: environment, tab: tab, compact: compact)
+            chromeMenu(environment: environment, tab: tab, compact: false)
             chromeIconButton(
                 systemName: "square.on.square",
                 label: "Tabs",
                 accent: accent,
                 size: size,
-                badge: compact ? nil : "\(environment.tabs.tabs.count)"
+                badge: "\(environment.tabs.tabs.count)"
             ) {
                 environment.showTabOverview = true
             }
         }
     }
 
-    private func chromeIconButton(
-        systemName: String,
-        label: String,
-        accent: Color,
-        size: CGFloat,
-        emphasized: Bool = false,
-        badge: String? = nil,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                Image(systemName: systemName)
-                if let badge {
-                    Text(badge)
-                        .font(.caption2.weight(.bold))
-                        .monospacedDigit()
+    private func iPadTabStrip(environment: AppEnvironment) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(environment.tabs.tabs) { item in
+                    let selected = item.id == environment.tabs.activeTabID
+                    Button {
+                        environment.tabs.selectTab(id: item.id)
+                    } label: {
+                        HStack(spacing: 6) {
+                            FaviconImage(pageURL: item.restorableURL, size: 12)
+                            if item.isPinned {
+                                Image(systemName: "pin.fill").font(.caption2)
+                            }
+                            if item.isPrivate {
+                                Image(systemName: "eyeglasses").font(.caption2)
+                            }
+                            Text(item.displayTitle)
+                                .font(.subheadline.weight(selected ? .semibold : .regular))
+                                .lineLimit(1)
+                            if environment.tabs.tabs.count > 1, !item.isPinned {
+                                Image(systemName: "xmark")
+                                    .font(.caption2.weight(.bold))
+                                    .foregroundStyle(.secondary)
+                                    .onTapGesture { environment.tabs.closeTab(id: item.id) }
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .frame(minWidth: 120, maxWidth: 220, alignment: .leading)
+                        .background(
+                            selected ? environment.settings.brandColor.opacity(0.16) : Color.primary.opacity(0.04),
+                            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        )
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .strokeBorder(
+                                    selected ? environment.settings.brandColor.opacity(0.35) : Color.primary.opacity(0.06),
+                                    lineWidth: 1
+                                )
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(item.displayTitle)
+                    .accessibilityAddTraits(selected ? [.isSelected] : [])
                 }
             }
+            .padding(.horizontal, OrielLayout.padChromePadding)
+            .padding(.vertical, 8)
         }
-        .buttonStyle(
-            OrielChromeButtonStyle(
-                isEnabled: true,
-                isEmphasized: emphasized,
-                accent: accent,
-                size: size,
-                expandsHorizontally: badge != nil
-            )
-        )
-        .accessibilityLabel(label)
-        .help(label)
+        .background(.bar)
     }
 
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
+    @ViewBuilder
     private func findBar(environment: AppEnvironment) -> some View {
         @Bindable var environment = environment
         return FindInPageBar(
@@ -580,7 +652,11 @@ struct BrowserShellView: View {
     private func chromeMenu(environment: AppEnvironment, tab: BrowserTab, compact: Bool) -> some View {
         Menu {
             if compact {
-                // Short menu only — no laundry list in narrow windows.
+                // macOS narrow window — keep denser but still include New Tab + share essentials.
+                Button("New Tab") {
+                    environment.tabs.createTab(select: true)
+                    environment.wireTabPrivacyHooks()
+                }
                 Button("New Private Tab") {
                     environment.tabs.createPrivateTab(select: true)
                     environment.wireTabPrivacyHooks()
@@ -592,6 +668,13 @@ struct BrowserShellView: View {
                     .disabled(tab.isShowingStartPage)
                 Button("Home") { tab.goHome() }
                     .disabled(tab.isShowingStartPage)
+                Button("Bookmark This Page") { environment.bookmarkActivePage() }
+                    .disabled(tab.isShowingStartPage || tab.isPrivate)
+                if let shareURL = environment.shareURL {
+                    ShareLink(item: shareURL) {
+                        Label("Share…", systemImage: "square.and.arrow.up")
+                    }
+                }
 
                 Divider()
 

@@ -1,5 +1,7 @@
 import SwiftUI
-#if os(macOS)
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
 import AppKit
 #endif
 
@@ -48,6 +50,15 @@ struct DownloadsView: View {
                                     if item.state == .completed, let url = item.destinationURL {
                                         Button("Show in Finder") {
                                             NSWorkspace.shared.activateFileViewerSelecting([url])
+                                        }
+                                    }
+                                    #elseif os(iOS)
+                                    if item.state == .completed, let url = item.destinationURL {
+                                        ShareLink(item: url) {
+                                            Label("Share", systemImage: "square.and.arrow.up")
+                                        }
+                                        Button("Open") {
+                                            UIApplication.shared.open(url)
                                         }
                                     }
                                     #endif

@@ -166,8 +166,14 @@ final class DownloadManager {
     }
 
     private func moveToDownloads(from tempURL: URL, preferredName: String?) throws -> URL {
+        #if os(iOS)
+        // App Documents is shareable/visible via Files; Downloads is not always accessible on iOS.
+        let downloads = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        #else
         let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
+        #endif
         let baseName = preferredName?.isEmpty == false ? preferredName! : tempURL.lastPathComponent
         var destination = downloads.appendingPathComponent(baseName)
         var counter = 1
