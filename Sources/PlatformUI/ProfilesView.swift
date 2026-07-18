@@ -10,29 +10,27 @@ struct ProfilesView: View {
         NavigationStack {
             List {
                 Section {
-                    Label {
-                        Text("Profiles currently save a name only. Separate cookies and history per profile are not wired yet — switching does not isolate browsing data.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
-                    }
+                    Text("Each profile has its own cookies and site data. Private tabs always use a temporary jar.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 ForEach(environment.profiles.profiles) { profile in
                     Button {
                         environment.profiles.select(id: profile.id)
+                        // Remount web views onto the selected cookie jar.
+                        for tab in environment.tabs.tabs where !tab.isPrivate {
+                            tab.webView = nil
+                        }
+                        dismiss()
                     } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(profile.name)
-                                if profile.isPrivateContainer {
-                                    Text("Container")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                                Text(profileSubtitle(profile))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                             Spacer()
                             if profile.id == environment.profiles.activeProfileID {
@@ -75,5 +73,15 @@ struct ProfilesView: View {
                 }
             }
         }
+    }
+
+    private func profileSubtitle(_ profile: BrowserProfile) -> String {
+        if profile.isPrivateContainer {
+            return "Temporary container"
+        }
+        if profile.usesSharedDefaultStore {
+            return "Default cookie store"
+        }
+        return "Isolated cookie store"
     }
 }

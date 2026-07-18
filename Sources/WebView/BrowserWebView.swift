@@ -35,6 +35,8 @@ struct BrowserWebView: PlatformViewRepresentable {
     var applyContentBlocking: ((WKWebView, Bool) -> Void)?
     /// Bumps when compiled rule lists change so existing tabs re-attach them.
     var contentBlockerGeneration: Int = 0
+    /// Isolated cookie/storage jar for the active browser profile.
+    var websiteDataStore: WKWebsiteDataStore?
 
     #if os(iOS)
     func makeUIView(context: Context) -> WKWebView {
@@ -83,7 +85,8 @@ struct BrowserWebView: PlatformViewRepresentable {
             contentBlockingEnabled: contentBlockingEnabled,
             blockAutoplay: blockAutoplay,
             fingerprintingProtection: fingerprintingProtection,
-            webExtensionController: webExtensionController
+            webExtensionController: webExtensionController,
+            websiteDataStore: websiteDataStore ?? (tab.isPrivate ? .nonPersistent() : .default())
         )
 
         #if os(macOS)

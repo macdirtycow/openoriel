@@ -59,13 +59,13 @@ final class DownloadManager {
         items.contains { $0.state == .downloading }
     }
 
-    func enqueue(url: URL, suggestedFileName: String?) {
+    func enqueue(url: URL, suggestedFileName: String?, cookieStore: WKHTTPCookieStore? = nil) {
         let name = suggestedFileName?.isEmpty == false
             ? suggestedFileName!
             : (url.lastPathComponent.isEmpty ? "download" : url.lastPathComponent)
         let item = DownloadItem(fileName: name, sourceURL: url, progress: 0, state: .downloading)
         items.insert(item, at: 0)
-        start(itemID: item.id)
+        start(itemID: item.id, cookieStore: cookieStore)
     }
 
     func cancel(_ id: UUID) {
@@ -86,7 +86,7 @@ final class DownloadManager {
             item.errorMessage = nil
             item.updatedAt = .now
         }
-        start(itemID: id, url: url)
+        start(itemID: id, url: url, cookieStore: nil)
     }
 
     func remove(_ id: UUID) {
@@ -101,10 +101,10 @@ final class DownloadManager {
         items.removeAll()
     }
 
-    private func start(itemID: UUID, url: URL? = nil) {
+    private func start(itemID: UUID, url: URL? = nil, cookieStore: WKHTTPCookieStore? = nil) {
         guard let source = url ?? items.first(where: { $0.id == itemID })?.sourceURL else { return }
         Task { @MainActor in
-            await Self.copyWebKitCookies(into: HTTPCookieStorage.shared)
+            await Self.copyWebKitCookies(from: cookieStore, into: HTTPCookieStorage.shared)
             guard items.contains(where: { $0.id == itemID && $0.state == .downloading }) else { return }
 
             let task = session.downloadTask(with: source) { [weak self] tempURL, response, error in
@@ -167,9 +167,10 @@ final class DownloadManager {
     }
 
     /// Bridge WKWebsiteDataStore cookies into URLSession so authenticated downloads work.
-    private static func copyWebKitCookies(into storage: HTTPCookieStorage) async {
+    private static func copyWebKitCookies(from cookieStore: WKHTTPCookieStore?, into storage: HTTPCookieStorage) async {
+        let store = cookieStore ?? WKWebsiteDataStore.default().httpCookieStore
         let cookies: [HTTPCookie] = await withCheckedContinuation { continuation in
-            WKWebsiteDataStore.default().httpCookieStore.getAllCookies { cookies in
+            store.getAllCookies { cookies in
                 continuation.resume(returning: cookies)
             }
         }

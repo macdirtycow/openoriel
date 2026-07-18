@@ -46,4 +46,27 @@ final class URLParserTests: XCTestCase {
         XCTAssertTrue(URLParser.isStartPage(URLParser.startPageURL))
         XCTAssertFalse(URLParser.isStartPage(URL(string: "https://example.com")))
     }
+
+    func testIPv6BareLiteralBecomesHTTPS() {
+        let url = URLParser.resolve("2001:db8::1", searchEngine: .duckDuckGo)
+        XCTAssertEqual(url.scheme, "https")
+        XCTAssertEqual(url.host, "2001:db8::1")
+    }
+
+    func testIPv6BracketedLiteral() {
+        let result = URLParser.classify("[2001:db8::1]")
+        guard case .url(let url) = result else {
+            return XCTFail("Expected URL for bracketed IPv6")
+        }
+        XCTAssertEqual(url.host, "2001:db8::1")
+    }
+
+    func testIPv6WithPortInURL() {
+        let result = URLParser.classify("https://[2001:db8::1]:8443/")
+        guard case .url(let url) = result else {
+            return XCTFail("Expected URL")
+        }
+        XCTAssertEqual(url.host, "2001:db8::1")
+        XCTAssertEqual(url.port, 8443)
+    }
 }

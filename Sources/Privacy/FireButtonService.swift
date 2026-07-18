@@ -23,6 +23,14 @@ enum FireButtonService {
         }
         if options.cookiesAndSiteData {
             await WebsiteDataCleaner.clearBrowsingData(
+                in: environment.profiles.dataStore(isPrivateTab: false),
+                includingCookies: true,
+                includingCache: true,
+                includingLocalStorage: true
+            )
+            // Also clear private/ephemeral jars that may still be alive in memory.
+            await WebsiteDataCleaner.clearBrowsingData(
+                in: .nonPersistent(),
                 includingCookies: true,
                 includingCache: true,
                 includingLocalStorage: true

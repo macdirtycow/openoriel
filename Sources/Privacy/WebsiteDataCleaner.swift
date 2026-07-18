@@ -3,6 +3,7 @@ import WebKit
 
 enum WebsiteDataCleaner {
     static func clearBrowsingData(
+        in store: WKWebsiteDataStore = .default(),
         includingCookies: Bool = true,
         includingCache: Bool = true,
         includingLocalStorage: Bool = true
@@ -23,7 +24,6 @@ enum WebsiteDataCleaner {
         }
         guard !types.isEmpty else { return }
 
-        let store = WKWebsiteDataStore.default()
         let records = await store.dataRecords(ofTypes: types)
         await store.removeData(ofTypes: types, for: records)
     }

@@ -7,6 +7,7 @@ struct SettingsView: View {
 
     /// When true, show a Done button (sheet). Native macOS Settings window can omit it.
     var showsDoneButton: Bool = true
+    @State private var showProfilesSheet = false
 
     var body: some View {
         @Bindable var settings = environment.settings
@@ -203,8 +204,13 @@ struct SettingsView: View {
                         Task { await environment.autofillPasswordForActivePage() }
                     }
                     Button("Profiles…") {
-                        environment.showProfiles = true
-                        if showsDoneButton { dismiss() }
+                        // From the macOS Settings scene, present locally — the browser window sheet is often behind.
+                        if showsDoneButton {
+                            environment.showProfiles = true
+                            dismiss()
+                        } else {
+                            showProfilesSheet = true
+                        }
                     }
                     #if os(macOS)
                     Toggle("Vertical Tabs", isOn: Binding(
@@ -306,6 +312,14 @@ struct SettingsView: View {
                         Button("Done") { dismiss() }
                     }
                 }
+            }
+            .sheet(isPresented: $showProfilesSheet) {
+                ProfilesView()
+                    .environment(environment)
+                    .orielTheming(settings: environment.settings)
+                    #if os(macOS)
+                    .frame(minWidth: 420, idealWidth: 480, minHeight: 360, idealHeight: 480)
+                    #endif
             }
         }
     }

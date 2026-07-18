@@ -13,11 +13,16 @@ enum SharedWebViewConfiguration {
         contentBlockingEnabled: Bool,
         blockAutoplay: Bool = true,
         fingerprintingProtection: Bool = true,
-        webExtensionController: AnyObject? = nil
+        webExtensionController: AnyObject? = nil,
+        websiteDataStore: WKWebsiteDataStore? = nil
     ) -> WKWebViewConfiguration {
         let configuration = WKWebViewConfiguration()
         configuration.processPool = processPool
-        configuration.websiteDataStore = isPrivate ? .nonPersistent() : .default()
+        if let websiteDataStore {
+            configuration.websiteDataStore = websiteDataStore
+        } else {
+            configuration.websiteDataStore = isPrivate ? .nonPersistent() : .default()
+        }
         configuration.defaultWebpagePreferences.allowsContentJavaScript = javaScriptEnabled
         configuration.preferences.isElementFullscreenEnabled = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = true

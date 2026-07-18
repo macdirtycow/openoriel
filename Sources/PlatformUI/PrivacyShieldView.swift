@@ -316,8 +316,8 @@ struct PrivacyShieldView: View {
     private func clearData() async {
         isClearing = true
         clearMessage = nil
-        await WebsiteDataCleaner.clearBrowsingData()
-        clearMessage = "Cleared cookies and website data from the default store."
+        await WebsiteDataCleaner.clearBrowsingData(in: environment.profiles.dataStore(isPrivateTab: false))
+        clearMessage = "Cleared cookies and website data for the active profile."
         isClearing = false
     }
 }

@@ -94,8 +94,11 @@ enum URLParser: Sendable {
         if input.contains(" ") { return true }
         if input.contains("://") { return false }
 
+        // Bracketed or bare IPv6 is a host, not a search.
+        if looksLikeIPv6Literal(input) { return false }
+
         // Bare words without a dot are searches ("swift concurrency")
-        if !input.contains(".") && !input.contains("localhost") {
+        if !input.contains(".") && !input.contains("localhost") && !input.contains(":") {
             return true
         }
 
@@ -111,8 +114,14 @@ enum URLParser: Sendable {
             return url
         }
 
-        // Prefer https for host-like input
-        let candidate = input.hasPrefix("//") ? "https:\(input)" : "https://\(input)"
+        // Prefer https for host-like input. Wrap bare IPv6 in brackets.
+        let hostPart: String
+        if looksLikeIPv6Literal(input), !input.hasPrefix("[") {
+            hostPart = "[\(input)]"
+        } else {
+            hostPart = input
+        }
+        let candidate = hostPart.hasPrefix("//") ? "https:\(hostPart)" : "https://\(hostPart)"
         guard let url = URL(string: candidate),
               let host = url.host,
               isPlausibleHost(host),
@@ -124,8 +133,31 @@ enum URLParser: Sendable {
 
     private static func isPlausibleHost(_ host: String) -> Bool {
         if host.caseInsensitiveCompare("localhost") == .orderedSame { return true }
-        if host.contains(":") { return false } // IPv6 etc. — keep simple for MVP
-        // Must contain a dot (TLD) or be localhost
+        // URL.host returns IPv6 without brackets.
+        if host.contains(":") {
+            return looksLikeIPv6Literal(host)
+        }
         return host.contains(".")
+    }
+
+    /// Accepts standard IPv6 literals (with or without brackets).
+    private static func looksLikeIPv6Literal(_ raw: String) -> Bool {
+        var host = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if host.hasPrefix("["), host.hasSuffix("]"), host.count > 2 {
+            host = String(host.dropFirst().dropLast())
+        }
+        // Strip optional zone id (fe80::1%en0)
+        if let zone = host.firstIndex(of: "%") {
+            host = String(host[..<zone])
+        }
+        guard host.contains(":") else { return false }
+        let allowed = CharacterSet(charactersIn: "0123456789abcdefABCDEF:")
+        guard host.unicodeScalars.allSatisfy({ allowed.contains($0) }) else { return false }
+        // Must look like hex groups separated by colons (including :: compression).
+        let parts = host.split(separator: ":", omittingEmptySubsequences: false)
+        guard parts.count >= 3 else { return false }
+        return parts.allSatisfy { part in
+            part.isEmpty || (part.count <= 4 && part.unicodeScalars.allSatisfy { CharacterSet(charactersIn: "0123456789abcdefABCDEF").contains($0) })
+        }
     }
 }

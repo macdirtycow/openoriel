@@ -904,7 +904,11 @@ struct BrowserShellView: View {
                     environment.privacyStats.recordBlockedRequest(url: blockedURL)
                 },
                 onDownload: { url, name in
-                    environment.downloads.enqueue(url: url, suggestedFileName: name)
+                    environment.downloads.enqueue(
+                        url: url,
+                        suggestedFileName: name,
+                        cookieStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate).httpCookieStore
+                    )
                     environment.showDownloads = true
                 },
                 permissionManager: environment.permissions,
@@ -948,9 +952,10 @@ struct BrowserShellView: View {
                 applyContentBlocking: { webView, enabled in
                     environment.contentBlocker.apply(to: webView, enabled: enabled)
                 },
-                contentBlockerGeneration: environment.contentBlocker.generation
+                contentBlockerGeneration: environment.contentBlocker.generation,
+                websiteDataStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate)
             )
-            .id("\(tab.id.uuidString)-fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)")
+            .id("\(tab.id.uuidString)-fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)-p\(environment.profiles.activeProfileID.uuidString)")
             .opacity(showStart || showError ? 0 : 1)
             .allowsHitTesting(!(showStart || showError))
             .accessibilityHidden(showStart || showError)
