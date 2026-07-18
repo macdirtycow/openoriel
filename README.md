@@ -45,7 +45,10 @@ Unsigned iOS IPA (sideload):
 
 ```bash
 bash Scripts/make-unsigned-ipa.sh
+# output: build/ipa/Oriel-<version>-<build>-unsigned.ipa
 ```
+
+CI also builds that IPA on pushes to `main` (Actions → Build unsigned IPA).
 
 ### Release tagging
 

@@ -10,16 +10,14 @@ fi
 
 command -v xcodegen >/dev/null && xcodegen generate
 
-VERSION=$(/usr/libexec/PlistBuddy -c 'Print :objects:MARKETING_VERSION' /dev/null 2>/dev/null || true)
-# Prefer project.yml
-MARKETING=$(grep -E '^\s*MARKETING_VERSION:' project.yml | head -1 | sed 's/.*"\(.*\)".*/\1/')
-BUILD=$(grep -E '^\s*CURRENT_PROJECT_VERSION:' project.yml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+MARKETING="$(grep -E '^\s*MARKETING_VERSION:' project.yml | head -1 | sed 's/.*"\(.*\)".*/\1/')"
+BUILD="$(grep -E '^\s*CURRENT_PROJECT_VERSION:' project.yml | head -1 | sed 's/.*"\(.*\)".*/\1/')"
 MARKETING="${MARKETING:-1.0.0}"
 BUILD="${BUILD:-1}"
 
-APP_BUILD_DIR="${TMPDIR:-/tmp}/OrielDerivedIPA-${BUILD}"
-OUT_DIR="$HOME/Desktop/Oriel-unsigned"
-IPA_PATH="$HOME/Desktop/Oriel-${MARKETING}-${BUILD}-unsigned.ipa"
+APP_BUILD_DIR="${ORIEL_DERIVED_DATA:-${TMPDIR:-/tmp}/OrielDerivedIPA-${BUILD}}"
+OUT_DIR="${ORIEL_IPA_OUT:-$ROOT/build/ipa}"
+IPA_PATH="$OUT_DIR/Oriel-${MARKETING}-${BUILD}-unsigned.ipa"
 
 rm -rf "$APP_BUILD_DIR"
 mkdir -p "$APP_BUILD_DIR" "$OUT_DIR"
@@ -34,21 +32,26 @@ xcodebuild \
   CODE_SIGN_IDENTITY="" \
   CODE_SIGNING_REQUIRED=NO \
   ONLY_ACTIVE_ARCH=NO \
+  CURRENT_PROJECT_VERSION="$BUILD" \
+  MARKETING_VERSION="$MARKETING" \
   build
 
 APP="$APP_BUILD_DIR/Build/Products/Release-iphoneos/Oriel.app"
+if [[ ! -d "$APP" ]]; then
+  APP="$(find "$APP_BUILD_DIR/Build/Products" -maxdepth 2 -type d -name 'Oriel.app' | head -1 || true)"
+fi
 test -d "$APP"
 
-STAGE="${TMPDIR:-/tmp}/OrielIPAPayload-${BUILD}"
+STAGE="${TMPDIR:-/tmp}/OrielIPAPayload-${BUILD}-$$"
 rm -rf "$STAGE"
 mkdir -p "$STAGE/Payload"
 ditto "$APP" "$STAGE/Payload/Oriel.app"
-ditto "$APP" "$OUT_DIR/Oriel.app"
 (cd "$STAGE" && rm -f "$IPA_PATH" && zip -qry "$IPA_PATH" Payload)
+rm -rf "$STAGE"
 
-# Drop previous unsigned IPA on Desktop (keep .app folder current)
-find "$HOME/Desktop" -maxdepth 1 -name 'Oriel-*-unsigned.ipa' ! -name "$(basename "$IPA_PATH")" -delete 2>/dev/null || true
+# Keep a copy of the .app next to the IPA for local sideload tooling.
+ditto "$APP" "$OUT_DIR/Oriel.app"
 
 echo "IPA: $IPA_PATH"
 ls -lh "$IPA_PATH"
-plutil -p "$APP/Info.plist" | grep -E 'CFBundle(ShortVersionString|Version|Identifier)'
+plutil -p "$APP/Info.plist" | grep -E 'CFBundle(ShortVersionString|Version|Identifier)' || true

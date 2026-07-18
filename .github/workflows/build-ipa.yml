@@ -1,0 +1,48 @@
+name: Build unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "Sources/**"
+      - "Resources/**"
+      - "project.yml"
+      - "Scripts/make-unsigned-ipa.sh"
+      - ".github/workflows/build-ipa.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ipa:
+    name: Unsigned iOS IPA
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer 2>/dev/null \
+            || sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Build unsigned IPA
+        run: bash Scripts/make-unsigned-ipa.sh
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Oriel-unsigned-ipa
+          path: |
+            build/ipa/*.ipa
+          if-no-files-found: error
+          retention-days: 14
