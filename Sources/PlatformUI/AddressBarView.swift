@@ -75,12 +75,15 @@ struct AddressBarView: View {
                     .accessibilityLabel("Clear address")
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
+                    .strokeBorder(
+                        isFocused ? accent.opacity(0.35) : Color.primary.opacity(0.07),
+                        lineWidth: isFocused ? 1.5 : 1
+                    )
             }
 
             if showSuggestions && suggestionsPlacement == .below {

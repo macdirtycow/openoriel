@@ -156,11 +156,20 @@ enum OrielTheme {
     }
 
     static func surfaceFill(for scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.78)
+        scheme == .dark ? Color.white.opacity(0.10) : Color.white.opacity(0.82)
+    }
+
+    /// Slightly stronger fill for interactive panels (search, shields, tiles).
+    static func elevatedFill(for scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color.white.opacity(0.12) : Color.white.opacity(0.90)
     }
 
     static func hairline(for scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color.white.opacity(0.14) : Color.black.opacity(hairlineOpacity)
+        scheme == .dark ? Color.white.opacity(0.16) : Color.black.opacity(0.08)
+    }
+
+    static func softShadow(for scheme: ColorScheme) -> Color {
+        scheme == .dark ? Color.black.opacity(0.35) : Color.black.opacity(0.06)
     }
 
     private static func baseFill(for background: BrowserBackgroundTheme, scheme: ColorScheme) -> Color {

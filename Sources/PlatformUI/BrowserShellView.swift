@@ -168,16 +168,16 @@ struct BrowserShellView: View {
                 hideKeyboard()
             }
 
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 NavigationControlsView(tab: tab, style: .compact, showsShields: false)
                 Spacer(minLength: 4)
-                ProfileSwitcherControl(style: .chip)
+                ProfileSwitcherControl(style: .icon)
                 phoneTrailingChrome(environment: environment, tab: tab)
             }
         }
         .padding(.horizontal, OrielLayout.phoneChromePadding)
-        .padding(.top, 8)
-        .padding(.bottom, 6)
+        .padding(.top, 10)
+        .padding(.bottom, 8)
     }
 
     private func phoneTrailingChrome(environment: AppEnvironment, tab: BrowserTab) -> some View {
@@ -669,15 +669,25 @@ struct BrowserShellView: View {
     // MARK: - Shared
 
     private var privateBanner: some View {
-        Text("Private Tab — history and session restore are off")
-            .font(.caption.weight(.semibold))
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .foregroundStyle(environment.settings.brandColor)
-            .background(environment.settings.brandColor.opacity(0.12))
-            .accessibilityLabel("Private browsing tab")
+        HStack(spacing: 6) {
+            Image(systemName: "eyeglasses")
+                .font(.caption.weight(.semibold))
+            Text("Private Tab")
+                .font(.caption.weight(.bold))
+            Text("·")
+                .foregroundStyle(environment.settings.brandColor.opacity(0.55))
+            Text("History and restore are off")
+                .font(.caption.weight(.medium))
+                .opacity(0.85)
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .foregroundStyle(environment.settings.brandColor)
+        .background(environment.settings.brandColor.opacity(0.12))
+        .accessibilityLabel("Private browsing tab")
+        .accessibilityHint("History and session restore are off")
     }
 
     private func shieldButton(environment: AppEnvironment) -> some View {

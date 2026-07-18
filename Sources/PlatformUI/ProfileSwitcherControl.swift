@@ -54,30 +54,39 @@ struct ProfileSwitcherControl: View {
     private var labelContent: some View {
         switch style {
         case .chip:
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Image(systemName: "person.crop.circle.fill")
                     .imageScale(.medium)
+                    .foregroundStyle(environment.settings.brandColor)
                 Text(activeName)
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
+                    .truncationMode(.tail)
                 Image(systemName: "chevron.down")
                     .font(.caption2.weight(.bold))
-                    .opacity(0.55)
+                    .foregroundStyle(.tertiary)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
+            .frame(maxWidth: OrielLayout.profileChipMaxWidth, alignment: .leading)
             .background(
-                environment.settings.brandColor.opacity(0.14),
+                environment.settings.brandColor.opacity(0.12),
                 in: Capsule(style: .continuous)
             )
             .overlay {
                 Capsule(style: .continuous)
-                    .strokeBorder(environment.settings.brandColor.opacity(0.28), lineWidth: 1)
+                    .strokeBorder(environment.settings.brandColor.opacity(0.22), lineWidth: 1)
             }
         case .icon:
-            Image(systemName: "person.crop.circle")
+            Image(systemName: "person.crop.circle.fill")
                 .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(environment.settings.brandColor)
                 .imageScale(.medium)
+                .frame(width: 34, height: 34)
+                .background(
+                    environment.settings.brandColor.opacity(0.12),
+                    in: RoundedRectangle(cornerRadius: OrielTheme.chromeButtonRadius, style: .continuous)
+                )
         case .menuLabel:
             Label(activeName, systemImage: "person.crop.circle")
         }

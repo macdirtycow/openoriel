@@ -33,7 +33,7 @@ struct StartPageView: View {
         sizeClass == .regular
     }
 
-    private var contentSpacing: CGFloat { isWide ? 22 : 20 }
+    private var contentSpacing: CGFloat { isWide ? 26 : 22 }
 
     private var suggestedItems: [(String, String)] {
         [
@@ -56,12 +56,12 @@ struct StartPageView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: contentSpacing) {
                     topBand
-                        .padding(.top, isWide ? 28 : 22)
+                        .padding(.top, isWide ? 36 : 28)
 
                     searchBlock
 
                     if isWide {
-                        HStack(alignment: .top, spacing: 14) {
+                        HStack(alignment: .top, spacing: 16) {
                             if !environment.bookmarks.favorites.isEmpty {
                                 tileSection(
                                     title: "Favorites",
@@ -72,7 +72,7 @@ struct StartPageView: View {
                                 )
                             }
                             privacyCard
-                                .frame(maxWidth: 300)
+                                .frame(maxWidth: 320)
                         }
                     } else {
                         privacyCard
@@ -88,7 +88,7 @@ struct StartPageView: View {
                     }
 
                     if isWide {
-                        HStack(alignment: .top, spacing: 14) {
+                        HStack(alignment: .top, spacing: 16) {
                             if !environment.history.recentSites.isEmpty {
                                 tileSection(
                                     title: "Recent",
@@ -121,26 +121,26 @@ struct StartPageView: View {
                     }
 
                     footerLinks
-                    Spacer(minLength: 28)
+                    Spacer(minLength: 36)
                 }
-                .padding(.horizontal, isWide ? 40 : 20)
-                .frame(maxWidth: isWide ? 880 : 560)
+                .padding(.horizontal, isWide ? OrielLayout.startPageGutterRegular : OrielLayout.startPageGutterCompact)
+                .frame(maxWidth: isWide ? OrielLayout.startPageMaxWidthRegular : OrielLayout.startPageMaxWidthCompact)
                 .frame(maxWidth: .infinity)
                 .opacity(appeared || reduceMotion ? 1 : 0)
-                .offset(y: appeared || reduceMotion ? 0 : 8)
+                .offset(y: appeared || reduceMotion ? 0 : 10)
             }
             .scrollIndicators(.hidden)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // Soft/Paper/etc. paint against pageScheme — lock before children read Environment.
         .environment(\.colorScheme, pageScheme)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: environment.settings.backgroundTheme)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: environment.settings.accentTheme)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.28), value: environment.settings.backgroundTheme)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.28), value: environment.settings.accentTheme)
         .onAppear {
             if reduceMotion {
                 appeared = true
             } else {
-                withAnimation(.easeOut(duration: 0.4)) {
+                withAnimation(.spring(response: 0.55, dampingFraction: 0.88)) {
                     appeared = true
                 }
             }
@@ -148,7 +148,7 @@ struct StartPageView: View {
                 if reduceMotion {
                     searchFocused = true
                 } else {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
                         searchFocused = true
                     }
                 }
@@ -167,7 +167,7 @@ struct StartPageView: View {
                     quickActions
                 }
             } else {
-                VStack(spacing: 14) {
+                VStack(spacing: 18) {
                     brandBlock
                     quickActions
                 }
@@ -177,47 +177,152 @@ struct StartPageView: View {
     }
 
     private var brandBlock: some View {
-        HStack(spacing: 14) {
-            OrielMark(size: isWide ? 44 : 40)
-                .shadow(color: accent.opacity(0.18), radius: 12, y: 4)
-
-            VStack(alignment: isWide ? .leading : .center, spacing: 2) {
-                Text(BrowserConstants.productName)
-                    .font(.system(size: isWide ? 34 : 30, weight: .semibold, design: .serif))
-                    .tracking(-0.6)
-                    .foregroundStyle(.primary)
-                Text("A calm view of the web.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+        VStack(spacing: isWide ? 0 : 12) {
+            if isWide {
+                HStack(spacing: 16) {
+                    OrielMark(size: 48)
+                        .shadow(color: accent.opacity(0.16), radius: 14, y: 5)
+                    brandCopy(alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                OrielMark(size: 52)
+                    .shadow(color: accent.opacity(0.16), radius: 16, y: 6)
+                brandCopy(alignment: .center)
             }
-            .frame(maxWidth: isWide ? .infinity : nil, alignment: isWide ? .leading : .center)
         }
         .frame(maxWidth: .infinity, alignment: isWide ? .leading : .center)
         .accessibilityElement(children: .combine)
     }
 
+    private func brandCopy(alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 4) {
+            Text(BrowserConstants.productName)
+                .font(.system(size: isWide ? 36 : 34, weight: .semibold, design: .serif))
+                .tracking(-0.8)
+                .foregroundStyle(.primary)
+            Text("A calm view of the web.")
+                .font(.system(.callout, design: .default).weight(.medium))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    /// Compact: 2×2 grid so Settings/Shields never clip off-screen.
+    /// Wide: single row.
     private var quickActions: some View {
-        HStack(spacing: 6) {
-            ProfileSwitcherControl(style: .chip)
-            quickChip(systemImage: "gearshape", title: "Settings") {
-                environment.showSettings = true
-            }
-            quickChip(systemImage: "hand.raised.fill", title: "Shields") {
-                environment.showPrivacyShield = true
-            }
-            quickChip(systemImage: "safari", title: "Site") {
-                tab.openProductSite()
+        Group {
+            if isWide {
+                HStack(spacing: 8) {
+                    ProfileSwitcherControl(style: .chip)
+                    quickChip(systemImage: "gearshape", title: "Settings") {
+                        environment.showSettings = true
+                    }
+                    quickChip(systemImage: "hand.raised.fill", title: "Shields") {
+                        environment.showPrivacyShield = true
+                    }
+                    quickChip(systemImage: "safari", title: "Site") {
+                        tab.openProductSite()
+                    }
+                }
+            } else {
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 8),
+                        GridItem(.flexible(), spacing: 8)
+                    ],
+                    spacing: 8
+                ) {
+                    profileActionCell
+                    quickActionCell(systemImage: "gearshape", title: "Settings") {
+                        environment.showSettings = true
+                    }
+                    quickActionCell(systemImage: "hand.raised.fill", title: "Shields") {
+                        environment.showPrivacyShield = true
+                    }
+                    quickActionCell(systemImage: "safari", title: "Site") {
+                        tab.openProductSite()
+                    }
+                }
             }
         }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var profileActionCell: some View {
+        Menu {
+            Section("Profiles") {
+                ForEach(environment.profiles.profiles) { profile in
+                    Button {
+                        environment.applyProfile(id: profile.id)
+                    } label: {
+                        if profile.id == environment.profiles.activeProfileID {
+                            Label(profile.name, systemImage: "checkmark")
+                        } else {
+                            Text(profile.name)
+                        }
+                    }
+                }
+            }
+            Divider()
+            Button("Manage Profiles…") { environment.showProfiles = true }
+        } label: {
+            quickActionLabel(
+                systemImage: "person.crop.circle.fill",
+                title: environment.profiles.activeProfile.name
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Profile, \(environment.profiles.activeProfile.name)")
+    }
+
+    private func quickActionCell(systemImage: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            quickActionLabel(systemImage: systemImage, title: title)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func quickActionLabel(systemImage: String, title: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(accent)
+                .frame(width: 18)
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .background(
+            OrielTheme.elevatedFill(for: pageScheme),
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func quickChip(systemImage: String, title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Label(title, systemImage: systemImage)
                 .font(.caption.weight(.semibold))
-                .padding(.horizontal, 11)
-                .padding(.vertical, 7)
-                .background(Color.primary.opacity(pageScheme == .dark ? 0.08 : 0.05), in: Capsule())
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    OrielTheme.elevatedFill(for: pageScheme),
+                    in: Capsule(style: .continuous)
+                )
+                .overlay {
+                    Capsule(style: .continuous)
+                        .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
+                }
         }
         .buttonStyle(.plain)
         .foregroundStyle(.secondary)
@@ -237,7 +342,11 @@ struct StartPageView: View {
 
     private var searchMetaRow: some View {
         HStack(alignment: .center, spacing: 10) {
-            enginePicker
+            if isWide {
+                enginePicker
+            } else {
+                engineMenu
+            }
             Spacer(minLength: 8)
             if activeEngine == .google {
                 Button {
@@ -257,9 +366,9 @@ struct StartPageView: View {
     }
 
     private var searchField: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .font(.subheadline.weight(.medium))
+                .font(.body.weight(.medium))
                 .foregroundStyle(searchFocused ? accent : Color.secondary)
 
             TextField("Search or enter address", text: $query)
@@ -294,13 +403,13 @@ struct StartPageView: View {
             Button(action: submitSearch) {
                 Text("Go")
                     .font(.caption.weight(.bold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
                     .background(
                         query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                             ? Color.primary.opacity(0.06)
                             : accent,
-                        in: Capsule()
+                        in: Capsule(style: .continuous)
                     )
                     .foregroundStyle(
                         query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -312,19 +421,60 @@ struct StartPageView: View {
             .disabled(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityLabel("Search")
         }
-        .padding(.horizontal, 14)
-        .frame(height: 48)
+        .padding(.horizontal, 16)
+        .frame(height: OrielTheme.searchFieldHeight)
         .background(
-            OrielTheme.surfaceFill(for: pageScheme),
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+            OrielTheme.elevatedFill(for: pageScheme),
+            in: RoundedRectangle(cornerRadius: OrielTheme.searchFieldRadius, style: .continuous)
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: OrielTheme.searchFieldRadius, style: .continuous)
                 .strokeBorder(
-                    searchFocused ? accent.opacity(0.4) : OrielTheme.hairline(for: pageScheme),
-                    lineWidth: 1
+                    searchFocused ? accent.opacity(0.45) : OrielTheme.hairline(for: pageScheme),
+                    lineWidth: searchFocused ? 1.5 : 1
                 )
         }
+        .shadow(color: OrielTheme.softShadow(for: pageScheme), radius: searchFocused ? 14 : 8, y: 3)
+    }
+
+    private var engineMenu: some View {
+        Menu {
+            ForEach(SearchEngine.allCases) { engine in
+                Button {
+                    environment.setSearchEngine(engine)
+                    tab.searchEngine = engine
+                } label: {
+                    if engine == activeEngine {
+                        Label(engine.displayName, systemImage: "checkmark")
+                    } else {
+                        Text(engine.displayName)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: activeEngine.systemImage)
+                    .font(.caption.weight(.semibold))
+                Text(activeEngine.displayName)
+                    .font(.caption.weight(.semibold))
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.tertiary)
+            }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 7)
+            .background(
+                OrielTheme.elevatedFill(for: pageScheme),
+                in: Capsule(style: .continuous)
+            )
+            .overlay {
+                Capsule(style: .continuous)
+                    .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Search engine, \(activeEngine.displayName)")
     }
 
     private var enginePicker: some View {
@@ -338,11 +488,11 @@ struct StartPageView: View {
                     Text(engine.displayName)
                         .font(.caption2.weight(selected ? .semibold : .medium))
                         .foregroundStyle(selected ? accent : Color.secondary)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 5)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
                         .background(
                             selected ? accent.opacity(0.12) : Color.clear,
-                            in: Capsule()
+                            in: Capsule(style: .continuous)
                         )
                 }
                 .buttonStyle(.plain)
@@ -351,7 +501,14 @@ struct StartPageView: View {
             }
         }
         .padding(3)
-        .background(Color.primary.opacity(pageScheme == .dark ? 0.06 : 0.04), in: Capsule())
+        .background(
+            OrielTheme.elevatedFill(for: pageScheme),
+            in: Capsule(style: .continuous)
+        )
+        .overlay {
+            Capsule(style: .continuous)
+                .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Search engine")
     }
@@ -362,20 +519,20 @@ struct StartPageView: View {
         Button {
             environment.showPrivacyShield = true
         } label: {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 8) {
                     Image(systemName: "hand.raised.fill")
-                        .font(.caption2.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(accent)
                     Text("Shields")
-                        .font(.caption.weight(.semibold))
+                        .font(.caption.weight(.bold))
                         .foregroundStyle(.secondary)
                         .textCase(.uppercase)
-                        .tracking(0.7)
+                        .tracking(0.8)
                     Spacer(minLength: 0)
                     Image(systemName: "chevron.right")
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.quaternary)
+                        .foregroundStyle(.tertiary)
                 }
 
                 HStack(spacing: 0) {
@@ -385,16 +542,16 @@ struct StartPageView: View {
                         subtitle: "\(stats.blockedRequestsLifetime) total"
                     )
                     Divider()
-                        .frame(height: 40)
-                        .padding(.horizontal, 10)
+                        .frame(height: 44)
+                        .padding(.horizontal, 12)
                     privacyStat(
                         title: "Cookies",
                         value: "\(stats.cookiesBlockedSession)",
                         subtitle: "\(stats.cookiesBlockedLifetime) total"
                     )
                     Divider()
-                        .frame(height: 40)
-                        .padding(.horizontal, 10)
+                        .frame(height: 44)
+                        .padding(.horizontal, 12)
                     privacyStat(
                         title: "Time saved",
                         value: Self.formatMinutes(stats.minutesSavedSession),
@@ -408,24 +565,25 @@ struct StartPageView: View {
                         .foregroundStyle(environment.privacy.contentBlockingEnabled ? accent : Color.secondary)
                     Text(
                         environment.privacy.contentBlockingEnabled
-                            ? "Shields on — counts update as you browse"
-                            : "Shields off — enable to block trackers"
+                            ? "Protection on while you browse"
+                            : "Turn Shields on to block trackers"
                     )
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                     Spacer(minLength: 0)
                 }
             }
-            .padding(14)
+            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                OrielTheme.surfaceFill(for: pageScheme),
-                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                OrielTheme.elevatedFill(for: pageScheme),
+                in: RoundedRectangle(cornerRadius: OrielTheme.sectionRadius, style: .continuous)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                RoundedRectangle(cornerRadius: OrielTheme.sectionRadius, style: .continuous)
                     .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
             }
+            .shadow(color: OrielTheme.softShadow(for: pageScheme), radius: 10, y: 3)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Shields summary")
@@ -436,12 +594,12 @@ struct StartPageView: View {
     }
 
     private func privacyStat(title: String, value: String, subtitle: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(title)
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.tertiary)
             Text(value)
-                .font(.system(size: 22, weight: .semibold, design: .rounded))
+                .font(.system(size: 24, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.primary)
                 .lineLimit(1)
@@ -525,27 +683,28 @@ struct StartPageView: View {
             }
         }
         .background(
-            OrielTheme.surfaceFill(for: pageScheme),
-            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+            OrielTheme.elevatedFill(for: pageScheme),
+            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
         }
+        .shadow(color: OrielTheme.softShadow(for: pageScheme), radius: 8, y: 2)
     }
 
     private func tileSection(title: String, items: [(String, String)]) -> some View {
         let pairs = Array(items)
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.tertiary)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-                .tracking(1.0)
+                .tracking(0.9)
 
             LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: isWide ? 160 : 140), spacing: 8)],
-                spacing: 8
+                columns: [GridItem(.adaptive(minimum: isWide ? 168 : 148), spacing: 10)],
+                spacing: 10
             ) {
                 ForEach(Array(pairs.enumerated()), id: \.offset) { _, item in
                     Button {
@@ -553,11 +712,11 @@ struct StartPageView: View {
                             tab.load(url)
                         }
                     } label: {
-                        HStack(spacing: 10) {
-                            FaviconImage(pageURL: URL(string: item.1), size: 16)
-                            VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 11) {
+                            FaviconImage(pageURL: URL(string: item.1), size: 18)
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text(item.0)
-                                    .font(.subheadline.weight(.medium))
+                                    .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(.primary)
                                     .lineLimit(1)
                                 Text(displayHost(item.1))
@@ -567,18 +726,18 @@ struct StartPageView: View {
                             }
                             Spacer(minLength: 0)
                         }
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 10)
-                        .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
                         .background(
-                            OrielTheme.surfaceFill(for: pageScheme),
-                            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            OrielTheme.elevatedFill(for: pageScheme),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                         )
                         .overlay {
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
                                 .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
                         }
-                        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
                     .buttonStyle(.plain)
                 }
