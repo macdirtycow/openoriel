@@ -533,7 +533,7 @@ struct BrowserShellView: View {
         ZStack {
             BrowserWebView(
                 tab: tab,
-                contentRuleList: environment.contentBlocker.compiledList,
+                contentRuleLists: environment.contentBlocker.compiledLists,
                 blockThirdPartyCookies: environment.privacy.blockThirdPartyCookies,
                 contentBlockingEnabled: environment.contentBlockingEnabled(for: tab),
                 matchesBlockedHint: { url in
@@ -571,7 +571,10 @@ struct BrowserShellView: View {
                 webExtensionController: environment.extensions.webExtensionControllerForConfiguration,
                 blockAutoplay: environment.settings.blockAutoplay,
                 chromeWebStoreInstallEnabled: environment.extensions.isSupported,
-                installedChromeStoreIDs: environment.extensions.installedChromeStoreIDs
+                installedChromeStoreIDs: environment.extensions.installedChromeStoreIDs,
+                applyContentBlocking: { webView, enabled in
+                    environment.contentBlocker.apply(to: webView, enabled: enabled)
+                }
             )
             .id(tab.id)
             .opacity(showStart || showError ? 0 : 1)

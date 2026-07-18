@@ -9,7 +9,7 @@ enum SharedWebViewConfiguration {
     static func make(
         isPrivate: Bool,
         javaScriptEnabled: Bool,
-        contentRuleList: WKContentRuleList?,
+        contentRuleLists: [WKContentRuleList],
         contentBlockingEnabled: Bool,
         blockAutoplay: Bool = true,
         webExtensionController: AnyObject? = nil
@@ -26,8 +26,10 @@ enum SharedWebViewConfiguration {
             configuration.mediaTypesRequiringUserActionForPlayback = []
         }
 
-        if contentBlockingEnabled, let contentRuleList {
-            configuration.userContentController.add(contentRuleList)
+        if contentBlockingEnabled {
+            for list in contentRuleLists {
+                configuration.userContentController.add(list)
+            }
         }
 
         #if os(macOS)

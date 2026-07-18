@@ -91,7 +91,10 @@ struct PrivacyShieldView: View {
         @Bindable var privacy = environment.privacy
         return Section {
             Toggle(isOn: $privacy.contentBlockingEnabled) {
-                labeledToggle("Block trackers & ads", subtitle: "Uses the bundled content rules")
+                labeledToggle(
+                    "Block trackers & ads",
+                    subtitle: "EasyList + EasyPrivacy network rules, plus YouTube ad blocking"
+                )
             }
             Toggle(isOn: $privacy.httpsUpgradeEnabled) {
                 labeledToggle("HTTPS upgrades", subtitle: "Prefer https when it looks safe")
@@ -104,6 +107,9 @@ struct PrivacyShieldView: View {
             }
         } header: {
             Text("Global shields")
+        } footer: {
+            Text("Shields use Apple’s content blocker engine (like Safari). Most web ads and many YouTube ads are blocked; some first-party YouTube streams can still slip through.")
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -219,6 +225,13 @@ struct PrivacyShieldView: View {
                     .monospacedDigit()
             }
             .accessibilityElement(children: .combine)
+
+            if !environment.contentBlocker.listNames.isEmpty {
+                Text(environment.contentBlocker.listNames.joined(separator: " · "))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             if let error = environment.contentBlocker.lastError {
                 Text(error)

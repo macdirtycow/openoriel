@@ -38,6 +38,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var onInstallChromeExtension: ((String) -> Void)?
     var onManageChromeExtensions: (() -> Void)?
     var installedChromeStoreIDs: [String] = []
+    var youTubeAdBlockingEnabled: Bool = true
 
     private var observations: [NSKeyValueObservation] = []
     private var popupTitleObservation: NSKeyValueObservation?
@@ -230,6 +231,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             #if os(macOS)
             injectInstalledExtensionIDs(into: webView)
             #endif
+            injectYouTubeAdBlockIfNeeded(into: webView)
         }
         if webView === tab.webView {
             tab.refreshNavigationChrome()
@@ -249,6 +251,12 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         webView.evaluateJavaScript(script, in: nil, in: .page) { _ in }
     }
     #endif
+
+    func injectYouTubeAdBlockIfNeeded(into webView: WKWebView) {
+        guard youTubeAdBlockingEnabled, contentBlockingEnabled else { return }
+        guard YouTubeAdBlockScript.shouldInject(for: webView.url) else { return }
+        webView.evaluateJavaScript(YouTubeAdBlockScript.source, in: nil, in: .page) { _ in }
+    }
 
     func webView(
         _ webView: WKWebView,

@@ -31,7 +31,7 @@ Oriel is a **native WebKit** browser. Brave, Chrome, and Opera GX are **Chromium
 
 | Feature | Priority | Notes |
 |---------|----------|--------|
-| Larger filter lists (EasyList) | High | Ship import + curated list beyond example rules |
+| Larger filter lists (EasyList) | High | Shipped: EasyList/EasyPrivacy-derived WK rules + YouTube ad script |
 | Password Autofill polish | High | System AutoFill works partially; Associated Domains help |
 | Translation | Medium | Apple Translation API on supported OS versions |
 | Profiles | Medium | Separate data stores / cookie jars |

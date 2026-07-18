@@ -10,7 +10,7 @@ typealias PlatformViewRepresentable = NSViewRepresentable
 /// SwiftUI wrapper around WKWebView, bound to a `BrowserTab`.
 struct BrowserWebView: PlatformViewRepresentable {
     let tab: BrowserTab
-    var contentRuleList: WKContentRuleList?
+    var contentRuleLists: [WKContentRuleList] = []
     var blockThirdPartyCookies: Bool = false
     var contentBlockingEnabled: Bool = true
     var matchesBlockedHint: (URL) -> Bool = { _ in false }
@@ -27,6 +27,7 @@ struct BrowserWebView: PlatformViewRepresentable {
     var blockAutoplay: Bool = true
     var chromeWebStoreInstallEnabled: Bool = false
     var installedChromeStoreIDs: [String] = []
+    var applyContentBlocking: ((WKWebView, Bool) -> Void)?
 
     #if os(iOS)
     func makeUIView(context: Context) -> WKWebView {
@@ -67,7 +68,7 @@ struct BrowserWebView: PlatformViewRepresentable {
         let configuration = SharedWebViewConfiguration.make(
             isPrivate: tab.isPrivate,
             javaScriptEnabled: tab.javaScriptEnabled,
-            contentRuleList: contentRuleList,
+            contentRuleLists: contentRuleLists,
             contentBlockingEnabled: contentBlockingEnabled,
             blockAutoplay: blockAutoplay,
             webExtensionController: webExtensionController
@@ -115,6 +116,7 @@ struct BrowserWebView: PlatformViewRepresentable {
 
         context.coordinator.observe(webView)
         context.coordinator.onPopupTitleChanged = onPopupTitleChanged
+        context.coordinator.youTubeAdBlockingEnabled = contentBlockingEnabled
         tab.webView = webView
         tab.refreshNavigationChrome()
 
@@ -129,8 +131,10 @@ struct BrowserWebView: PlatformViewRepresentable {
         if tab.webView !== webView {
             tab.webView = webView
         }
+        let blockingChanged = context.coordinator.contentBlockingEnabled != contentBlockingEnabled
         context.coordinator.tab = tab
         context.coordinator.contentBlockingEnabled = contentBlockingEnabled
+        context.coordinator.youTubeAdBlockingEnabled = contentBlockingEnabled
         context.coordinator.matchesBlockedHint = matchesBlockedHint
         context.coordinator.onBlockedNavigation = onBlockedNavigation
         context.coordinator.onDownload = onDownload
@@ -145,6 +149,10 @@ struct BrowserWebView: PlatformViewRepresentable {
         #if os(macOS)
         context.coordinator.injectInstalledExtensionIDs(into: webView)
         #endif
+
+        if blockingChanged {
+            applyContentBlocking?(webView, contentBlockingEnabled)
+        }
 
         webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = tab.javaScriptEnabled
 
