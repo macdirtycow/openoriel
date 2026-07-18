@@ -5,46 +5,76 @@ import AppKit
 import UIKit
 #endif
 
-/// Toolbar Oriel mark from the real app icon (scaled cleanly — not the huge dock icon stretched).
+/// Toolbar / chrome Oriel mark — branded asset (AppIcon cannot be loaded by name on iOS).
 struct OrielMark: View {
     var size: CGFloat = 22
 
+    private var hasMarkAsset: Bool {
+        #if os(iOS)
+        UIImage(named: "OrielMark") != nil
+        #elseif os(macOS)
+        NSImage(named: "OrielMark") != nil || NSApplication.shared.applicationIconImage != nil
+        #else
+        false
+        #endif
+    }
+
     var body: some View {
         Group {
-            #if os(macOS)
-            if let icon = Self.macToolbarIcon(pointSize: size) {
-                Image(nsImage: icon)
+            if hasMarkAsset {
+                #if os(macOS)
+                if NSImage(named: "OrielMark") != nil {
+                    Image("OrielMark")
+                        .resizable()
+                        .interpolation(.high)
+                        .aspectRatio(contentMode: .fit)
+                } else if let icon = Self.macToolbarIcon(pointSize: size) {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .interpolation(.high)
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    drawnMark
+                }
+                #else
+                Image("OrielMark")
                     .resizable()
                     .interpolation(.high)
                     .aspectRatio(contentMode: .fit)
+                #endif
             } else {
-                fallbackMonogram
+                drawnMark
             }
-            #else
-            if let icon = UIImage(named: "AppIcon") ?? UIImage(named: "AppIcon.appiconset") {
-                Image(uiImage: icon)
-                    .resizable()
-                    .interpolation(.high)
-                    .aspectRatio(contentMode: .fit)
-            } else {
-                fallbackMonogram
-            }
-            #endif
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size * 0.22, style: .continuous))
         .accessibilityHidden(true)
     }
 
-    private var fallbackMonogram: some View {
-        Text("O")
-            .font(.system(size: size * 0.55, weight: .bold, design: .serif))
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                Color(red: 0.14, green: 0.26, blue: 0.28),
-                in: RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)
-            )
+    /// Matches `site/assets/oriel-mark.svg` / AppIcon window panes — never a letter “O”.
+    private var drawnMark: some View {
+        let navy = Color(red: 0.10, green: 0.16, blue: 0.28)
+        let mid = Color(red: 0.35, green: 0.48, blue: 0.68)
+        let pane = Color(red: 0.86, green: 0.91, blue: 0.96)
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)
+                .fill(navy)
+            RoundedRectangle(cornerRadius: size * 0.18, style: .continuous)
+                .fill(mid)
+                .padding(size * 0.10)
+            RoundedRectangle(cornerRadius: size * 0.10, style: .continuous)
+                .fill(pane)
+                .padding(size * 0.28)
+            Rectangle()
+                .fill(navy)
+                .frame(width: max(1.5, size * 0.06))
+                .padding(.vertical, size * 0.28)
+            Rectangle()
+                .fill(navy)
+                .frame(height: max(1.5, size * 0.06))
+                .padding(.horizontal, size * 0.28)
+        }
     }
 
     #if os(macOS)
