@@ -574,7 +574,8 @@ struct BrowserShellView: View {
                 installedChromeStoreIDs: environment.extensions.installedChromeStoreIDs,
                 applyContentBlocking: { webView, enabled in
                     environment.contentBlocker.apply(to: webView, enabled: enabled)
-                }
+                },
+                contentBlockerGeneration: environment.contentBlocker.generation
             )
             .id(tab.id)
             .opacity(showStart || showError ? 0 : 1)

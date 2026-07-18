@@ -6,7 +6,7 @@ Oriel’s privacy features run on Apple WebKit. This page is the source of truth
 
 | Protection | Mechanism |
 |------------|-----------|
-| Tracker / ad blocking | Bundled `WKContentRuleList` rules (EasyList/EasyPrivacy-derived + YouTube rules) |
+| Tracker / ad blocking | Bundled `WKContentRuleList` rules (EasyList + EasyPrivacy network + cosmetic hiding + YouTube rules) |
 | YouTube player ads | Network/CSS rules plus an injected skip/hide script when Shields are on |
 | HTTPS upgrade | Prefer `https` when heuristics allow |
 | Third-party cookies | Configurable via WebKit data-store preferences (OS-dependent) |

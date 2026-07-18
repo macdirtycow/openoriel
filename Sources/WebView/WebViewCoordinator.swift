@@ -39,6 +39,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var onManageChromeExtensions: (() -> Void)?
     var installedChromeStoreIDs: [String] = []
     var youTubeAdBlockingEnabled: Bool = true
+    var appliedContentBlockerGeneration: Int = 0
 
     private var observations: [NSKeyValueObservation] = []
     private var popupTitleObservation: NSKeyValueObservation?
@@ -217,6 +218,10 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         }
     }
 
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        injectYouTubeAdBlockIfNeeded(into: webView)
+    }
+
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         if webView === tab.webView, !tab.isShowingStartPage {
             tab.navigation.isLoading = false
@@ -253,9 +258,14 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     #endif
 
     func injectYouTubeAdBlockIfNeeded(into webView: WKWebView) {
-        guard youTubeAdBlockingEnabled, contentBlockingEnabled else { return }
+        guard youTubeAdBlockingEnabled, contentBlockingEnabled else {
+            webView.evaluateJavaScript(YouTubeAdBlockScript.disableSource, in: nil, in: .page) { _ in }
+            return
+        }
         guard YouTubeAdBlockScript.shouldInject(for: webView.url) else { return }
-        webView.evaluateJavaScript(YouTubeAdBlockScript.source, in: nil, in: .page) { _ in }
+        // Clear kill flag then (re)install — user script may already be present.
+        let boot = "window.__orielYouTubeAdBlockKill = false;\n" + YouTubeAdBlockScript.source
+        webView.evaluateJavaScript(boot, in: nil, in: .page) { _ in }
     }
 
     func webView(

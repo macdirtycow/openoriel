@@ -35,7 +35,7 @@ xcodebuild -scheme Oriel -destination 'platform=iOS Simulator,name=iPhone 16' bu
 
 ## Shields
 
-Shields compile bundled EasyList/EasyPrivacy-derived `WKContentRuleList` rules plus YouTube-oriented filters and a skip script. Toggle from the toolbar; defaults on.
+Shields compile bundled EasyList + EasyPrivacy network rules, cosmetic element hiding, YouTube filters, and a YouTube skip script. Toggle from the toolbar; defaults on. Existing tabs pick up rules once compilation finishes.
 
 Regenerate lists: see [Resources/ContentBlocker/README.md](Resources/ContentBlocker/README.md).
 

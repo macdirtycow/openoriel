@@ -62,7 +62,7 @@ enum ContentRuleListValidator {
     }
 }
 
-/// Compiles bundled EasyList-derived + YouTube ad rules into `WKContentRuleList`s.
+/// Compiles bundled EasyList / EasyPrivacy / cosmetic / YouTube rule lists.
 @MainActor
 @Observable
 final class ContentBlockerManager {
@@ -72,18 +72,13 @@ final class ContentBlockerManager {
     private(set) var ruleCount = 0
     private(set) var blockedHostHints: [String] = []
     private(set) var listNames: [String] = []
+    /// Bumps when lists are (re)compiled so web views can re-attach.
+    private(set) var generation: Int = 0
 
-    /// Convenience for call sites that still expect a single list — returns the first compiled list.
     var compiledList: WKContentRuleList? { compiledLists.first }
 
     private let store = WKContentRuleListStore.default()
-
-    /// Load order matters: broad lists first, YouTube + OAuth allowlist last.
-    private let bundledListNames = [
-        "oriel-easylist",
-        "oriel-youtube-ads",
-        "example-blocklist" // fallback only if others missing
-    ]
+    private let compileIdentifierPrefix = "oriel.rules.v2"
 
     func prepare() async {
         compiledLists = []
@@ -92,20 +87,21 @@ final class ContentBlockerManager {
         var hints: [String] = []
         var errors: [String] = []
 
-        var loadedAnyPrimary = false
-        for name in bundledListNames {
-            if name == "example-blocklist", loadedAnyPrimary { continue }
+        let names = discoverBundledListNames()
+        var loadedPrimary = false
+
+        for name in names {
             guard let data = loadBundledJSON(named: name) else { continue }
             do {
                 let rules = try ContentRuleListValidator.validate(data)
                 let json = String(data: data, encoding: .utf8) ?? "[]"
-                let identifier = "oriel.\(name).v1"
+                let identifier = "\(compileIdentifierPrefix).\(name)"
                 let list = try await compile(json: json, identifier: identifier)
                 compiledLists.append(list)
                 listNames.append(name)
                 ruleCount += rules.count
                 hints.append(contentsOf: ContentRuleListValidator.blockedHostHints(from: rules))
-                if name != "example-blocklist" { loadedAnyPrimary = true }
+                if name != "example-blocklist" { loadedPrimary = true }
             } catch {
                 errors.append("\(name): \(error.localizedDescription)")
             }
@@ -114,11 +110,10 @@ final class ContentBlockerManager {
         blockedHostHints = Array(Set(hints)).sorted()
         isReady = !compiledLists.isEmpty
         lastError = isReady ? nil : (errors.last ?? ContentRuleValidationError.empty.errorDescription)
-
-        // Prefer a short status when only fallback loaded.
-        if isReady, !loadedAnyPrimary {
-            lastError = "Using built-in fallback list (EasyList failed to load)."
+        if isReady, !loadedPrimary {
+            lastError = "Using built-in fallback list (main lists failed to load)."
         }
+        generation += 1
     }
 
     func matchesBlockedHostHint(_ url: URL) -> Bool {
@@ -130,7 +125,6 @@ final class ContentBlockerManager {
         try ContentRuleListValidator.validate(data).count
     }
 
-    /// Apply or remove all compiled rule lists on a live web view (Shields toggle).
     func apply(to webView: WKWebView, enabled: Bool) {
         let ucc = webView.configuration.userContentController
         ucc.removeAllContentRuleLists()
@@ -138,6 +132,41 @@ final class ContentBlockerManager {
         for list in compiledLists {
             ucc.add(list)
         }
+    }
+
+    /// Prefer EasyList → EasyPrivacy → cosmetic → YouTube; fallback last.
+    private func discoverBundledListNames() -> [String] {
+        let urls =
+            Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: "ContentBlocker")
+            ?? Bundle.main.urls(forResourcesWithExtension: "json", subdirectory: nil)
+            ?? []
+
+        let names = urls.compactMap { url -> String? in
+            let name = url.deletingPathExtension().lastPathComponent
+            guard name.hasPrefix("oriel-") || name == "example-blocklist" else { return nil }
+            return name
+        }
+
+        let primary = names.filter { $0.hasPrefix("oriel-") }.sorted { lhs, rhs in
+            listSortKey(lhs) < listSortKey(rhs)
+        }
+        if primary.isEmpty {
+            return names.contains("example-blocklist") ? ["example-blocklist"] : []
+        }
+        return primary
+    }
+
+    private func listSortKey(_ name: String) -> (Int, String) {
+        let order: [(String, Int)] = [
+            ("oriel-easylist", 0),
+            ("oriel-easyprivacy", 1),
+            ("oriel-cosmetic", 2),
+            ("oriel-youtube-ads", 3),
+        ]
+        for (prefix, rank) in order where name.hasPrefix(prefix) {
+            return (rank, name)
+        }
+        return (50, name)
     }
 
     private func loadBundledJSON(named name: String) -> Data? {

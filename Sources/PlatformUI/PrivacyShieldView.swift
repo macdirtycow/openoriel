@@ -93,7 +93,7 @@ struct PrivacyShieldView: View {
             Toggle(isOn: $privacy.contentBlockingEnabled) {
                 labeledToggle(
                     "Block trackers & ads",
-                    subtitle: "EasyList + EasyPrivacy network rules, plus YouTube ad blocking"
+                    subtitle: "EasyList + EasyPrivacy + cosmetic hiding, plus YouTube ad blocking"
                 )
             }
             Toggle(isOn: $privacy.httpsUpgradeEnabled) {

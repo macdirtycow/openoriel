@@ -28,6 +28,8 @@ struct BrowserWebView: PlatformViewRepresentable {
     var chromeWebStoreInstallEnabled: Bool = false
     var installedChromeStoreIDs: [String] = []
     var applyContentBlocking: ((WKWebView, Bool) -> Void)?
+    /// Bumps when compiled rule lists change so existing tabs re-attach them.
+    var contentBlockerGeneration: Int = 0
 
     #if os(iOS)
     func makeUIView(context: Context) -> WKWebView {
@@ -117,6 +119,7 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.observe(webView)
         context.coordinator.onPopupTitleChanged = onPopupTitleChanged
         context.coordinator.youTubeAdBlockingEnabled = contentBlockingEnabled
+        context.coordinator.appliedContentBlockerGeneration = contentBlockerGeneration
         tab.webView = webView
         tab.refreshNavigationChrome()
 
@@ -132,6 +135,7 @@ struct BrowserWebView: PlatformViewRepresentable {
             tab.webView = webView
         }
         let blockingChanged = context.coordinator.contentBlockingEnabled != contentBlockingEnabled
+        let listsChanged = context.coordinator.appliedContentBlockerGeneration != contentBlockerGeneration
         context.coordinator.tab = tab
         context.coordinator.contentBlockingEnabled = contentBlockingEnabled
         context.coordinator.youTubeAdBlockingEnabled = contentBlockingEnabled
@@ -150,8 +154,14 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.injectInstalledExtensionIDs(into: webView)
         #endif
 
-        if blockingChanged {
+        if blockingChanged || (contentBlockingEnabled && listsChanged && !contentRuleLists.isEmpty) {
             applyContentBlocking?(webView, contentBlockingEnabled)
+            context.coordinator.appliedContentBlockerGeneration = contentBlockerGeneration
+            if contentBlockingEnabled {
+                context.coordinator.injectYouTubeAdBlockIfNeeded(into: webView)
+            } else {
+                webView.evaluateJavaScript(YouTubeAdBlockScript.disableSource, in: nil, in: .page) { _ in }
+            }
         }
 
         webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = tab.javaScriptEnabled

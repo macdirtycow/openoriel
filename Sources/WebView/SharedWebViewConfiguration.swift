@@ -26,10 +26,20 @@ enum SharedWebViewConfiguration {
             configuration.mediaTypesRequiringUserActionForPlayback = []
         }
 
+        let ucc = configuration.userContentController
         if contentBlockingEnabled {
             for list in contentRuleLists {
-                configuration.userContentController.add(list)
+                ucc.add(list)
             }
+            // Early YouTube skip/hide — host check is inside the script.
+            ucc.addUserScript(
+                WKUserScript(
+                    source: YouTubeAdBlockScript.source,
+                    injectionTime: .atDocumentStart,
+                    forMainFrameOnly: false,
+                    in: .page
+                )
+            )
         }
 
         #if os(macOS)
