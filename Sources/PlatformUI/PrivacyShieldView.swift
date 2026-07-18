@@ -65,17 +65,17 @@ struct PrivacyShieldView: View {
     private var dashboardSection: some View {
         Section {
             statRow(
-                title: "Blocked this session",
+                title: "Blocked",
                 value: "\(environment.privacyStats.blockedRequestsSession)",
                 systemImage: "hand.raised.fill"
             )
             statRow(
-                title: "Cookies this session",
+                title: "Cookies blocked",
                 value: "\(environment.privacyStats.cookiesBlockedSession)",
                 systemImage: "cookie"
             )
             statRow(
-                title: "Time saved this session",
+                title: "Time saved",
                 value: formatMinutes(environment.privacyStats.minutesSavedSession),
                 systemImage: "clock.arrow.circlepath"
             )
@@ -102,7 +102,7 @@ struct PrivacyShieldView: View {
         } header: {
             Text("Dashboard")
         } footer: {
-            Text("Trackers are counted when Oriel detects known ad/analytics requests (and cancels matching frames). Time saved is ~50 ms per block.")
+            Text("Trackers are counted when Oriel detects known ad/analytics requests (and cancels matching frames). Counts resume after you quit the app and reset when you use Fire. Time saved is ~50 ms per block.")
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

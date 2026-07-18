@@ -3,6 +3,7 @@ import Observation
 
 /// Session and lifetime privacy counters.
 /// Tracker hits come from NavigationPolicy + an in-page probe (WebKit has no blocker hit stream).
+/// Session counters persist across app relaunches and only reset when Fire clears them.
 @Observable
 @MainActor
 final class PrivacyStats {
@@ -19,10 +20,16 @@ final class PrivacyStats {
     /// ~50ms per blocked tracker/ad request (same ballpark as Brave’s estimate).
     static let millisecondsSavedPerBlock = 50
 
-    private let fileName = "privacy-stats.json"
+    private let fileName: String
 
-    init() {
+    init(fileName: String = "privacy-stats.json") {
+        self.fileName = fileName
         if let loaded = try? JSONFileStore.load(Persisted.self, from: fileName) {
+            blockedRequestsSession = loaded.blockedRequestsSession ?? 0
+            httpsUpgradesSession = loaded.httpsUpgradesSession ?? 0
+            cookiesBlockedSession = loaded.cookiesBlockedSession ?? 0
+            timeSavedMillisecondsSession = loaded.timeSavedMillisecondsSession
+                ?? ((loaded.blockedRequestsSession ?? 0) * Self.millisecondsSavedPerBlock)
             blockedRequestsLifetime = loaded.blockedRequestsLifetime
             httpsUpgradesLifetime = loaded.httpsUpgradesLifetime
             cookiesBlockedLifetime = loaded.cookiesBlockedLifetime
@@ -73,6 +80,7 @@ final class PrivacyStats {
         httpsUpgradesSession = 0
         cookiesBlockedSession = 0
         timeSavedMillisecondsSession = 0
+        persist()
     }
 
     /// Hosts / paths commonly used for cookie sync, consent pixels, and identity trackers.
@@ -103,12 +111,20 @@ final class PrivacyStats {
     }
 
     private struct Persisted: Codable {
+        var blockedRequestsSession: Int?
+        var httpsUpgradesSession: Int?
+        var cookiesBlockedSession: Int?
+        var timeSavedMillisecondsSession: Int?
         var blockedRequestsLifetime: Int
         var httpsUpgradesLifetime: Int
         var cookiesBlockedLifetime: Int
         var timeSavedMillisecondsLifetime: Int?
 
         enum CodingKeys: String, CodingKey {
+            case blockedRequestsSession
+            case httpsUpgradesSession
+            case cookiesBlockedSession
+            case timeSavedMillisecondsSession
             case blockedRequestsLifetime
             case httpsUpgradesLifetime
             case cookiesBlockedLifetime
@@ -116,11 +132,19 @@ final class PrivacyStats {
         }
 
         init(
+            blockedRequestsSession: Int,
+            httpsUpgradesSession: Int,
+            cookiesBlockedSession: Int,
+            timeSavedMillisecondsSession: Int,
             blockedRequestsLifetime: Int,
             httpsUpgradesLifetime: Int,
             cookiesBlockedLifetime: Int,
             timeSavedMillisecondsLifetime: Int
         ) {
+            self.blockedRequestsSession = blockedRequestsSession
+            self.httpsUpgradesSession = httpsUpgradesSession
+            self.cookiesBlockedSession = cookiesBlockedSession
+            self.timeSavedMillisecondsSession = timeSavedMillisecondsSession
             self.blockedRequestsLifetime = blockedRequestsLifetime
             self.httpsUpgradesLifetime = httpsUpgradesLifetime
             self.cookiesBlockedLifetime = cookiesBlockedLifetime
@@ -129,6 +153,10 @@ final class PrivacyStats {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
+            blockedRequestsSession = try container.decodeIfPresent(Int.self, forKey: .blockedRequestsSession)
+            httpsUpgradesSession = try container.decodeIfPresent(Int.self, forKey: .httpsUpgradesSession)
+            cookiesBlockedSession = try container.decodeIfPresent(Int.self, forKey: .cookiesBlockedSession)
+            timeSavedMillisecondsSession = try container.decodeIfPresent(Int.self, forKey: .timeSavedMillisecondsSession)
             blockedRequestsLifetime = try container.decode(Int.self, forKey: .blockedRequestsLifetime)
             httpsUpgradesLifetime = try container.decode(Int.self, forKey: .httpsUpgradesLifetime)
             cookiesBlockedLifetime = try container.decodeIfPresent(Int.self, forKey: .cookiesBlockedLifetime) ?? 0
@@ -138,6 +166,10 @@ final class PrivacyStats {
 
     private func persist() {
         let data = Persisted(
+            blockedRequestsSession: blockedRequestsSession,
+            httpsUpgradesSession: httpsUpgradesSession,
+            cookiesBlockedSession: cookiesBlockedSession,
+            timeSavedMillisecondsSession: timeSavedMillisecondsSession,
             blockedRequestsLifetime: blockedRequestsLifetime,
             httpsUpgradesLifetime: httpsUpgradesLifetime,
             cookiesBlockedLifetime: cookiesBlockedLifetime,

@@ -11,7 +11,7 @@ Oriel is a single multiplatform app target (XcodeGen). Source folders are module
 | `WebView` | `WKWebView` wrapper, coordinator, navigation policy |
 | `Tabs` | Tab model and manager |
 | `History` / `Bookmarks` / `Downloads` | Local stores |
-| `Privacy` | Shields settings, per-site overrides, session stats |
+| `Privacy` | Shields settings, per-site overrides, persisted stats (session until Fire + lifetime) |
 | `ContentBlocking` | Rule compile + YouTube skip script |
 | `Extensions` | macOS `WKWebExtension` host and Chrome Web Store bridge |
 | `Settings` / `Persistence` | Preferences and storage |

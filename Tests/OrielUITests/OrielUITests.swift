@@ -30,7 +30,7 @@ final class OrielUITests: XCTestCase {
         }
 
         XCTAssertTrue(app.navigationBars["Shields"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["Dashboard"].exists || app.staticTexts["Blocked this session"].exists)
+        XCTAssertTrue(app.staticTexts["Dashboard"].exists || app.staticTexts["Blocked"].exists)
         app.buttons["Done"].tap()
     }
 }

@@ -431,7 +431,7 @@ struct StartPageView: View {
         .accessibilityLabel("Shields summary")
         .accessibilityHint("Opens Shields for tracker and cookie details")
         .accessibilityValue(
-            "\(stats.blockedRequestsSession) trackers, \(stats.cookiesBlockedSession) cookies, \(Self.formatMinutes(stats.minutesSavedSession)) saved this session"
+            "\(stats.blockedRequestsSession) trackers, \(stats.cookiesBlockedSession) cookies, \(Self.formatMinutes(stats.minutesSavedSession)) saved"
         )
     }
 
