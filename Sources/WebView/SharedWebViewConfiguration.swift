@@ -27,6 +27,11 @@ enum SharedWebViewConfiguration {
             configuration.mediaTypesRequiringUserActionForPlayback = []
         }
 
+        #if os(iOS)
+        configuration.allowsInlineMediaPlayback = true
+        configuration.allowsPictureInPictureMediaPlayback = true
+        #endif
+
         let ucc = configuration.userContentController
         if fingerprintingProtection {
             ucc.addUserScript(

@@ -81,7 +81,10 @@ final class SessionStore {
         return try? JSONFileStore.load(SessionSnapshot.self, from: fileName)
     }
 
+    /// Persists the open-tab snapshot only when session restore is enabled,
+    /// so turning restore off does not wipe the last good session on disk.
     func save(_ snapshot: SessionSnapshot) {
+        guard restorePreviousSession else { return }
         try? JSONFileStore.save(snapshot, to: fileName)
     }
 

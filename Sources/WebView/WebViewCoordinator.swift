@@ -2,8 +2,9 @@ import Foundation
 import WebKit
 #if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
 #endif
-
 
 private final class WeakHideElementHandler: NSObject, WKScriptMessageHandler {
     weak var target: WebViewCoordinator?
@@ -193,6 +194,13 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     ) {
         preferences.allowsContentJavaScript = tab.javaScriptEnabled
         if let url = navigationAction.request.url {
+            let scheme = url.scheme?.lowercased() ?? ""
+            if Self.externalURLSchemes.contains(scheme) {
+                openExternalURL(url)
+                decisionHandler(.cancel, preferences)
+                return
+            }
+
             #if os(macOS)
             if ChromeWebStoreAPI.isManageExtensionsURL(url) {
                 onManageChromeExtensions?()
@@ -250,6 +258,18 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         )
         let policy = NavigationPolicy.decision(for: navigationAction, context: context)
         decisionHandler(policy, preferences)
+    }
+
+    private static let externalURLSchemes: Set<String> = [
+        "tel", "mailto", "sms", "facetime", "facetime-audio", "maps", "itms-apps", "itms"
+    ]
+
+    private func openExternalURL(_ url: URL) {
+        #if os(iOS)
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        #elseif os(macOS)
+        NSWorkspace.shared.open(url)
+        #endif
     }
 
     func webView(
@@ -458,16 +478,43 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         decisionHandler: @escaping (WKPermissionDecision) -> Void
     ) {
         let host = origin.host
-        let permission: SitePermission = {
+        let camera = permissionManager?.decision(for: host, permission: .camera) ?? .ask
+        let microphone = permissionManager?.decision(for: host, permission: .microphone) ?? .ask
+
+        let decision: PermissionDecision = {
             switch type {
-            case .camera: return .camera
-            case .microphone: return .microphone
-            case .cameraAndMicrophone: return .camera
-            @unknown default: return .camera
+            case .camera:
+                return camera
+            case .microphone:
+                return microphone
+            case .cameraAndMicrophone:
+                if camera == .deny || microphone == .deny { return .deny }
+                if camera == .allow && microphone == .allow { return .allow }
+                return .ask
+            @unknown default:
+                return camera
             }
         }()
 
-        switch permissionManager?.decision(for: host, permission: permission) ?? .ask {
+        switch decision {
+        case .allow:
+            decisionHandler(.grant)
+        case .deny:
+            decisionHandler(.deny)
+        case .ask:
+            decisionHandler(.prompt)
+        }
+    }
+
+    @available(iOS 15.0, macOS 12.0, *)
+    func webView(
+        _ webView: WKWebView,
+        requestGeolocationPermissionFor origin: WKSecurityOrigin,
+        initiatedByFrame frame: WKFrameInfo,
+        decisionHandler: @escaping (WKPermissionDecision) -> Void
+    ) {
+        let host = origin.host
+        switch permissionManager?.decision(for: host, permission: .location) ?? .ask {
         case .allow:
             decisionHandler(.grant)
         case .deny:

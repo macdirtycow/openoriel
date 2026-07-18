@@ -22,6 +22,7 @@ struct QueuedLink: Identifiable, Codable, Equatable, Sendable {
 final class LinkQueueStore {
     private(set) var items: [QueuedLink] = []
     private let fileName = "link-queue.json"
+    var onDidChange: (() -> Void)?
 
     init() {
         if let loaded = try? JSONFileStore.load([QueuedLink].self, from: fileName) {
@@ -48,6 +49,21 @@ final class LinkQueueStore {
         persist()
     }
 
+    func mergeUnion(_ remote: [QueuedLink]) {
+        var map = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+        for item in remote {
+            if let existing = map[item.id] {
+                if item.createdAt > existing.createdAt {
+                    map[item.id] = item
+                }
+            } else if !map.values.contains(where: { $0.urlString == item.urlString }) {
+                map[item.id] = item
+            }
+        }
+        items = Array(map.values).sorted { $0.createdAt > $1.createdAt }
+        persist()
+    }
+
     func clear() {
         items = []
         persist()
@@ -62,5 +78,6 @@ final class LinkQueueStore {
 
     private func persist() {
         try? JSONFileStore.save(items, to: fileName)
+        onDidChange?()
     }
 }

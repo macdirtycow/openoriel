@@ -70,6 +70,9 @@ struct SettingsView: View {
                     .labelsHidden()
                     #endif
                     .accessibilityLabel("Appearance")
+                    .onChange(of: settings.appearance) { _, _ in
+                        environment.icloudSync.noteLocalChange()
+                    }
 
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Accent color")
@@ -78,6 +81,7 @@ struct SettingsView: View {
                             ForEach(BrowserAccentTheme.allCases) { theme in
                                 Button {
                                     settings.accentTheme = theme
+                                    environment.icloudSync.noteLocalChange()
                                 } label: {
                                     VStack(spacing: 6) {
                                         Circle()
@@ -136,6 +140,7 @@ struct SettingsView: View {
                                 } else {
                                     settings.appearance = .system
                                 }
+                                environment.icloudSync.noteLocalChange()
                             } label: {
                                 HStack(spacing: 12) {
                                     RoundedRectangle(cornerRadius: 8, style: .continuous)

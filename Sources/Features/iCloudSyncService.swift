@@ -7,9 +7,10 @@ import Observation
 final class iCloudSyncService {
     private let defaults = NSUbiquitousKeyValueStore.default
     private let bookmarksKey = "oriel.sync.bookmarks.v1"
-    private let settingsKey = "oriel.sync.settings.v1"
+    private let settingsKey = "oriel.sync.settings.v2"
     private let queueKey = "oriel.sync.linkqueue.v1"
     private let enabledKey = "oriel.icloudSyncEnabled"
+    private let localSettingsStampKey = "oriel.sync.settings.localStamp"
 
     var isEnabled: Bool {
         didSet {
@@ -47,9 +48,18 @@ final class iCloudSyncService {
         self.settings = settings
         self.linkQueue = linkQueue
         if isEnabled {
+            // Push local first so an empty/older remote does not wipe this device on launch.
+            pushAll()
             pullAll()
             pushAll()
         }
+    }
+
+    /// Call after local appearance / engine / queue / bookmark edits so remotes stay current.
+    func noteLocalChange() {
+        guard isEnabled else { return }
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: localSettingsStampKey)
+        pushAll()
     }
 
     func pushAll() {
@@ -60,11 +70,13 @@ final class iCloudSyncService {
             }
         }
         if let settings {
+            let stamp = UserDefaults.standard.double(forKey: localSettingsStampKey)
             let payload: [String: String] = [
                 "searchEngine": settings.searchEngine.rawValue,
                 "appearance": settings.appearance.rawValue,
                 "accentTheme": settings.accentTheme.rawValue,
-                "backgroundTheme": settings.backgroundTheme.rawValue
+                "backgroundTheme": settings.backgroundTheme.rawValue,
+                "updatedAt": String(stamp > 0 ? stamp : Date().timeIntervalSince1970)
             ]
             if let data = try? JSONEncoder().encode(payload) {
                 defaults.set(data, forKey: settingsKey)
@@ -83,35 +95,38 @@ final class iCloudSyncService {
         if let data = defaults.data(forKey: bookmarksKey),
            let remote = try? JSONDecoder().decode([Bookmark].self, from: data),
            let bookmarks {
-            // Merge by URL / folder id — prefer union.
             var map = Dictionary(uniqueKeysWithValues: bookmarks.bookmarks.map { ($0.id, $0) })
             for item in remote {
                 map[item.id] = item
             }
-            // BookmarkStore has no bulk replace — use reflection via remove/add would be lossy.
-            // Expose internal replace through a dedicated API.
             bookmarks.replaceAll(Array(map.values))
         }
         if let data = defaults.data(forKey: settingsKey),
            let payload = try? JSONDecoder().decode([String: String].self, from: data),
            let settings {
-            if let raw = payload["searchEngine"], let engine = SearchEngine(rawValue: raw) {
-                settings.searchEngine = engine
-            }
-            if let raw = payload["appearance"], let mode = AppAppearance(rawValue: raw) {
-                settings.appearance = mode
-            }
-            if let raw = payload["accentTheme"], let theme = BrowserAccentTheme(rawValue: raw) {
-                settings.accentTheme = theme
-            }
-            if let raw = payload["backgroundTheme"], let theme = BrowserBackgroundTheme(rawValue: raw) {
-                settings.backgroundTheme = theme
+            let remoteStamp = Double(payload["updatedAt"] ?? "") ?? 0
+            let localStamp = UserDefaults.standard.double(forKey: localSettingsStampKey)
+            // Only apply remote settings when they are strictly newer than local edits.
+            if remoteStamp > localStamp {
+                if let raw = payload["searchEngine"], let engine = SearchEngine(rawValue: raw) {
+                    settings.searchEngine = engine
+                }
+                if let raw = payload["appearance"], let mode = AppAppearance(rawValue: raw) {
+                    settings.appearance = mode
+                }
+                if let raw = payload["accentTheme"], let theme = BrowserAccentTheme(rawValue: raw) {
+                    settings.accentTheme = theme
+                }
+                if let raw = payload["backgroundTheme"], let theme = BrowserBackgroundTheme(rawValue: raw) {
+                    settings.backgroundTheme = theme
+                }
+                UserDefaults.standard.set(remoteStamp, forKey: localSettingsStampKey)
             }
         }
         if let data = defaults.data(forKey: queueKey),
            let remote = try? JSONDecoder().decode([QueuedLink].self, from: data),
            let linkQueue {
-            linkQueue.replaceAll(remote)
+            linkQueue.mergeUnion(remote)
         }
     }
 

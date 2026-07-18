@@ -9,10 +9,21 @@ struct ProfilesView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    Label {
+                        Text("Profiles currently save a name only. Separate cookies and history per profile are not wired yet — switching does not isolate browsing data.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                    }
+                }
+
                 ForEach(environment.profiles.profiles) { profile in
                     Button {
                         environment.profiles.select(id: profile.id)
-                        dismiss()
                     } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
@@ -26,7 +37,7 @@ struct ProfilesView: View {
                             Spacer()
                             if profile.id == environment.profiles.activeProfileID {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(environment.settings.brandColor)
                             }
                         }
                     }

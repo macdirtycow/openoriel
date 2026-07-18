@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import WebKit
 
 enum DownloadState: String, Codable, Sendable {
     case downloading
@@ -48,6 +49,9 @@ final class DownloadManager {
 
     init() {
         let config = URLSessionConfiguration.default
+        config.httpCookieStorage = HTTPCookieStorage.shared
+        config.httpShouldSetCookies = true
+        config.httpCookieAcceptPolicy = .always
         session = URLSession(configuration: config)
     }
 
@@ -99,62 +103,78 @@ final class DownloadManager {
 
     private func start(itemID: UUID, url: URL? = nil) {
         guard let source = url ?? items.first(where: { $0.id == itemID })?.sourceURL else { return }
-        let task = session.downloadTask(with: source) { [weak self] tempURL, response, error in
+        Task { @MainActor in
+            await Self.copyWebKitCookies(into: HTTPCookieStorage.shared)
+            guard items.contains(where: { $0.id == itemID && $0.state == .downloading }) else { return }
+
+            let task = session.downloadTask(with: source) { [weak self] tempURL, response, error in
+                Task { @MainActor in
+                    guard let self else { return }
+                    self.activeDownloads[itemID] = nil
+                    if let error {
+                        self.update(itemID) { item in
+                            item.state = .failed
+                            item.errorMessage = error.localizedDescription
+                            item.updatedAt = .now
+                        }
+                        return
+                    }
+                    guard let tempURL else {
+                        self.update(itemID) { item in
+                            item.state = .failed
+                            item.errorMessage = "Download produced no file."
+                            item.updatedAt = .now
+                        }
+                        return
+                    }
+                    do {
+                        let destination = try self.moveToDownloads(
+                            from: tempURL,
+                            preferredName: self.items.first(where: { $0.id == itemID })?.fileName
+                                ?? response?.suggestedFilename
+                                ?? source.lastPathComponent
+                        )
+                        self.update(itemID) { item in
+                            item.state = .completed
+                            item.progress = 1
+                            item.destinationURL = destination
+                            item.fileName = destination.lastPathComponent
+                            item.errorMessage = nil
+                            item.updatedAt = .now
+                        }
+                    } catch {
+                        self.update(itemID) { item in
+                            item.state = .failed
+                            item.errorMessage = error.localizedDescription
+                            item.updatedAt = .now
+                        }
+                    }
+                }
+            }
+            activeDownloads[itemID] = task
+            task.resume()
             Task { @MainActor in
-                guard let self else { return }
-                self.activeDownloads[itemID] = nil
-                if let error {
-                    self.update(itemID) { item in
-                        item.state = .failed
-                        item.errorMessage = error.localizedDescription
+                while let task = activeDownloads[itemID] {
+                    let progress = task.progress.fractionCompleted
+                    update(itemID) { item in
+                        item.progress = progress
                         item.updatedAt = .now
                     }
-                    return
-                }
-                guard let tempURL else {
-                    self.update(itemID) { item in
-                        item.state = .failed
-                        item.errorMessage = "Download produced no file."
-                        item.updatedAt = .now
-                    }
-                    return
-                }
-                do {
-                    let destination = try self.moveToDownloads(
-                        from: tempURL,
-                        preferredName: self.items.first(where: { $0.id == itemID })?.fileName
-                            ?? response?.suggestedFilename
-                            ?? source.lastPathComponent
-                    )
-                    self.update(itemID) { item in
-                        item.state = .completed
-                        item.progress = 1
-                        item.destinationURL = destination
-                        item.fileName = destination.lastPathComponent
-                        item.errorMessage = nil
-                        item.updatedAt = .now
-                    }
-                } catch {
-                    self.update(itemID) { item in
-                        item.state = .failed
-                        item.errorMessage = error.localizedDescription
-                        item.updatedAt = .now
-                    }
+                    try? await Task.sleep(nanoseconds: 250_000_000)
                 }
             }
         }
-        activeDownloads[itemID] = task
-        task.resume()
-        // Progress polling (URLSession download task progress via observation is heavier; coarse updates)
-        Task { @MainActor in
-            while let task = activeDownloads[itemID] {
-                let progress = task.progress.fractionCompleted
-                update(itemID) { item in
-                    item.progress = progress
-                    item.updatedAt = .now
-                }
-                try? await Task.sleep(nanoseconds: 250_000_000)
+    }
+
+    /// Bridge WKWebsiteDataStore cookies into URLSession so authenticated downloads work.
+    private static func copyWebKitCookies(into storage: HTTPCookieStorage) async {
+        let cookies: [HTTPCookie] = await withCheckedContinuation { continuation in
+            WKWebsiteDataStore.default().httpCookieStore.getAllCookies { cookies in
+                continuation.resume(returning: cookies)
             }
+        }
+        for cookie in cookies {
+            storage.setCookie(cookie)
         }
     }
 

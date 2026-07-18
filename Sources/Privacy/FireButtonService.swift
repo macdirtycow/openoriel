@@ -39,10 +39,16 @@ enum FireButtonService {
         }
         if options.closeTabs {
             environment.tabs.closeAllTabs(includingPrivate: true)
+            environment.sessionStore.clear()
         } else if options.closePrivateTabsOnly {
             environment.tabs.closeAllPrivateTabs()
+            // Keep the restore snapshot in sync with remaining tabs.
+            environment.persistSession()
+        } else {
+            // Do not delete session.json when tabs stay open — otherwise a force-quit
+            // before the next persist leaves the next launch empty.
+            environment.persistSession()
         }
-        environment.sessionStore.clear()
         environment.privacyStats.resetSessionCounters()
     }
 }

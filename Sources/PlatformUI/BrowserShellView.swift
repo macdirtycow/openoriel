@@ -736,7 +736,9 @@ struct BrowserShellView: View {
                 Button("Bookmarks") { environment.showBookmarks = true }
                 Button("History") { environment.showHistory = true }
                 Button("Downloads") { environment.showDownloads = true }
+                #if os(macOS)
                 Button("Extensions") { environment.showExtensions = true }
+                #endif
                 Button(environment.linkQueue.count == 0 ? "Open Later" : "Open Later (\(environment.linkQueue.count))") {
                     environment.showLinkQueue = true
                 }
@@ -948,7 +950,7 @@ struct BrowserShellView: View {
                 },
                 contentBlockerGeneration: environment.contentBlocker.generation
             )
-            .id(tab.id)
+            .id("\(tab.id.uuidString)-fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)")
             .opacity(showStart || showError ? 0 : 1)
             .allowsHitTesting(!(showStart || showError))
             .accessibilityHidden(showStart || showError)

@@ -102,6 +102,11 @@ final class AppEnvironment {
         manager.javaScriptEnabledProvider = { [weak self] in
             self?.settings.javaScriptEnabledByDefault ?? true
         }
+        // Restored tabs were created before the provider existed — apply the real default now.
+        let jsDefault = resolvedSettings.javaScriptEnabledByDefault
+        for tab in manager.tabs {
+            tab.javaScriptEnabled = jsDefault
+        }
         manager.homepageProvider = { [weak self] in
             guard let self else { return nil }
             switch self.settings.newTabBehavior {
@@ -123,6 +128,12 @@ final class AppEnvironment {
 
         wireTabPrivacyHooks()
         persistSession()
+        resolvedBookmarks.onDidChange = { [weak self] in
+            self?.icloudSync.noteLocalChange()
+        }
+        resolvedLinkQueue.onDidChange = { [weak self] in
+            self?.icloudSync.noteLocalChange()
+        }
         self.icloudSync.attach(bookmarks: resolvedBookmarks, settings: resolvedSettings, linkQueue: resolvedLinkQueue)
         self.useVerticalTabs = UserDefaults.standard.bool(forKey: "oriel.verticalTabs")
 
@@ -166,6 +177,7 @@ final class AppEnvironment {
         for tab in tabs.tabs {
             tab.searchEngine = engine
         }
+        icloudSync.noteLocalChange()
     }
 
     func copyCurrentURL() {

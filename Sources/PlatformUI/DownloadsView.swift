@@ -1,5 +1,6 @@
 import SwiftUI
 #if os(iOS)
+import QuickLook
 import UIKit
 #elseif os(macOS)
 import AppKit
@@ -8,6 +9,9 @@ import AppKit
 struct DownloadsView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
+    #if os(iOS)
+    @State private var previewURL: URL?
+    #endif
 
     var body: some View {
         NavigationStack {
@@ -58,7 +62,7 @@ struct DownloadsView: View {
                                             Label("Share", systemImage: "square.and.arrow.up")
                                         }
                                         Button("Open") {
-                                            UIApplication.shared.open(url)
+                                            previewURL = url
                                         }
                                     }
                                     #endif
@@ -78,6 +82,13 @@ struct DownloadsView: View {
             .navigationTitle("Downloads")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(item: Binding(
+                get: { previewURL.map(IdentifiableURL.init) },
+                set: { previewURL = $0?.url }
+            )) { item in
+                QuickLookPreview(url: item.url)
+                    .ignoresSafeArea()
+            }
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -89,10 +100,45 @@ struct DownloadsView: View {
 
     private func statusText(_ item: DownloadItem) -> String {
         switch item.state {
-        case .downloading: "Downloading \(Int(item.progress * 100))%"
-        case .completed: "Completed"
-        case .failed: "Failed"
-        case .cancelled: "Cancelled"
+        case .downloading: return "Downloading…"
+        case .completed: return "Done"
+        case .failed: return "Failed"
+        case .cancelled: return "Cancelled"
         }
     }
 }
+
+#if os(iOS)
+private struct IdentifiableURL: Identifiable {
+    let url: URL
+    var id: String { url.absoluteString }
+}
+
+private struct QuickLookPreview: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> QLPreviewController {
+        let controller = QLPreviewController()
+        controller.dataSource = context.coordinator
+        return controller
+    }
+
+    func updateUIViewController(_ controller: QLPreviewController, context: Context) {
+        context.coordinator.url = url
+        controller.reloadData()
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(url: url)
+    }
+
+    final class Coordinator: NSObject, QLPreviewControllerDataSource {
+        var url: URL
+        init(url: URL) { self.url = url }
+        func numberOfPreviewItems(in controller: QLPreviewController) -> Int { 1 }
+        func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> any QLPreviewItem {
+            url as NSURL
+        }
+    }
+}
+#endif

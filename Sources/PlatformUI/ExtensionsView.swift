@@ -196,13 +196,7 @@ struct ExtensionsView: View {
             Label("Extensions unavailable", systemImage: "puzzlepiece.extension")
         } description: {
             Text(environment.extensions.lastError
-                  ?? "Chrome-style extensions are not available on this device.")
-        } actions: {
-            Button("Browse Chrome Web Store") {
-                environment.openURLInNewTab(BrowserConstants.chromeWebStoreURL)
-                dismiss()
-            }
-            .buttonStyle(.borderedProminent)
+                  ?? "Chrome-style extensions require macOS 15.4+. They are not available on this device yet.")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

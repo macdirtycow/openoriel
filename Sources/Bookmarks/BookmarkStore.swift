@@ -6,6 +6,8 @@ import Observation
 final class BookmarkStore {
     private(set) var bookmarks: [Bookmark] = []
     private let fileName = "bookmarks.json"
+    /// Fired after local mutations so iCloud sync can push.
+    var onDidChange: (() -> Void)?
 
     init() {
         load()
@@ -179,5 +181,6 @@ final class BookmarkStore {
 
     private func persist() {
         try? JSONFileStore.save(bookmarks, to: fileName)
+        onDidChange?()
     }
 }
