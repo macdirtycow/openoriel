@@ -12,7 +12,7 @@ settings:
   SWIFT_VERSION: "5.10"
   BASE_SDK: ""
   MARKETING_VERSION: "1.0.0"
-  CURRENT_PROJECT_VERSION: "1"
+  CURRENT_PROJECT_VERSION: "2"
 
 schemes:
   Oriel:
@@ -70,6 +70,7 @@ targets:
       INFOPLIST_KEY_NSCameraUsageDescription: "Oriel needs camera access when a website requests it."
       INFOPLIST_KEY_NSMicrophoneUsageDescription: "Oriel needs microphone access when a website requests it."
       INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Oriel needs location access when a website requests it."
+      INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
       TARGETED_DEVICE_FAMILY: "1,2"
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       ENABLE_PREVIEWS: YES

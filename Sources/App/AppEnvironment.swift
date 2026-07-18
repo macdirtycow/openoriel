@@ -22,6 +22,7 @@ final class AppEnvironment {
     let downloads: DownloadManager
     let permissions: WebsitePermissionManager
     let extensions: WebExtensionManager
+    let linkQueue: LinkQueueStore
 
     var showAbout = false
     var showTabOverview = false
@@ -32,6 +33,7 @@ final class AppEnvironment {
     var showFindInPage = false
     var showSettings = false
     var showExtensions = false
+    var showLinkQueue = false
     var findQuery = ""
     var authPopup: WebAuthPopupState?
 
@@ -47,7 +49,8 @@ final class AppEnvironment {
         contentBlocker: ContentBlockerManager? = nil,
         downloads: DownloadManager? = nil,
         permissions: WebsitePermissionManager? = nil,
-        extensions: WebExtensionManager? = nil
+        extensions: WebExtensionManager? = nil,
+        linkQueue: LinkQueueStore? = nil
     ) {
         let resolvedSettings = settings ?? BrowserSettings()
         let resolvedBookmarks = bookmarks ?? BookmarkStore()
@@ -59,6 +62,7 @@ final class AppEnvironment {
         let resolvedDownloads = downloads ?? DownloadManager()
         let resolvedPermissions = permissions ?? WebsitePermissionManager()
         let resolvedExtensions = extensions ?? WebExtensionManager()
+        let resolvedLinkQueue = linkQueue ?? LinkQueueStore()
 
         self.settings = resolvedSettings
         self.bookmarks = resolvedBookmarks
@@ -70,6 +74,7 @@ final class AppEnvironment {
         self.downloads = resolvedDownloads
         self.permissions = resolvedPermissions
         self.extensions = resolvedExtensions
+        self.linkQueue = resolvedLinkQueue
         resolvedSession.restorePreviousSession = resolvedSettings.restorePreviousSession
 
         let snapshot = resolvedSession.load()
@@ -182,7 +187,26 @@ final class AppEnvironment {
             item.onHTTPSUpgrade = { [weak self] in
                 self?.privacyStats.recordHTTPSUpgrade()
             }
+            item.shouldStripTracking = { [weak self] in
+                self?.settings.stripTrackingParameters ?? true
+            }
         }
+    }
+
+    func enqueueLinkForLater(title: String? = nil, url: URL) {
+        let resolvedTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines)
+        linkQueue.enqueue(
+            title: (resolvedTitle?.isEmpty == false ? resolvedTitle! : (url.host ?? url.absoluteString)),
+            url: url
+        )
+        showLinkQueue = true
+    }
+
+    func enqueueCurrentPageForLater() {
+        guard let tab = activeTab,
+              let url = tab.navigation.url,
+              !URLParser.isStartPage(url) else { return }
+        enqueueLinkForLater(title: tab.displayTitle, url: url)
     }
 }
 

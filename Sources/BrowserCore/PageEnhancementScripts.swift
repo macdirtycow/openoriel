@@ -51,6 +51,53 @@ enum PageEnhancementScripts {
     })();
     """#
 
+    static let enableFocusMode = #"""
+    (function() {
+      function hush(el) {
+        try {
+          el.muted = true;
+          el.autoplay = false;
+          if (!el.paused) el.pause();
+          el.removeAttribute('autoplay');
+        } catch (e) {}
+      }
+      document.querySelectorAll('video, audio').forEach(hush);
+      if (!window.__orielFocusObserver) {
+        window.__orielFocusObserver = new MutationObserver(function(muts) {
+          muts.forEach(function(m) {
+            m.addedNodes.forEach(function(n) {
+              if (n.querySelectorAll) {
+                n.querySelectorAll('video, audio').forEach(hush);
+              }
+              if (n.tagName === 'VIDEO' || n.tagName === 'AUDIO') hush(n);
+            });
+          });
+        });
+        window.__orielFocusObserver.observe(document.documentElement, { childList: true, subtree: true });
+      }
+      var s = document.getElementById('oriel-focus-mode');
+      if (!s) {
+        s = document.createElement('style');
+        s.id = 'oriel-focus-mode';
+        s.textContent = '[class*="cookie"],[id*="cookie"],[class*="consent"],[id*="consent"],[class*="newsletter"],[id*="newsletter"],[class*="promo-banner"],[id*="promo"]{display:none!important;}';
+        (document.head || document.documentElement).appendChild(s);
+      }
+      return true;
+    })();
+    """#
+
+    static let disableFocusMode = #"""
+    (function() {
+      if (window.__orielFocusObserver) {
+        try { window.__orielFocusObserver.disconnect(); } catch (e) {}
+        window.__orielFocusObserver = null;
+      }
+      var s = document.getElementById('oriel-focus-mode');
+      if (s) s.remove();
+      return true;
+    })();
+    """#
+
     static func setZoom(_ factor: Double) -> String {
         let clamped = min(3.0, max(0.5, factor))
         return "document.documentElement.style.zoom = '\(clamped)';"

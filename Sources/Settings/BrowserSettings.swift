@@ -81,6 +81,11 @@ final class BrowserSettings {
         didSet { defaults.set(blockAutoplay, forKey: blockAutoplayKey) }
     }
 
+    /// Strip known tracking query parameters (utm_*, fbclid, gclid, …) when loading pages.
+    var stripTrackingParameters: Bool {
+        didSet { defaults.set(stripTrackingParameters, forKey: stripTrackingKey) }
+    }
+
     var homepageURL: URL {
         if let url = URL(string: homepageURLString), url.scheme != nil {
             return url
@@ -102,6 +107,7 @@ final class BrowserSettings {
     private let homepageKey = "oriel.homepageURL"
     private let javaScriptKey = "oriel.javaScriptEnabled"
     private let blockAutoplayKey = "oriel.blockAutoplay"
+    private let stripTrackingKey = "oriel.stripTrackingParameters"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -151,6 +157,11 @@ final class BrowserSettings {
             self.blockAutoplay = true
         } else {
             self.blockAutoplay = defaults.bool(forKey: blockAutoplayKey)
+        }
+        if defaults.object(forKey: stripTrackingKey) == nil {
+            self.stripTrackingParameters = true
+        } else {
+            self.stripTrackingParameters = defaults.bool(forKey: stripTrackingKey)
         }
     }
 

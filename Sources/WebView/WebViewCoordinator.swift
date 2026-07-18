@@ -35,6 +35,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var onPopupCreated: ((WKWebView) -> Void)?
     var onPopupClosed: ((WKWebView) -> Void)?
     var onOpenURLInNewTab: ((URL) -> Void)?
+    var onEnqueueURLForLater: ((URL) -> Void)?
+    var shouldStripTracking: () -> Bool = { true }
     var onInstallChromeExtension: ((String) -> Void)?
     var onManageChromeExtensions: (() -> Void)?
     var installedChromeStoreIDs: [String] = []
@@ -57,6 +59,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         onPopupCreated: ((WKWebView) -> Void)? = nil,
         onPopupClosed: ((WKWebView) -> Void)? = nil,
         onOpenURLInNewTab: ((URL) -> Void)? = nil,
+        onEnqueueURLForLater: ((URL) -> Void)? = nil,
+        shouldStripTracking: @escaping () -> Bool = { true },
         onInstallChromeExtension: ((String) -> Void)? = nil,
         onManageChromeExtensions: (() -> Void)? = nil,
         installedChromeStoreIDs: [String] = []
@@ -70,6 +74,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         self.onPopupCreated = onPopupCreated
         self.onPopupClosed = onPopupClosed
         self.onOpenURLInNewTab = onOpenURLInNewTab
+        self.onEnqueueURLForLater = onEnqueueURLForLater
+        self.shouldStripTracking = shouldStripTracking
         self.onInstallChromeExtension = onInstallChromeExtension
         self.onManageChromeExtensions = onManageChromeExtensions
         self.installedChromeStoreIDs = installedChromeStoreIDs
@@ -187,6 +193,20 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
                 return
             }
             #endif
+
+            let isMainFrame = navigationAction.targetFrame?.isMainFrame ?? true
+            if isMainFrame,
+               shouldStripTracking(),
+               navigationAction.navigationType == .linkActivated
+                || navigationAction.navigationType == .formSubmitted
+                || navigationAction.navigationType == .other {
+                let stripped = TrackingParameterStripper.strip(url, enabled: true)
+                if stripped.didStrip {
+                    decisionHandler(.cancel, preferences)
+                    webView.load(URLRequest(url: stripped.url))
+                    return
+                }
+            }
         }
         let context = NavigationPolicy.Context(
             contentBlockingEnabled: contentBlockingEnabled,
@@ -360,13 +380,16 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             let open = UIAction(title: "Open in New Tab", image: UIImage(systemName: "plus.square.on.square")) { _ in
                 self?.onOpenURLInNewTab?(linkURL)
             }
+            let later = UIAction(title: "Open Later", image: UIImage(systemName: "tray.and.arrow.down")) { _ in
+                self?.onEnqueueURLForLater?(linkURL)
+            }
             let copy = UIAction(title: "Copy Link", image: UIImage(systemName: "link")) { _ in
                 UIPasteboard.general.url = linkURL
             }
             let download = UIAction(title: "Download Linked File", image: UIImage(systemName: "arrow.down.circle")) { _ in
                 self?.onDownload?(linkURL, linkURL.lastPathComponent)
             }
-            return UIMenu(title: "", children: [open, copy, download])
+            return UIMenu(title: "", children: [open, later, copy, download])
         }
         completionHandler(config)
     }

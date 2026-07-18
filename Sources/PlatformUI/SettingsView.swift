@@ -173,6 +173,15 @@ struct SettingsView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
+                Section {
+                    Toggle("Strip tracking parameters from URLs", isOn: $settings.stripTrackingParameters)
+                } header: {
+                    Text("Privacy")
+                } footer: {
+                    Text("Removes common trackers like utm_*, fbclid, and gclid from links you open. Focus Mode (⋯ menu) also mutes media and hides cookie banners on the current tab.")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 Section("Homepage") {
                     Picker("New tab opens", selection: $settings.newTabBehavior) {
                         ForEach(NewTabBehavior.allCases) { behavior in
@@ -220,8 +229,26 @@ struct SettingsView: View {
                     #endif
                 }
 
+                Section {
+                    Link(destination: BrowserConstants.donateURL) {
+                        Label("Donate via PayPal", systemImage: "heart.fill")
+                    }
+                    Link(destination: BrowserConstants.supportURL) {
+                        Label("Support & website", systemImage: "questionmark.circle")
+                    }
+                    Link(destination: BrowserConstants.privacyPolicyURL) {
+                        Label("Privacy policy", systemImage: "hand.raised")
+                    }
+                } header: {
+                    Text("Support")
+                } footer: {
+                    Text("Donations go to paypal.me/macdirtycow and help fund Oriel development.")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 Section("About") {
                     LabeledContent("Product", value: BrowserConstants.productName)
+                    LabeledContent("Version", value: appVersionLabel)
                     LabeledContent("Website", value: BrowserConstants.productWebsiteHost)
                     LabeledContent("Publisher", value: BrowserConstants.publisherName)
                     Link("Open \(BrowserConstants.productWebsiteHost)", destination: BrowserConstants.productWebsiteURL)
@@ -244,6 +271,12 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private var appVersionLabel: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
+        return "\(version) (\(build))"
     }
 
     private func backgroundPreview(_ theme: BrowserBackgroundTheme) -> some ShapeStyle {

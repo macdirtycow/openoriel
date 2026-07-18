@@ -21,6 +21,8 @@ struct BrowserWebView: PlatformViewRepresentable {
     var onPopupClosed: ((WKWebView) -> Void)?
     var onPopupTitleChanged: ((String?) -> Void)?
     var onOpenURLInNewTab: ((URL) -> Void)?
+    var onEnqueueURLForLater: ((URL) -> Void)?
+    var shouldStripTracking: () -> Bool = { true }
     var onInstallChromeExtension: ((String) -> Void)?
     var onManageChromeExtensions: (() -> Void)?
     var webExtensionController: AnyObject?
@@ -60,6 +62,8 @@ struct BrowserWebView: PlatformViewRepresentable {
             onPopupCreated: onPopupCreated,
             onPopupClosed: onPopupClosed,
             onOpenURLInNewTab: onOpenURLInNewTab,
+            onEnqueueURLForLater: onEnqueueURLForLater,
+            shouldStripTracking: shouldStripTracking,
             onInstallChromeExtension: onInstallChromeExtension,
             onManageChromeExtensions: onManageChromeExtensions,
             installedChromeStoreIDs: installedChromeStoreIDs
@@ -147,6 +151,8 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.onPopupClosed = onPopupClosed
         context.coordinator.onPopupTitleChanged = onPopupTitleChanged
         context.coordinator.onOpenURLInNewTab = onOpenURLInNewTab
+        context.coordinator.onEnqueueURLForLater = onEnqueueURLForLater
+        context.coordinator.shouldStripTracking = shouldStripTracking
         context.coordinator.onInstallChromeExtension = onInstallChromeExtension
         context.coordinator.onManageChromeExtensions = onManageChromeExtensions
         context.coordinator.installedChromeStoreIDs = installedChromeStoreIDs

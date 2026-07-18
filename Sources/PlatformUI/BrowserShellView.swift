@@ -65,6 +65,10 @@ struct BrowserShellView: View {
                 .frame(minWidth: 360, idealWidth: 480, minHeight: 400, idealHeight: 560)
                 #endif
         }
+        .sheet(isPresented: $environment.showLinkQueue) {
+            LinkQueueView()
+                .orielSheetChrome()
+        }
         .sheet(item: $environment.authPopup) { popup in
             AuthPopupView(state: popup)
                 .orielSheetChrome(preferLargeOnCompact: true)
@@ -493,6 +497,9 @@ struct BrowserShellView: View {
                 Button("History") { environment.showHistory = true }
                 Button("Downloads") { environment.showDownloads = true }
                 Button("Extensions") { environment.showExtensions = true }
+                Button(environment.linkQueue.count == 0 ? "Open Later" : "Open Later (\(environment.linkQueue.count))") {
+                    environment.showLinkQueue = true
+                }
                 Button("Shields") { environment.showPrivacyShield = true }
                 Button("Settings") { openAppSettings() }
             } else {
@@ -547,6 +554,10 @@ struct BrowserShellView: View {
                         tab.toggleJavaScript()
                     }
                     .disabled(tab.isShowingStartPage)
+                    Button(tab.isFocusMode ? "Exit Focus Mode" : "Focus Mode") {
+                        tab.toggleFocusMode()
+                    }
+                    .disabled(tab.isShowingStartPage)
                 }
 
                 Divider()
@@ -566,6 +577,13 @@ struct BrowserShellView: View {
                 Button("Bookmarks") { environment.showBookmarks = true }
                 Button("History") { environment.showHistory = true }
                 Button("Downloads") { environment.showDownloads = true }
+                Button(environment.linkQueue.count == 0 ? "Open Later" : "Open Later (\(environment.linkQueue.count))") {
+                    environment.showLinkQueue = true
+                }
+                Button("Add Page to Open Later") {
+                    environment.enqueueCurrentPageForLater()
+                }
+                .disabled(tab.isShowingStartPage)
                 Button("Shields") { environment.showPrivacyShield = true }
                 Button("Settings") { openAppSettings() }
 
@@ -625,6 +643,12 @@ struct BrowserShellView: View {
                 },
                 onOpenURLInNewTab: { url in
                     environment.openURLInNewTab(url, isPrivate: tab.isPrivate)
+                },
+                onEnqueueURLForLater: { url in
+                    environment.enqueueLinkForLater(url: url)
+                },
+                shouldStripTracking: {
+                    environment.settings.stripTrackingParameters
                 },
                 onInstallChromeExtension: { extensionID in
                     Task { @MainActor in

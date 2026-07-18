@@ -31,6 +31,9 @@ final class BrowserTab: Identifiable {
     var forceDarkEnabled = false
     var isReaderMode = false
 
+    /// Quiet browsing: mute media, pause playback, hide noisy sticky UI.
+    var isFocusMode = false
+
     /// Weak reference so the SwiftUI `BrowserWebView` can drive load/back/forward.
     weak var webView: WKWebView?
 
@@ -40,6 +43,7 @@ final class BrowserTab: Identifiable {
     /// Optional HTTPS upgrade + privacy hooks set by AppEnvironment.
     var shouldUpgradeHTTPS: ((URL) -> Bool)?
     var onHTTPSUpgrade: (() -> Void)?
+    var shouldStripTracking: (() -> Bool)?
 
     init(
         id: UUID = UUID(),
@@ -92,6 +96,11 @@ final class BrowserTab: Identifiable {
             if result.didUpgrade {
                 destination = result.url
                 onHTTPSUpgrade?()
+            }
+            let stripEnabled = shouldStripTracking?() ?? true
+            let stripped = TrackingParameterStripper.strip(destination, enabled: stripEnabled)
+            if stripped.didStrip {
+                destination = stripped.url
             }
         }
 
@@ -244,6 +253,19 @@ final class BrowserTab: Identifiable {
         if forceDarkEnabled {
             webView?.evaluateJavaScript(PageEnhancementScripts.enableForceDark, completionHandler: nil)
         }
+    }
+
+    func toggleFocusMode() {
+        isFocusMode.toggle()
+        applyFocusMode()
+    }
+
+    func applyFocusMode() {
+        guard !isShowingStartPage else { return }
+        let script = isFocusMode
+            ? PageEnhancementScripts.enableFocusMode
+            : PageEnhancementScripts.disableFocusMode
+        webView?.evaluateJavaScript(script, completionHandler: nil)
     }
 
     func toggleForceDark() {

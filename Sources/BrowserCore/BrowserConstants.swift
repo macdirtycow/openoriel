@@ -10,6 +10,11 @@ enum BrowserConstants {
     static let publisherName = "inveil.net"
     static let publisherURL = URL(string: "https://inveil.net")!
 
+    /// Support Oriel development.
+    static let donateURL = URL(string: "https://paypal.me/macdirtycow")!
+    static let supportURL = URL(string: "https://inveil.net")!
+    static let privacyPolicyURL = URL(string: "https://openoriel.com")!
+
     static let startPageHost = "oriel.start"
     static let aboutScheme = "oriel"
 
