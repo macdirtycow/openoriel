@@ -6,10 +6,7 @@ struct AboutOrielView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Image(systemName: "square.on.square.dashed")
-                    .font(.system(size: 48, weight: .light))
-                    .foregroundStyle(Color.accentColor)
-                    .accessibilityHidden(true)
+                OrielMark(size: 64)
 
                 Text(BrowserConstants.productName)
                     .font(.largeTitle.weight(.bold))

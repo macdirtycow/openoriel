@@ -54,11 +54,11 @@ struct ExtensionsView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("On the Chrome Web Store, use Add to Oriel (same idea as Brave’s Add to Brave). Oriel downloads the CRX and installs it with WebKit.")
+                    Text("Use Add to Oriel on the Chrome Web Store. Already installed extensions show as Installed and won’t duplicate.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text("You can also install a folder, .zip, or .crx manually.")
+                    Text("Open an extension from the list or the puzzle menu in the toolbar.")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -136,7 +136,7 @@ struct ExtensionsView: View {
     }
 
     private func extensionRow(_ item: InstalledExtensionInfo) -> some View {
-        HStack(alignment: .center, spacing: 14) {
+        HStack(alignment: .center, spacing: 12) {
             Image(systemName: "puzzlepiece.extension.fill")
                 .font(.title3)
                 .foregroundStyle(Color.accentColor)
@@ -146,12 +146,24 @@ struct ExtensionsView: View {
                 Text(item.displayName)
                     .font(.body.weight(.semibold))
                     .lineLimit(1)
-                Text("Version \(item.version)")
+                Text(item.isEnabled ? "Version \(item.version)" : "Disabled · v\(item.version)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 8)
+
+            #if os(macOS)
+            Button {
+                environment.extensions.openAction(for: item.id)
+            } label: {
+                Image(systemName: "arrow.up.forward.app")
+            }
+            .buttonStyle(.borderless)
+            .help("Open extension")
+            .disabled(!item.isEnabled)
+            .accessibilityLabel("Open \(item.displayName)")
+            #endif
 
             Toggle(
                 "Enabled",

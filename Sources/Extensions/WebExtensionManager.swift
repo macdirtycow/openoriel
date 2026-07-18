@@ -1,6 +1,9 @@
 import Foundation
 import Observation
 import WebKit
+#if os(macOS)
+import AppKit
+#endif
 
 struct InstalledExtensionInfo: Identifiable, Equatable, Sendable {
     let id: String
@@ -8,6 +11,8 @@ struct InstalledExtensionInfo: Identifiable, Equatable, Sendable {
     var version: String
     var isEnabled: Bool
     var directoryName: String
+    /// Chrome Web Store id when installed from the store (stable across reinstalls).
+    var chromeStoreID: String?
 }
 
 /// Loads Chrome/Firefox-style WebExtensions via Apple’s `WKWebExtension` (macOS 15.4+).
@@ -21,6 +26,7 @@ final class WebExtensionManager {
     private(set) var isInstallingFromStore = false
 
     private var controllerStorage: AnyObject?
+    private var hostStorage: AnyObject?
     private let fileManager = FileManager.default
     private let catalogName = "extensions-catalog.json"
 
@@ -28,7 +34,11 @@ final class WebExtensionManager {
         #if os(macOS)
         if #available(macOS 15.4, *) {
             isSupported = true
-            controllerStorage = WKWebExtensionController()
+            let controller = WKWebExtensionController()
+            let host = WebExtensionHost()
+            controller.delegate = host
+            controllerStorage = controller
+            hostStorage = host
             Task { await reloadFromDisk() }
         } else {
             isSupported = false
@@ -50,6 +60,28 @@ final class WebExtensionManager {
         return nil
     }
 
+    /// Stable Chrome Web Store IDs (and matching unique IDs) for store page “already installed” UI.
+    var installedChromeStoreIDs: [String] {
+        var ids = Set<String>()
+        for item in extensions {
+            if let storeID = item.chromeStoreID, ChromeWebStoreAPI.isValidExtensionID(storeID) {
+                ids.insert(storeID)
+            }
+            if ChromeWebStoreAPI.isValidExtensionID(item.id) {
+                ids.insert(item.id)
+            }
+            if ChromeWebStoreAPI.isValidExtensionID(item.directoryName) {
+                ids.insert(item.directoryName)
+            }
+        }
+        return Array(ids).sorted()
+    }
+
+    func isInstalledFromChromeWebStore(extensionID: String) -> Bool {
+        let id = extensionID.lowercased()
+        return installedChromeStoreIDs.contains(id)
+    }
+
     var extensionsDirectory: URL {
         let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
@@ -69,7 +101,7 @@ final class WebExtensionManager {
     func installFromPackage(at url: URL) async {
         #if os(macOS)
         if #available(macOS 15.4, *) {
-            await installFromPackageMac(url)
+            await installFromPackageMac(url, preferredUniqueID: nil, chromeStoreID: nil)
         }
         #endif
     }
@@ -101,6 +133,15 @@ final class WebExtensionManager {
         #endif
     }
 
+    /// Runs the extension’s browser action / popup (toolbar-style click).
+    func openAction(for id: String) {
+        #if os(macOS)
+        if #available(macOS 15.4, *) {
+            openActionMac(id: id)
+        }
+        #endif
+    }
+
     #if os(macOS)
     @available(macOS 15.4, *)
     private var controller: WKWebExtensionController? {
@@ -116,7 +157,8 @@ final class WebExtensionManager {
             try? controller.unload(context)
         }
 
-        let catalog = loadCatalog()
+        var catalog = dedupeCatalog(loadCatalog())
+        saveCatalog(catalog)
         var loaded: [InstalledExtensionInfo] = []
 
         for entry in catalog {
@@ -125,6 +167,8 @@ final class WebExtensionManager {
             do {
                 let webExtension = try await WKWebExtension(resourceBaseURL: folder)
                 let context = WKWebExtensionContext(for: webExtension)
+                // Keep identity stable across launches (and match CWS id when we have one).
+                context.uniqueIdentifier = entry.directoryName
                 for permission in webExtension.requestedPermissions {
                     context.setPermissionStatus(.grantedExplicitly, for: permission)
                 }
@@ -143,7 +187,11 @@ final class WebExtensionManager {
                             ?? entry.displayName,
                         version: webExtension.displayVersion ?? entry.version,
                         isEnabled: entry.isEnabled,
-                        directoryName: entry.directoryName
+                        directoryName: entry.directoryName,
+                        chromeStoreID: entry.chromeStoreID
+                            ?? (ChromeWebStoreAPI.isValidExtensionID(entry.directoryName)
+                                ? entry.directoryName
+                                : nil)
                     )
                 )
             } catch {
@@ -165,6 +213,12 @@ final class WebExtensionManager {
             lastError = "That Chrome Web Store page does not look like an extension."
             return
         }
+
+        if isInstalledFromChromeWebStore(extensionID: id) {
+            statusMessage = "Already installed. Use Extensions to open, disable, or remove it."
+            return
+        }
+
         guard let downloadURL = ChromeWebStoreAPI.downloadURL(forExtensionID: id) else {
             lastError = "Could not build a download URL for this extension."
             return
@@ -192,7 +246,7 @@ final class WebExtensionManager {
                 .appendingPathComponent("oriel-cws-\(id)-\(UUID().uuidString).\(fileExtension)")
             try data.write(to: tempPackage, options: .atomic)
             statusMessage = "Installing…"
-            await installFromPackageMac(tempPackage)
+            await installFromPackageMac(tempPackage, preferredUniqueID: id, chromeStoreID: id)
             try? fileManager.removeItem(at: tempPackage)
 
             if lastError == nil {
@@ -207,12 +261,19 @@ final class WebExtensionManager {
     }
 
     @available(macOS 15.4, *)
-    private func installFromPackageMac(_ url: URL) async {
+    private func installFromPackageMac(
+        _ url: URL,
+        preferredUniqueID: String?,
+        chromeStoreID: String?
+    ) async {
         lastError = nil
         do {
             let staging = try stagePackage(at: url)
             let webExtension = try await WKWebExtension(resourceBaseURL: staging)
             let context = WKWebExtensionContext(for: webExtension)
+            if let preferredUniqueID, !preferredUniqueID.isEmpty {
+                context.uniqueIdentifier = preferredUniqueID
+            }
             let extensionID = context.uniqueIdentifier
 
             let destination = extensionsDirectory.appendingPathComponent(extensionID, isDirectory: true)
@@ -221,14 +282,21 @@ final class WebExtensionManager {
             }
             try fileManager.moveItem(at: staging, to: destination)
 
-            var catalog = loadCatalog()
-            catalog.removeAll { $0.directoryName == extensionID }
+            var catalog = dedupeCatalog(loadCatalog())
+            catalog.removeAll {
+                $0.directoryName == extensionID
+                    || ($0.chromeStoreID != nil && $0.chromeStoreID == chromeStoreID)
+                    || ($0.chromeStoreID != nil && $0.chromeStoreID == preferredUniqueID)
+            }
             catalog.append(
                 CatalogEntry(
                     directoryName: extensionID,
                     displayName: webExtension.displayName ?? webExtension.displayShortName ?? "Extension",
                     version: webExtension.displayVersion ?? "—",
-                    isEnabled: true
+                    isEnabled: true,
+                    chromeStoreID: chromeStoreID ?? preferredUniqueID.flatMap {
+                        ChromeWebStoreAPI.isValidExtensionID($0) ? $0 : nil
+                    }
                 )
             )
             saveCatalog(catalog)
@@ -254,9 +322,28 @@ final class WebExtensionManager {
         let folder = extensionsDirectory.appendingPathComponent(info.directoryName, isDirectory: true)
         try? fileManager.removeItem(at: folder)
         var catalog = loadCatalog()
-        catalog.removeAll { $0.directoryName == info.directoryName }
+        catalog.removeAll {
+            $0.directoryName == info.directoryName
+                || ($0.chromeStoreID != nil && $0.chromeStoreID == info.chromeStoreID)
+        }
         saveCatalog(catalog)
         await reloadFromDiskMac()
+    }
+
+    @available(macOS 15.4, *)
+    private func openActionMac(id: String) {
+        lastError = nil
+        guard let info = extensions.first(where: { $0.id == id }) else { return }
+        guard info.isEnabled else {
+            lastError = "Enable \(info.displayName) before opening it."
+            return
+        }
+        guard let context = controller?.extensionContexts.first(where: { $0.uniqueIdentifier == id }) else {
+            lastError = "Could not find \(info.displayName). Try toggling it off and on."
+            return
+        }
+        context.performAction(for: nil)
+        statusMessage = "Opened \(info.displayName)."
     }
 
     @available(macOS 15.4, *)
@@ -325,7 +412,6 @@ final class WebExtensionManager {
         guard data.count > 16 else { throw ExtensionError.invalidPackage }
         let magic = String(data: data.prefix(4), encoding: .ascii) ?? ""
         guard magic == "Cr24" else { throw ExtensionError.invalidPackage }
-        // CRX3: magic(4) + version(4) + headerLength(4) + header + zip
         let version = data.subdata(in: 4..<8).withUnsafeBytes { $0.load(as: UInt32.self).littleEndian }
         if version >= 3 {
             let headerSize = Int(data.subdata(in: 8..<12).withUnsafeBytes { $0.load(as: UInt32.self).littleEndian })
@@ -333,7 +419,6 @@ final class WebExtensionManager {
             guard data.count > offset else { throw ExtensionError.invalidPackage }
             return data.subdata(in: offset..<data.count)
         }
-        // CRX2
         let pubKeyLen = Int(data.subdata(in: 8..<12).withUnsafeBytes { $0.load(as: UInt32.self).littleEndian })
         let sigLen = Int(data.subdata(in: 12..<16).withUnsafeBytes { $0.load(as: UInt32.self).littleEndian })
         let offset = 16 + pubKeyLen + sigLen
@@ -354,6 +439,21 @@ final class WebExtensionManager {
         }
         return nil
     }
+
+    /// Collapse duplicate catalog rows that share a Chrome Web Store id or directory.
+    private func dedupeCatalog(_ entries: [CatalogEntry]) -> [CatalogEntry] {
+        var result: [CatalogEntry] = []
+        var seenDirectories = Set<String>()
+        var seenStoreIDs = Set<String>()
+        for entry in entries.reversed() {
+            if seenDirectories.contains(entry.directoryName) { continue }
+            if let storeID = entry.chromeStoreID, seenStoreIDs.contains(storeID) { continue }
+            seenDirectories.insert(entry.directoryName)
+            if let storeID = entry.chromeStoreID { seenStoreIDs.insert(storeID) }
+            result.append(entry)
+        }
+        return result.reversed()
+    }
     #endif
 
     private struct CatalogEntry: Codable, Equatable {
@@ -361,6 +461,7 @@ final class WebExtensionManager {
         var displayName: String
         var version: String
         var isEnabled: Bool
+        var chromeStoreID: String?
     }
 
     private func loadCatalog() -> [CatalogEntry] {
@@ -378,6 +479,34 @@ final class WebExtensionManager {
         try? data.write(to: url, options: .atomic)
     }
 }
+
+#if os(macOS)
+/// Presents extension action popups via `NSPopover`.
+@available(macOS 15.4, *)
+final class WebExtensionHost: NSObject, WKWebExtensionControllerDelegate {
+    func webExtensionController(
+        _ controller: WKWebExtensionController,
+        presentActionPopup action: WKWebExtension.Action,
+        for extensionContext: WKWebExtensionContext
+    ) async throws {
+        guard action.presentsPopup, let popover = action.popupPopover else { return }
+        await MainActor.run {
+            guard let anchor = NSApp.keyWindow?.contentView else { return }
+            if popover.isShown {
+                popover.close()
+                return
+            }
+            let rect = NSRect(
+                x: anchor.bounds.midX - 12,
+                y: anchor.bounds.maxY - 48,
+                width: 24,
+                height: 24
+            )
+            popover.show(relativeTo: rect, of: anchor, preferredEdge: .minY)
+        }
+    }
+}
+#endif
 
 enum ExtensionError: LocalizedError {
     case invalidPackage

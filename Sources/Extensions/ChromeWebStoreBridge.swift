@@ -17,6 +17,7 @@ enum ChromeWebStoreAPI {
     /// `oriel-extension://install/<id>` or `oriel-extension:<id>`
     static func extensionID(fromInstallURL url: URL) -> String? {
         guard url.scheme?.lowercased() == installURLScheme else { return nil }
+        if url.host?.lowercased() == "manage" { return nil }
         if let host = url.host?.lowercased(), isValidExtensionID(host) {
             return host
         }
@@ -33,6 +34,12 @@ enum ChromeWebStoreAPI {
             return id
         }
         return nil
+    }
+
+    static func isManageExtensionsURL(_ url: URL) -> Bool {
+        guard url.scheme?.lowercased() == installURLScheme else { return false }
+        if url.host?.lowercased() == "manage" { return true }
+        return url.path.lowercased().contains("manage")
     }
 
     /// Public Chrome Web Store CRX redirect used by Chromium browsers (including Brave).
@@ -161,6 +168,11 @@ enum ChromeWebStoreBridge {
           chromeObj.webstorePrivate = {
             getExtensionStatus: function (id, manifest, cb) {
               if (typeof manifest === 'function') { cb = manifest; }
+              var installed = window.__orielInstalledExtensionIDs || [];
+              if (id && installed.indexOf(String(id).toLowerCase()) !== -1) {
+                if (typeof cb === 'function') cb('enabled');
+                return;
+              }
               if (typeof cb === 'function') cb('installable');
             },
             beginInstallWithManifest3: function (extinfo, cb) {
@@ -168,7 +180,18 @@ enum ChromeWebStoreBridge {
               if (typeof extinfo === 'string') id = extinfo;
               else if (extinfo && typeof extinfo.id === 'string') id = extinfo.id;
               if (!id) id = orielIdFromPath();
-              orielPostInstall(id);
+              var installed = window.__orielInstalledExtensionIDs || [];
+              if (id && installed.indexOf(String(id).toLowerCase()) !== -1) {
+                try {
+                  var iframe = document.createElement('iframe');
+                  iframe.style.cssText = 'display:none!important;width:0;height:0;border:0;position:absolute';
+                  iframe.src = 'oriel-extension://manage';
+                  document.documentElement.appendChild(iframe);
+                  setTimeout(function () { try { iframe.remove(); } catch (e) {} }, 1500);
+                } catch (e) {}
+              } else {
+                orielPostInstall(id);
+              }
               if (typeof cb === 'function') cb('user_cancelled');
             },
             isInIncognitoMode: function (cb) { if (typeof cb === 'function') cb(false); },
@@ -177,7 +200,13 @@ enum ChromeWebStoreBridge {
           };
 
           chromeObj.management = chromeObj.management || {
-            getAll: function (cb) { if (typeof cb === 'function') cb([]); },
+            getAll: function (cb) {
+              var installed = window.__orielInstalledExtensionIDs || [];
+              var items = installed.map(function (extId) {
+                return { id: extId, name: extId, enabled: true, type: 'extension', installType: 'normal' };
+              });
+              if (typeof cb === 'function') cb(items);
+            },
             get: function (id, cb) { if (typeof cb === 'function') cb(null); },
             setEnabled: function (id, enabled, cb) { if (typeof cb === 'function') cb(); },
             uninstall: function (id, options, cb) {
@@ -261,6 +290,14 @@ enum ChromeWebStoreBridge {
           function replaceStoreInstallButton() {
             var id = orielIdFromPath();
             if (!id || !document.body) return;
+            var installed = (window.__orielInstalledExtensionIDs || []).indexOf(id) !== -1;
+
+            var existing = document.getElementById('oriel-store-install-btn');
+            if (existing) {
+              existing.textContent = installed ? 'Installed in Oriel' : 'Add to Oriel';
+              existing.dataset.orielInstalled = installed ? '1' : '0';
+              return;
+            }
 
             var nodes = document.querySelectorAll('button, div[role="button"]');
             var target = null;
@@ -275,15 +312,16 @@ enum ChromeWebStoreBridge {
             var replacement = document.createElement('button');
             replacement.type = 'button';
             replacement.id = 'oriel-store-install-btn';
-            replacement.textContent = 'Add to Oriel';
-            replacement.setAttribute('aria-label', 'Add to Oriel');
+            replacement.textContent = installed ? 'Installed in Oriel' : 'Add to Oriel';
+            replacement.setAttribute('aria-label', replacement.textContent);
             replacement.dataset.orielReplaced = '1';
+            replacement.dataset.orielInstalled = installed ? '1' : '0';
             Object.assign(replacement.style, {
               appearance: 'none',
               border: '0',
               borderRadius: '24px',
               padding: '10px 22px',
-              background: '#1a73e8',
+              background: installed ? '#5f6368' : '#1a73e8',
               color: '#fff',
               font: '600 14px / 20px Google Sans, Roboto, Helvetica, Arial, sans-serif',
               cursor: 'pointer',
@@ -293,9 +331,22 @@ enum ChromeWebStoreBridge {
               event.preventDefault();
               event.stopPropagation();
               if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+              var current = orielIdFromPath();
+              if (!current) return;
+              var isInstalled = (window.__orielInstalledExtensionIDs || []).indexOf(current) !== -1;
+              if (isInstalled) {
+                try {
+                  var iframe = document.createElement('iframe');
+                  iframe.style.cssText = 'display:none!important;width:0;height:0;border:0;position:absolute';
+                  iframe.src = 'oriel-extension://manage';
+                  document.documentElement.appendChild(iframe);
+                  setTimeout(function () { try { iframe.remove(); } catch (e) {} }, 1500);
+                } catch (e) {}
+                return;
+              }
               replacement.disabled = true;
               replacement.textContent = 'Installing…';
-              orielPostInstall(id);
+              orielPostInstall(current);
               setTimeout(function () {
                 replacement.disabled = false;
                 replacement.textContent = 'Add to Oriel';
@@ -313,41 +364,55 @@ enum ChromeWebStoreBridge {
               if (btn) btn.remove();
               return;
             }
-            if (btn) return;
-
-            btn = document.createElement('button');
-            btn.id = 'oriel-add-to-oriel';
-            btn.type = 'button';
-            btn.textContent = 'Add to Oriel';
-            btn.setAttribute('aria-label', 'Add to Oriel');
-            Object.assign(btn.style, {
-              position: 'fixed',
-              right: '20px',
-              bottom: '20px',
-              zIndex: '2147483646',
-              padding: '12px 18px',
-              border: '0',
-              borderRadius: '10px',
-              background: '#1a73e8',
-              color: '#ffffff',
-              font: '600 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
-              cursor: 'pointer',
-              boxShadow: '0 6px 20px rgba(0,0,0,0.22)'
-            });
-            btn.addEventListener('click', function (event) {
-              event.preventDefault();
-              event.stopPropagation();
-              var current = orielIdFromPath();
-              if (!current) return;
-              btn.disabled = true;
-              btn.textContent = 'Installing…';
-              orielPostInstall(current);
-              setTimeout(function () {
-                btn.disabled = false;
-                btn.textContent = 'Add to Oriel';
-              }, 4000);
-            }, true);
-            (document.body || document.documentElement).appendChild(btn);
+            var installed = (window.__orielInstalledExtensionIDs || []).indexOf(id) !== -1;
+            if (!btn) {
+              btn = document.createElement('button');
+              btn.id = 'oriel-add-to-oriel';
+              btn.type = 'button';
+              Object.assign(btn.style, {
+                position: 'fixed',
+                right: '20px',
+                bottom: '20px',
+                zIndex: '2147483646',
+                padding: '12px 18px',
+                border: '0',
+                borderRadius: '10px',
+                color: '#ffffff',
+                font: '600 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+                cursor: 'pointer',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.22)'
+              });
+              btn.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                var current = orielIdFromPath();
+                if (!current) return;
+                var isInstalled = (window.__orielInstalledExtensionIDs || []).indexOf(current) !== -1;
+                if (isInstalled) {
+                  try {
+                    var iframe = document.createElement('iframe');
+                    iframe.style.cssText = 'display:none!important;width:0;height:0;border:0;position:absolute';
+                    iframe.src = 'oriel-extension://manage';
+                    document.documentElement.appendChild(iframe);
+                    setTimeout(function () { try { iframe.remove(); } catch (e) {} }, 1500);
+                  } catch (e) {}
+                  return;
+                }
+                btn.disabled = true;
+                btn.textContent = 'Installing…';
+                orielPostInstall(current);
+                setTimeout(function () {
+                  btn.disabled = false;
+                  var stillInstalled = (window.__orielInstalledExtensionIDs || []).indexOf(current) !== -1;
+                  btn.textContent = stillInstalled ? 'Installed in Oriel' : 'Add to Oriel';
+                  btn.style.background = stillInstalled ? '#5f6368' : '#1a73e8';
+                }, 4000);
+              }, true);
+              (document.body || document.documentElement).appendChild(btn);
+            }
+            btn.textContent = installed ? 'Installed in Oriel' : 'Add to Oriel';
+            btn.style.background = installed ? '#5f6368' : '#1a73e8';
+            btn.setAttribute('aria-label', btn.textContent);
           }
 
           function installClickCapture(event) {

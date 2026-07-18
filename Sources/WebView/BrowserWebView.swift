@@ -22,9 +22,11 @@ struct BrowserWebView: PlatformViewRepresentable {
     var onPopupTitleChanged: ((String?) -> Void)?
     var onOpenURLInNewTab: ((URL) -> Void)?
     var onInstallChromeExtension: ((String) -> Void)?
+    var onManageChromeExtensions: (() -> Void)?
     var webExtensionController: AnyObject?
     var blockAutoplay: Bool = true
     var chromeWebStoreInstallEnabled: Bool = false
+    var installedChromeStoreIDs: [String] = []
 
     #if os(iOS)
     func makeUIView(context: Context) -> WKWebView {
@@ -55,7 +57,9 @@ struct BrowserWebView: PlatformViewRepresentable {
             onPopupCreated: onPopupCreated,
             onPopupClosed: onPopupClosed,
             onOpenURLInNewTab: onOpenURLInNewTab,
-            onInstallChromeExtension: onInstallChromeExtension
+            onInstallChromeExtension: onInstallChromeExtension,
+            onManageChromeExtensions: onManageChromeExtensions,
+            installedChromeStoreIDs: installedChromeStoreIDs
         )
     }
 
@@ -138,6 +142,11 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.onPopupTitleChanged = onPopupTitleChanged
         context.coordinator.onOpenURLInNewTab = onOpenURLInNewTab
         context.coordinator.onInstallChromeExtension = onInstallChromeExtension
+        context.coordinator.onManageChromeExtensions = onManageChromeExtensions
+        context.coordinator.installedChromeStoreIDs = installedChromeStoreIDs
+        #if os(macOS)
+        context.coordinator.injectInstalledExtensionIDs(into: webView)
+        #endif
 
         webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = tab.javaScriptEnabled
 

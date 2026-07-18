@@ -36,6 +36,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var onPopupClosed: ((WKWebView) -> Void)?
     var onOpenURLInNewTab: ((URL) -> Void)?
     var onInstallChromeExtension: ((String) -> Void)?
+    var onManageChromeExtensions: (() -> Void)?
+    var installedChromeStoreIDs: [String] = []
 
     private var observations: [NSKeyValueObservation] = []
     private var popupTitleObservation: NSKeyValueObservation?
@@ -53,7 +55,9 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         onPopupCreated: ((WKWebView) -> Void)? = nil,
         onPopupClosed: ((WKWebView) -> Void)? = nil,
         onOpenURLInNewTab: ((URL) -> Void)? = nil,
-        onInstallChromeExtension: ((String) -> Void)? = nil
+        onInstallChromeExtension: ((String) -> Void)? = nil,
+        onManageChromeExtensions: (() -> Void)? = nil,
+        installedChromeStoreIDs: [String] = []
     ) {
         self.tab = tab
         self.contentBlockingEnabled = contentBlockingEnabled
@@ -65,6 +69,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         self.onPopupClosed = onPopupClosed
         self.onOpenURLInNewTab = onOpenURLInNewTab
         self.onInstallChromeExtension = onInstallChromeExtension
+        self.onManageChromeExtensions = onManageChromeExtensions
+        self.installedChromeStoreIDs = installedChromeStoreIDs
     }
 
     /// Retained weakly by `WKUserContentController`; keep the proxy alive on the coordinator.
@@ -154,6 +160,11 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         preferences.allowsContentJavaScript = tab.javaScriptEnabled
         if let url = navigationAction.request.url {
             #if os(macOS)
+            if ChromeWebStoreAPI.isManageExtensionsURL(url) {
+                onManageChromeExtensions?()
+                decisionHandler(.cancel, preferences)
+                return
+            }
             if let extensionID = ChromeWebStoreAPI.extensionID(fromInstallURL: url) {
                 requestChromeExtensionInstall(extensionID)
                 decisionHandler(.cancel, preferences)
@@ -216,11 +227,29 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             }
             tab.onNavigationFinished?(tab)
             tab.applyPageEnhancementsAfterLoad()
+            #if os(macOS)
+            injectInstalledExtensionIDs(into: webView)
+            #endif
         }
         if webView === tab.webView {
             tab.refreshNavigationChrome()
         }
     }
+
+    #if os(macOS)
+    func injectInstalledExtensionIDs(into webView: WKWebView) {
+        guard let host = webView.url?.host?.lowercased(),
+              host == "chromewebstore.google.com"
+                || host == "chrome.google.com"
+                || host.hasSuffix(".chrome.google.com") else { return }
+        let idsJSON = installedChromeStoreIDs
+            .map { "\"\($0)\"" }
+            .joined(separator: ",")
+        let script = "window.__orielInstalledExtensionIDs = [\(idsJSON)];"
+        webView.evaluateJavaScript(script, in: nil, in: .page) { _ in }
+        webView.evaluateJavaScript(script, in: nil, in: .defaultClient) { _ in }
+    }
+    #endif
 
     func webView(
         _ webView: WKWebView,

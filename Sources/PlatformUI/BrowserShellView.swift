@@ -165,7 +165,7 @@ struct BrowserShellView: View {
             }
             .accessibilityLabel("Settings")
             .accessibilityHint("Change search engine, appearance, and more")
-            chromeMenu(environment: environment, tab: tab)
+            chromeMenu(environment: environment, tab: tab, compact: compact)
             Button {
                 environment.showTabOverview = true
             } label: {
@@ -224,6 +224,14 @@ struct BrowserShellView: View {
             .toolbar {
                 if !isCompact {
                     ToolbarItemGroup(placement: .navigation) {
+                        Button {
+                            environment.tabs.activeTab?.goHome()
+                        } label: {
+                            OrielMark(size: 20)
+                        }
+                        .buttonStyle(.plain)
+                        .help(BrowserConstants.productName)
+
                         NavigationControlsView(tab: tab)
                     }
                     ToolbarItem(placement: .principal) {
@@ -234,7 +242,6 @@ struct BrowserShellView: View {
                         .frame(minWidth: 200, idealWidth: 520, maxWidth: 720)
                     }
                     ToolbarItemGroup(placement: .primaryAction) {
-                        // Settings first so it survives toolbar overflow in mid-size windows.
                         Button {
                             openAppSettings()
                         } label: {
@@ -252,13 +259,7 @@ struct BrowserShellView: View {
 
                         shieldButton(environment: environment)
                         javaScriptButton(tab: tab)
-
-                        Button {
-                            environment.showExtensions = true
-                        } label: {
-                            Image(systemName: "puzzlepiece.extension")
-                        }
-                        .help("Extensions")
+                        extensionToolbarMenu(environment: environment)
 
                         Button {
                             environment.showDownloads = true
@@ -274,16 +275,7 @@ struct BrowserShellView: View {
                         }
                         .help("Tab Overview")
 
-                        chromeMenu(environment: environment, tab: tab)
-                    }
-                } else {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            openAppSettings()
-                        } label: {
-                            Image(systemName: "gearshape")
-                        }
-                        .help("Settings")
+                        chromeMenu(environment: environment, tab: tab, compact: false)
                     }
                 }
             }
@@ -292,49 +284,77 @@ struct BrowserShellView: View {
 
     /// Always-visible chrome when the window is too narrow for the full toolbar.
     private func macCompactChrome(tab: BrowserTab, environment: AppEnvironment) -> some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 10) {
-                NavigationControlsView(tab: tab)
-                AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
-                    tab.searchEngine = environment.settings.searchEngine
-                    tab.submitAddressBar()
-                }
+        HStack(spacing: 10) {
+            Button {
+                environment.tabs.activeTab?.goHome()
+            } label: {
+                OrielMark(size: 22)
             }
-            HStack(spacing: 12) {
-                Button {
-                    openAppSettings()
-                } label: {
-                    Label("Settings", systemImage: "gearshape")
-                }
-                shieldButton(environment: environment)
-                javaScriptButton(tab: tab)
-                Button {
-                    environment.showExtensions = true
-                } label: {
-                    Image(systemName: "puzzlepiece.extension")
-                }
-                .help("Extensions")
-                Spacer(minLength: 0)
-                Button {
-                    environment.tabs.createTab(select: true)
-                    environment.wireTabPrivacyHooks()
-                } label: {
-                    Image(systemName: "plus")
-                }
-                .help("New Tab")
-                chromeMenu(environment: environment, tab: tab)
-                Button {
-                    environment.showTabOverview = true
-                } label: {
-                    Image(systemName: "square.on.square")
-                }
-                .help("Tab Overview")
+            .buttonStyle(.plain)
+            .help(BrowserConstants.productName)
+
+            NavigationControlsView(tab: tab)
+
+            Spacer(minLength: 6)
+
+            AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
+                tab.searchEngine = environment.settings.searchEngine
+                tab.submitAddressBar()
             }
+            .frame(maxWidth: 560)
+
+            Spacer(minLength: 6)
+
+            Button {
+                environment.tabs.createTab(select: true)
+                environment.wireTabPrivacyHooks()
+            } label: {
+                Image(systemName: "plus")
+            }
+            .help("New Tab")
             .buttonStyle(.borderless)
+
+            extensionToolbarMenu(environment: environment)
+                .buttonStyle(.borderless)
+
+            Button {
+                environment.showTabOverview = true
+            } label: {
+                Image(systemName: "square.on.square")
+            }
+            .help("Tab Overview")
+            .buttonStyle(.borderless)
+
+            chromeMenu(environment: environment, tab: tab, compact: true)
+                .buttonStyle(.borderless)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(.bar)
+    }
+
+    @ViewBuilder
+    private func extensionToolbarMenu(environment: AppEnvironment) -> some View {
+        Menu {
+            if environment.extensions.extensions.isEmpty {
+                Text("No extensions installed")
+            } else {
+                ForEach(environment.extensions.extensions) { item in
+                    Button(item.displayName) {
+                        environment.extensions.openAction(for: item.id)
+                    }
+                    .disabled(!item.isEnabled)
+                }
+                Divider()
+            }
+            Button("Manage Extensions…") {
+                environment.showExtensions = true
+            }
+        } label: {
+            Image(systemName: "puzzlepiece.extension")
+        }
+        .help("Extensions")
+        .accessibilityLabel("Extensions")
     }
 
     private func macTabStrip(environment: AppEnvironment) -> some View {
@@ -431,11 +451,13 @@ struct BrowserShellView: View {
     }
 
     @ViewBuilder
-    private func chromeMenu(environment: AppEnvironment, tab: BrowserTab) -> some View {
+    private func chromeMenu(environment: AppEnvironment, tab: BrowserTab, compact: Bool) -> some View {
         Menu {
-            Button("New Tab") {
-                environment.tabs.createTab(select: true)
-                environment.wireTabPrivacyHooks()
+            if !compact {
+                Button("New Tab") {
+                    environment.tabs.createTab(select: true)
+                    environment.wireTabPrivacyHooks()
+                }
             }
             Button("New Private Tab") {
                 environment.tabs.createPrivateTab(select: true)
@@ -485,10 +507,12 @@ struct BrowserShellView: View {
             }
             .disabled(tab.isShowingStartPage)
 
-            Button(tab.javaScriptEnabled ? "Disable JavaScript" : "Enable JavaScript") {
-                tab.toggleJavaScript()
+            if !compact {
+                Button(tab.javaScriptEnabled ? "Disable JavaScript" : "Enable JavaScript") {
+                    tab.toggleJavaScript()
+                }
+                .disabled(tab.isShowingStartPage)
             }
-            .disabled(tab.isShowingStartPage)
 
             Button("Copy URL") {
                 environment.copyCurrentURL()
@@ -509,9 +533,14 @@ struct BrowserShellView: View {
             Button("Bookmarks") { environment.showBookmarks = true }
             Button("History") { environment.showHistory = true }
             Button("Downloads") { environment.showDownloads = true }
-            Button("Extensions") { environment.showExtensions = true }
-            Button("Shields") { environment.showPrivacyShield = true }
-            Button("Settings") { openAppSettings() }
+            if compact {
+                Button("Shields") { environment.showPrivacyShield = true }
+                Button("Settings") { openAppSettings() }
+            } else {
+                Button("Extensions") { environment.showExtensions = true }
+                Button("Shields") { environment.showPrivacyShield = true }
+                Button("Settings") { openAppSettings() }
+            }
 
             Divider()
 
@@ -521,6 +550,7 @@ struct BrowserShellView: View {
             Image(systemName: "ellipsis.circle")
         }
         .accessibilityLabel("More")
+        .help("More")
     }
 
     @ViewBuilder
@@ -563,9 +593,13 @@ struct BrowserShellView: View {
                         environment.showExtensions = true
                     }
                 },
+                onManageChromeExtensions: {
+                    environment.showExtensions = true
+                },
                 webExtensionController: environment.extensions.webExtensionControllerForConfiguration,
                 blockAutoplay: environment.settings.blockAutoplay,
-                chromeWebStoreInstallEnabled: environment.extensions.isSupported
+                chromeWebStoreInstallEnabled: environment.extensions.isSupported,
+                installedChromeStoreIDs: environment.extensions.installedChromeStoreIDs
             )
             .id(tab.id)
             .opacity(showStart || showError ? 0 : 1)

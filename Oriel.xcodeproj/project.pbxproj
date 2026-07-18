@@ -34,6 +34,7 @@
 		69037969A87CFB02AC73F00F /* BrowserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F59F3AD82F32EA43EF0D179 /* BrowserSettings.swift */; };
 		69B41FC7A2BD0CF80337C338 /* URLParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CAA503AA1BB5B6FE0606DF0 /* URLParserTests.swift */; };
 		782C2C4F7354EA78F9239794 /* BrowserTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A34690536302270522B7B4 /* BrowserTab.swift */; };
+		7C93B0B1A9EA03185AA143E4 /* OrielMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C336481A6174DB573E8F7BE /* OrielMark.swift */; };
 		7D63DB298B0A9D2C153B99DE /* ChromeWebStoreBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AAE52BC150A766491FA089 /* ChromeWebStoreBridge.swift */; };
 		8023371B8FDBD1978AB09722 /* FaviconImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DD17FFF022753DBC14A2CC2 /* FaviconImage.swift */; };
 		8478FAD9E834F047E2DFA09E /* example-blocklist.json in Resources */ = {isa = PBXBuildFile; fileRef = DEE85969692DAE7045805E57 /* example-blocklist.json */; };
@@ -92,6 +93,7 @@
 		011CB4F0CA40D216F227077B /* AuthAndJavaScriptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthAndJavaScriptTests.swift; sourceTree = "<group>"; };
 		02CBC7705D9621792C8BF524 /* ErrorPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorPageView.swift; sourceTree = "<group>"; };
 		03AAE52BC150A766491FA089 /* ChromeWebStoreBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeWebStoreBridge.swift; sourceTree = "<group>"; };
+		0C336481A6174DB573E8F7BE /* OrielMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielMark.swift; sourceTree = "<group>"; };
 		0F64E5EADB8EC24B65AAD5FC /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		1274D8E8A0638DAF2DBD4CD3 /* Oriel.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Oriel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		137A3D8074BF71FCA60476D1 /* StartPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartPageView.swift; sourceTree = "<group>"; };
@@ -379,6 +381,7 @@
 				83AC3BB6323513845985F125 /* HistoryView.swift */,
 				899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */,
 				964B007F398281F78B5719E7 /* OrielLayout.swift */,
+				0C336481A6174DB573E8F7BE /* OrielMark.swift */,
 				3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */,
 				FEB95E162E556859616C2DA9 /* PrivacyShieldView.swift */,
 				2217E60267513166ABDC37AF /* SettingsView.swift */,
@@ -540,6 +543,7 @@
 				D7E704953945FC2B3CE55422 /* NavigationState.swift in Sources */,
 				FF5F8E058A1A7C1D9328AC1B /* OrielApp.swift in Sources */,
 				0B37DDC67D87E467B4FBF91E /* OrielLayout.swift in Sources */,
+				7C93B0B1A9EA03185AA143E4 /* OrielMark.swift in Sources */,
 				C0D710DE823E78C7F52F7F02 /* OrielTheme.swift in Sources */,
 				DC20D1A5690DA59B33B6A001 /* PageEnhancementScripts.swift in Sources */,
 				B3F82F73100905AEFFD03844 /* PrivacySettings.swift in Sources */,
