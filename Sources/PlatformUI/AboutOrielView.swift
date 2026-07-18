@@ -79,7 +79,7 @@ struct AboutOrielView: View {
                 OrielTheme.startPageBackground(
                     accent: environment.settings.accentTheme,
                     background: environment.settings.backgroundTheme,
-                    scheme: systemColorScheme
+                    scheme: pageScheme
                 )
             }
             .environment(\.colorScheme, pageScheme)

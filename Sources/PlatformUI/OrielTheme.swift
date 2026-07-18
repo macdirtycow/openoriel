@@ -76,11 +76,13 @@ enum BrowserBackgroundTheme: String, CaseIterable, Identifiable, Codable, Sendab
     }
 
     /// Backgrounds that lock light/dark so text contrast stays correct.
+    /// Soft is warm cream (matches Settings preview) — without this, Soft + Dark
+    /// looks like a plain system gray and feels “broken” on device.
     var forcedColorScheme: ColorScheme? {
         switch self {
         case .midnight: .dark
-        case .paper, .sand: .light
-        case .soft, .mist, .aurora: nil
+        case .soft, .paper, .sand: .light
+        case .mist, .aurora: nil
         }
     }
 
@@ -164,11 +166,10 @@ enum OrielTheme {
     private static func baseFill(for background: BrowserBackgroundTheme, scheme: ColorScheme) -> Color {
         switch background {
         case .soft:
-            return scheme == .dark
-                ? Color(red: 0.10, green: 0.11, blue: 0.12)
-                : Color(red: 0.965, green: 0.953, blue: 0.935)
+            // Warm parchment — Soft always runs light via forcedColorScheme.
+            return Color(red: 0.965, green: 0.948, blue: 0.922)
         case .paper:
-            return Color(red: 0.98, green: 0.96, blue: 0.93)
+            return Color(red: 0.985, green: 0.975, blue: 0.955)
         case .mist:
             return scheme == .dark
                 ? Color(red: 0.09, green: 0.11, blue: 0.14)
@@ -193,6 +194,19 @@ enum OrielTheme {
         let soft = accent.softColor
         let strong = accent.color
         switch background {
+        case .soft:
+            RadialGradient(
+                colors: [soft.opacity(0.22), Color.clear],
+                center: .topTrailing,
+                startRadius: 8,
+                endRadius: 460
+            )
+            RadialGradient(
+                colors: [strong.opacity(0.08), Color.clear],
+                center: .bottomLeading,
+                startRadius: 20,
+                endRadius: 380
+            )
         case .aurora:
             RadialGradient(
                 colors: [soft.opacity(scheme == .dark ? 0.35 : 0.22), Color.clear],
@@ -308,12 +322,12 @@ private struct OrielThemingModifier: ViewModifier {
             .onChange(of: settings.backgroundTheme) { _, _ in syncPlatformChrome() }
     }
 
-    /// Prefer explicit appearance; otherwise let background themes that lock contrast win.
+    /// Background theme locks (Soft/Paper/Midnight) beat Appearance so previews match the page.
     private var resolvedPreferredScheme: ColorScheme? {
-        if let explicit = settings.appearance.colorScheme {
-            return explicit
+        if let forced = settings.backgroundTheme.forcedColorScheme {
+            return forced
         }
-        return settings.backgroundTheme.forcedColorScheme
+        return settings.appearance.colorScheme
     }
 
     private func syncPlatformChrome() {

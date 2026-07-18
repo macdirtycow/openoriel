@@ -129,8 +129,12 @@ struct SettingsView: View {
                         ForEach(BrowserBackgroundTheme.allCases) { theme in
                             Button {
                                 settings.backgroundTheme = theme
+                                // Keep Appearance in sync with backgrounds that lock contrast,
+                                // and reset to System for adaptive themes (Mist/Aurora).
                                 if let forced = theme.forcedColorScheme {
                                     settings.appearance = forced == .dark ? .dark : .light
+                                } else {
+                                    settings.appearance = .system
                                 }
                             } label: {
                                 HStack(spacing: 12) {
@@ -159,7 +163,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Appearance")
                 } footer: {
-                    Text("Accent colors tint buttons and Shields. Backgrounds like Midnight or Paper also set Light/Dark so text stays readable.")
+                    Text("Accent colors tint buttons and Shields. Soft, Paper, and Sand stay light; Midnight stays dark. Mist and Aurora follow System appearance.")
                         .fixedSize(horizontal: false, vertical: true)
                 }
 

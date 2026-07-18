@@ -163,6 +163,13 @@ final class BrowserSettings {
         } else {
             self.stripTrackingParameters = defaults.bool(forKey: stripTrackingKey)
         }
+        // Repair Soft/Paper/Sand stored with Dark (or Midnight with Light) from older builds.
+        if let forced = backgroundTheme.forcedColorScheme {
+            let repaired: AppAppearance = forced == .dark ? .dark : .light
+            if (forced == .light && appearance == .dark) || (forced == .dark && appearance == .light) {
+                appearance = repaired
+            }
+        }
     }
 
     private func persistSearchEngine() {

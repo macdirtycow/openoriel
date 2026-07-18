@@ -599,7 +599,7 @@ struct BrowserShellView: View {
 
     private func macTabStrip(environment: AppEnvironment) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 ForEach(environment.tabs.tabs) { item in
                     let selected = item.id == environment.tabs.activeTabID
                     Button {
@@ -613,26 +613,25 @@ struct BrowserShellView: View {
                             if item.isPrivate {
                                 Image(systemName: "eyeglasses").font(.caption2)
                             }
-                            Text(item.displayTitle).lineLimit(1)
+                            Text(item.displayTitle)
+                                .font(.callout)
+                                .lineLimit(1)
                             if environment.tabs.tabs.count > 1, !item.isPinned {
                                 Image(systemName: "xmark")
                                     .font(.caption2.weight(.bold))
+                                    .foregroundStyle(.secondary)
                                     .onTapGesture { environment.tabs.closeTab(id: item.id) }
                             }
                         }
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 7)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .frame(minWidth: 120, maxWidth: 220, alignment: .leading)
                         .background(
-                            selected ? environment.settings.brandColor.opacity(0.16) : Color.primary.opacity(0.04),
-                            in: RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            selected
+                                ? environment.settings.brandColor.opacity(0.14)
+                                : Color.primary.opacity(0.035),
+                            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
                         )
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                .strokeBorder(
-                                    selected ? environment.settings.brandColor.opacity(0.28) : Color.clear,
-                                    lineWidth: 1
-                                )
-                        }
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(item.displayTitle)
@@ -640,7 +639,7 @@ struct BrowserShellView: View {
                 }
             }
             .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.vertical, 6)
         }
         .background(.bar)
     }

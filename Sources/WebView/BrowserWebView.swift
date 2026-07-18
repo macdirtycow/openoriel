@@ -115,8 +115,14 @@ struct BrowserWebView: PlatformViewRepresentable {
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
+        // Keep the web view clear so themed start-page washes aren't covered by opaque white/black.
         #if os(iOS)
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
         webView.scrollView.contentInsetAdjustmentBehavior = .automatic
+        #elseif os(macOS)
+        webView.underPageBackgroundColor = .clear
         #endif
 
         if tab.requestsDesktopSite || UserAgentPolicy.isGoogleHost(tab.navigation.url?.host) {
