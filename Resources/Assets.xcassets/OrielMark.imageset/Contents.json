@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "OrielMark.png",
+      "filename" : "OrielMark-1x.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "wendy.h@example.net",
+      "filename" : "OrielMark-2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "rachel.c@example.org",
+      "filename" : "OrielMark-3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
