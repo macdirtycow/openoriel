@@ -17,19 +17,15 @@ struct NavigationControlsView: View {
     }
 
     private var buttonSize: CGFloat {
-        style == .compact ? 32 : OrielLayout.navButtonSize
+        style == .compact ? 28 : 32
     }
 
     private var markSize: CGFloat {
-        style == .compact ? 18 : 22
-    }
-
-    private var accent: Color {
-        environment.settings.brandColor
+        style == .compact ? 18 : 20
     }
 
     var body: some View {
-        HStack(spacing: style == .compact ? 4 : 6) {
+        HStack(spacing: style == .compact ? 0 : 2) {
             navButton(
                 systemName: "chevron.backward",
                 label: "Back",
@@ -50,8 +46,7 @@ struct NavigationControlsView: View {
                 navButton(
                     systemName: tab.navigation.isLoading ? "xmark" : "arrow.clockwise",
                     label: tab.navigation.isLoading ? "Stop" : "Reload",
-                    enabled: !isStartPage || tab.navigation.isLoading,
-                    emphasized: tab.navigation.isLoading
+                    enabled: !isStartPage || tab.navigation.isLoading
                 ) {
                     if tab.navigation.isLoading {
                         tab.stopLoading()
@@ -71,6 +66,7 @@ struct NavigationControlsView: View {
 
             // App-icon Shields toggle — sits with nav, next to Home (like Brave’s lion).
             OrielShieldButton(size: markSize)
+                .padding(.leading, style == .compact ? 2 : 4)
         }
     }
 
@@ -78,23 +74,29 @@ struct NavigationControlsView: View {
         systemName: String,
         label: String,
         enabled: Bool,
-        emphasized: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
+                .font(.system(size: style == .compact ? 14 : 15, weight: .semibold))
+                .foregroundStyle(enabled ? Color.primary.opacity(0.85) : Color.secondary.opacity(0.35))
+                .frame(width: buttonSize, height: buttonSize)
+                .contentShape(Rectangle())
         }
-        .buttonStyle(
-            OrielChromeButtonStyle(
-                isEnabled: enabled,
-                isEmphasized: emphasized,
-                accent: accent,
-                size: buttonSize
-            )
-        )
+        .buttonStyle(OrielNavGlyphButtonStyle())
         .disabled(!enabled)
         .accessibilityLabel(label)
         .accessibilityHint(enabled ? "" : "Unavailable")
         .help(label)
+    }
+}
+
+/// Quiet press feedback for toolbar glyphs — no filled chips or borders.
+private struct OrielNavGlyphButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.45 : 1)
+            .scaleEffect(configuration.isPressed ? 0.92 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
