@@ -28,9 +28,34 @@ jobs:
 
       - name: Select Xcode
         run: |
-          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer 2>/dev/null \
-            || sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          set -euo pipefail
+          # Prefer newest installed Xcode that can build iOS.
+          for app in \
+            /Applications/Xcode_16.4.app \
+            /Applications/Xcode_16.3.app \
+            /Applications/Xcode_16.2.app \
+            /Applications/Xcode.app
+          do
+            if [[ -d "$app" ]]; then
+              sudo xcode-select -s "$app/Contents/Developer"
+              break
+            fi
+          done
           xcodebuild -version
+          echo "Available SDKs:"
+          xcodebuild -showsdks || true
+
+      - name: Install iOS platform
+        run: |
+          set -euo pipefail
+          # GitHub images often ship Xcode without the iOS device SDK preinstalled.
+          if xcodebuild -showsdks 2>/dev/null | grep -q 'iphoneos'; then
+            echo "iOS SDK already present"
+          else
+            echo "Downloading iOS platform…"
+            xcodebuild -downloadPlatform iOS
+          fi
+          xcodebuild -showsdks | grep -E 'iphoneos|iOS' || true
 
       - name: Install XcodeGen
         run: brew install xcodegen
