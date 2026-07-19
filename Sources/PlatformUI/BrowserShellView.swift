@@ -164,12 +164,18 @@ struct BrowserShellView: View {
             environment.sessionStore.restorePreviousSession = newValue
         }
         .onChange(of: environment.activeTab?.navigation.url) { _, newURL in
-            environment.considerOrielStoreTip(for: newURL)
-            // Keep Smart / per-site engine aligned with the visible page.
-            environment.applyResolvedEngine(to: environment.activeTab, host: newURL?.host)
+            // Defer — mutating @Observable state synchronously inside onChange
+            // can crash SwiftUI (“Publishing changes from within view updates”).
+            let host = newURL?.host
+            Task { @MainActor in
+                environment.considerOrielStoreTip(for: newURL)
+                environment.applyResolvedEngine(to: environment.activeTab, host: host)
+            }
         }
         .onChange(of: environment.tabs.activeTabID) { _, _ in
-            environment.considerOrielStoreTip(for: environment.activeTab?.navigation.url)
+            Task { @MainActor in
+                environment.considerOrielStoreTip(for: environment.activeTab?.navigation.url)
+            }
         }
         .alert(
             "Use Oriel Store?",

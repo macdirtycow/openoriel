@@ -100,14 +100,24 @@ final class BrowserSettings {
     }
 
     /// Soft cap on live WKWebViews when Pulse performance mode is on.
+    /// Backing store — `@Observable` must not self-assign inside `didSet` (re-entrancy / crash).
+    @ObservationIgnored private var storedPulseWebViewLimit: Int = 8
     var pulseWebViewLimit: Int {
-        didSet {
-            let clamped = min(16, max(4, pulseWebViewLimit))
-            if clamped != pulseWebViewLimit {
-                pulseWebViewLimit = clamped
+        get {
+            access(keyPath: \.pulseWebViewLimit)
+            return storedPulseWebViewLimit
+        }
+        set {
+            let clamped = min(16, max(4, newValue))
+            guard clamped != storedPulseWebViewLimit else {
+                defaults.set(clamped, forKey: pulseWebViewLimitKey)
+                refreshPulsePoolLimit()
                 return
             }
-            defaults.set(pulseWebViewLimit, forKey: pulseWebViewLimitKey)
+            withMutation(keyPath: \.pulseWebViewLimit) {
+                storedPulseWebViewLimit = clamped
+            }
+            defaults.set(clamped, forKey: pulseWebViewLimitKey)
             refreshPulsePoolLimit()
         }
     }
@@ -136,16 +146,30 @@ final class BrowserSettings {
     }
 
     /// Preferred rendering engine (WebKit everywhere; Chromium modes on Mac).
+    /// Backing store — avoid `@Observable` self-assignment in `didSet` (can re-enter / crash).
+    @ObservationIgnored private var storedPreferredEngine: BrowserEngineKind = {
+        #if os(macOS)
+        .smart
+        #else
+        .webkit
+        #endif
+    }()
     var preferredEngine: BrowserEngineKind {
-        didSet {
+        get {
+            access(keyPath: \.preferredEngine)
+            return storedPreferredEngine
+        }
+        set {
             let allowed = BrowserEngineKind.availableOnThisPlatform
-            if !allowed.contains(preferredEngine) {
-                // Persist the corrected value — Swift does not re-enter didSet for this assignment.
-                defaults.set(BrowserEngineKind.webkit.rawValue, forKey: preferredEngineKey)
-                preferredEngine = .webkit
+            let next = allowed.contains(newValue) ? newValue : .webkit
+            guard next != storedPreferredEngine else {
+                defaults.set(next.rawValue, forKey: preferredEngineKey)
                 return
             }
-            defaults.set(preferredEngine.rawValue, forKey: preferredEngineKey)
+            withMutation(keyPath: \.preferredEngine) {
+                storedPreferredEngine = next
+            }
+            defaults.set(next.rawValue, forKey: preferredEngineKey)
         }
     }
 
