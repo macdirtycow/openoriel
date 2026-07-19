@@ -88,11 +88,9 @@ struct BrowserShellView: View {
             NavigationStack {
                 OrielStoreView(showsDoneButton: true)
             }
+            .orielSheetChrome(preferLargeOnCompact: true)
             .orielTheming(settings: environment.settings)
-            #if os(iOS)
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            #else
+            #if os(macOS)
             .frame(minWidth: 440, idealWidth: 560, minHeight: 420, idealHeight: 640)
             #endif
         }
@@ -609,9 +607,9 @@ struct BrowserShellView: View {
         .buttonStyle(.plain)
     }
 
-    /// Single clean row: nav · centered address · tabs / more. No duplicate Settings/JS/Shields row.
+    /// Compact Mac window: nav · address · tabs · more (New Tab / profile live in the menu).
     private func macCompactChrome(tab: BrowserTab, environment: AppEnvironment) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             NavigationControlsView(tab: tab, style: .compact)
 
             AddressBarView(tab: tab, searchEngine: environment.settings.searchEngine) {
@@ -619,17 +617,6 @@ struct BrowserShellView: View {
                 tab.submitAddressBar()
             }
             .frame(maxWidth: .infinity)
-
-            ProfileSwitcherControl(style: .icon)
-
-            Button {
-                environment.tabs.createTab(select: true)
-                environment.wireTabPrivacyHooks()
-            } label: {
-                Image(systemName: "plus")
-            }
-            .help("New Tab")
-            .buttonStyle(.borderless)
 
             Button {
                 environment.showTabOverview = true
@@ -642,12 +629,12 @@ struct BrowserShellView: View {
             chromeMenu(
                 environment: environment,
                 tab: tab,
-                density: .macCompact,
+                density: .standard,
                 chromeStyled: false
             )
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(.bar)
     }
 
@@ -794,9 +781,9 @@ struct BrowserShellView: View {
     private enum ChromeMenuDensity {
         /// iPhone: nested groups, short top-level list.
         case phone
-        /// iPad / macOS full chrome.
+        /// iPad / macOS (wide or compact) — nested Tab / Page / Library / Add-ons.
         case standard
-        /// Narrow macOS window.
+        /// Narrow macOS window (same menu hierarchy as `.standard`).
         case macCompact
     }
 
@@ -813,9 +800,8 @@ struct BrowserShellView: View {
             switch density {
             case .phone:
                 phoneChromeMenuContent(environment: environment, tab: tab)
-            case .macCompact:
-                macCompactChromeMenuContent(environment: environment, tab: tab)
-            case .standard:
+            case .macCompact, .standard:
+                // Narrow macOS windows share the same nested hierarchy as iPad / wide Mac.
                 standardChromeMenuContent(environment: environment, tab: tab)
             }
         } label: {
@@ -918,62 +904,17 @@ struct BrowserShellView: View {
     }
 
     @ViewBuilder
-    private func macCompactChromeMenuContent(environment: AppEnvironment, tab: BrowserTab) -> some View {
-        Button("New Tab") {
-            environment.tabs.createTab(select: true)
-            environment.wireTabPrivacyHooks()
-        }
-        Button("New Private Tab") {
-            environment.tabs.createPrivateTab(select: true)
-            environment.wireTabPrivacyHooks()
-        }
-        Button("Close Tab") { environment.tabs.closeActiveTab() }
-        Button("Find in Page…") { environment.showFindInPage = true }
-            .disabled(tab.isShowingStartPage)
-        Button("Reload") { tab.reload() }
-            .disabled(tab.isShowingStartPage)
-        Button("Bookmark This Page") { environment.bookmarkActivePage() }
-            .disabled(tab.isShowingStartPage || tab.isPrivate)
-        if let shareURL = environment.shareURL {
-            ShareLink(item: shareURL) {
-                Label("Share…", systemImage: "square.and.arrow.up")
-            }
-        }
-
-        Divider()
-
-        Menu("Library") {
-            Button("Bookmarks") { environment.showBookmarks = true }
-            Button("History") { environment.showHistory = true }
-            Button("Downloads") { environment.showDownloads = true }
-            Button(environment.linkQueue.count == 0 ? "Open Later" : "Open Later (\(environment.linkQueue.count))") {
-                environment.showLinkQueue = true
-            }
-        }
-        if environment.extensions.isSupported {
-            Menu("Add-ons") {
-                Button("Oriel Store") { environment.showOrielStore = true }
-                Button("Extensions") { environment.showExtensions = true }
-            }
-        }
-        Button("Shields") { environment.showPrivacyShield = true }
-        Button("Fire…", role: .destructive) { environment.showFireButton = true }
-        Button("Profiles…") { environment.showProfiles = true }
-        Button("Settings") { openAppSettings() }
-    }
-
-    @ViewBuilder
     private func standardChromeMenuContent(environment: AppEnvironment, tab: BrowserTab) -> some View {
-        Button("New Tab") {
+        Button("New Tab", systemImage: "plus") {
             environment.tabs.createTab(select: true)
             environment.wireTabPrivacyHooks()
         }
-        Button("New Private Tab") {
+        Button("New Private Tab", systemImage: "eyeglasses") {
             environment.tabs.createPrivateTab(select: true)
             environment.wireTabPrivacyHooks()
         }
 
-        Menu("Tab") {
+        Menu("Tab", systemImage: "square.on.square") {
             Button("Duplicate Tab") {
                 environment.tabs.duplicateActiveTab()
                 environment.wireTabPrivacyHooks()
@@ -991,14 +932,18 @@ struct BrowserShellView: View {
 
         Divider()
 
-        Menu("Page") {
+        Menu("Page", systemImage: "doc.text") {
             pageMenuContent(environment: environment, tab: tab, includeWorkspaces: true)
         }
 
-        Button("Bookmark This Page") { environment.bookmarkActivePage() }
-            .disabled(tab.isShowingStartPage || tab.isPrivate)
-        Button("Copy URL") { environment.copyCurrentURL() }
-            .disabled(environment.shareURL == nil)
+        Button("Bookmark This Page", systemImage: "bookmark") {
+            environment.bookmarkActivePage()
+        }
+        .disabled(tab.isShowingStartPage || tab.isPrivate)
+        Button("Copy URL", systemImage: "link") {
+            environment.copyCurrentURL()
+        }
+        .disabled(environment.shareURL == nil)
         if let shareURL = environment.shareURL {
             ShareLink(item: shareURL) {
                 Label("Share…", systemImage: "square.and.arrow.up")
@@ -1007,7 +952,7 @@ struct BrowserShellView: View {
 
         Divider()
 
-        Menu("Library") {
+        Menu("Library", systemImage: "books.vertical") {
             Button("Bookmarks") { environment.showBookmarks = true }
             Button("History") { environment.showHistory = true }
             Button("Downloads") { environment.showDownloads = true }
@@ -1021,20 +966,22 @@ struct BrowserShellView: View {
         }
 
         if environment.extensions.isSupported {
-            Menu("Add-ons") {
+            Menu("Add-ons", systemImage: "puzzlepiece.extension") {
                 Button("Oriel Store") { environment.showOrielStore = true }
                 Button("Extensions") { environment.showExtensions = true }
             }
         }
 
-        Button("Shields") { environment.showPrivacyShield = true }
-        Button("Fire…", role: .destructive) { environment.showFireButton = true }
-        Button {
-            environment.showProfiles = true
-        } label: {
-            Label("Profiles…", systemImage: "person.crop.circle")
+        Button("Shields", systemImage: "shield.lefthalf.filled") {
+            environment.showPrivacyShield = true
         }
-        Button("Settings") { openAppSettings() }
+        Button("Fire…", systemImage: "flame", role: .destructive) {
+            environment.showFireButton = true
+        }
+        Button("Profiles…", systemImage: "person.crop.circle") {
+            environment.showProfiles = true
+        }
+        Button("Settings", systemImage: "gearshape") { openAppSettings() }
 
         Divider()
 

@@ -5,6 +5,7 @@ import SwiftUI
 struct OrielStoreView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var kind: ExtensionStoreItem.Kind = .extension
     @State private var query = ""
@@ -18,23 +19,22 @@ struct OrielStoreView: View {
     @State private var showCompatWarning = false
     @State private var installError: String?
     @State private var installStatus: String?
+    @FocusState private var searchFocused: Bool
 
     /// When true (sheet presentation), show a Done button. Hidden inside Extensions navigation.
     var showsDoneButton: Bool = true
 
+    private var accent: Color { environment.settings.brandColor }
+
     var body: some View {
-        VStack(spacing: 0) {
-            kindPicker
-            searchField
-            if let installStatus {
-                Text(installStatus)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.bottom, 6)
-            }
-            content
+        Group {
+            #if os(macOS)
+            storeForm
+                .formStyle(.grouped)
+            #else
+            storeForm
+                .listStyle(.insetGrouped)
+            #endif
         }
         .navigationTitle("Oriel Store")
         #if os(iOS)
@@ -100,144 +100,210 @@ struct OrielStoreView: View {
         }
     }
 
-    private var kindPicker: some View {
-        Picker("Kind", selection: $kind) {
-            Text("Extensions").tag(ExtensionStoreItem.Kind.extension)
-            Text("Themes").tag(ExtensionStoreItem.Kind.theme)
+    private var storeForm: some View {
+        Form {
+            Section {
+                Picker("Kind", selection: $kind) {
+                    Text("Extensions").tag(ExtensionStoreItem.Kind.extension)
+                    Text("Themes").tag(ExtensionStoreItem.Kind.theme)
+                }
+                .pickerStyle(.segmented)
+                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 6, trailing: 16))
+                .listRowBackground(Color.clear)
+
+                storeSearchField
+                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 10, trailing: 16))
+                    .listRowBackground(Color.clear)
+            } footer: {
+                Text(footerBlurb)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let installStatus {
+                Section {
+                    Label(installStatus, systemImage: "checkmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(accent)
+                        .symbolRenderingMode(.hierarchical)
+                }
+            }
+
+            catalogSection
         }
-        .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .padding(.top, 8)
-        .padding(.bottom, 4)
     }
 
-    private var searchField: some View {
-        HStack(spacing: 8) {
+    private var storeSearchField: some View {
+        HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
+                .font(.body.weight(.medium))
+                .foregroundStyle(searchFocused ? accent : Color.secondary)
+
             TextField(
                 kind == .theme ? "Search themes" : "Search extensions",
                 text: $query
             )
+            .textFieldStyle(.plain)
+            .font(.body)
             #if os(iOS)
             .textInputAutocapitalization(.never)
             .keyboardType(.webSearch)
             #endif
             .autocorrectionDisabled()
             .submitLabel(.search)
+            .focused($searchFocused)
+
             if !query.isEmpty {
                 Button {
                     query = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
+                        .font(.body)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.tertiary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Clear search")
             }
         }
-        .padding(10)
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .padding(.horizontal)
-        .padding(.bottom, 8)
+        .padding(.horizontal, 14)
+        .frame(height: 44)
+        .background(
+            OrielTheme.elevatedFill(for: colorScheme),
+            in: RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
+                .strokeBorder(
+                    searchFocused ? accent.opacity(0.45) : OrielTheme.hairline(for: colorScheme),
+                    lineWidth: searchFocused ? 1.5 : 1
+                )
+        }
     }
 
     @ViewBuilder
-    private var content: some View {
+    private var catalogSection: some View {
         if isLoading && listings.isEmpty {
-            Spacer()
-            ProgressView("Loading catalog…")
-            Spacer()
+            Section {
+                HStack {
+                    Spacer()
+                    ProgressView("Loading catalog…")
+                        .padding(.vertical, 28)
+                    Spacer()
+                }
+                .listRowBackground(Color.clear)
+            }
         } else if let errorMessage, listings.isEmpty {
-            Spacer()
-            ContentUnavailableView(
-                "Couldn’t load store",
-                systemImage: "wifi.exclamationmark",
-                description: Text(errorMessage)
-            )
-            Button("Retry") {
-                Task { await reload(debounce: false) }
-            }
-            .buttonStyle(.borderedProminent)
-            Spacer()
-        } else if listings.isEmpty {
-            Spacer()
-            ContentUnavailableView(
-                "No results",
-                systemImage: "puzzlepiece.extension",
-                description: Text("Try another search across Chrome, Firefox, and Safari.")
-            )
-            Spacer()
-        } else {
-            List {
-                Section {
-                    Text(footerBlurb)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .listRowBackground(Color.clear)
-                }
+            Section {
+                ContentUnavailableView(
+                    "Couldn’t load store",
+                    systemImage: "wifi.exclamationmark",
+                    description: Text(errorMessage)
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .listRowBackground(Color.clear)
 
-                Section {
-                    ForEach(listings) { listing in
-                        storeRow(listing)
-                    }
-                } header: {
-                    Text(query.isEmpty ? "Popular" : "Results")
+                Button("Retry") {
+                    Task { await reload(debounce: false) }
                 }
+                .foregroundStyle(accent)
             }
-            #if os(iOS)
-            .listStyle(.insetGrouped)
-            #endif
+        } else if listings.isEmpty {
+            Section {
+                ContentUnavailableView(
+                    "No results",
+                    systemImage: "puzzlepiece.extension",
+                    description: Text("Try another search across Chrome, Firefox, and Safari.")
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .listRowBackground(Color.clear)
+            }
+        } else {
+            Section {
+                ForEach(listings) { listing in
+                    storeRow(listing)
+                }
+            } header: {
+                Text(query.isEmpty ? "Popular" : "Results")
+            }
         }
     }
 
     private var footerBlurb: String {
-        "One catalog for Chrome, Firefox, and Safari. Compatibility badges reflect WebKit limits — Oriel picks the best source when you tap Add."
+        "One catalog for Chrome, Firefox, and Safari. Compatibility reflects WebKit limits — Oriel picks the best source when you tap Add."
     }
 
     private func storeRow(_ listing: UnifiedStoreListing) -> some View {
         let report = ExtensionCompatibility.assess(listing)
-        return HStack(alignment: .top, spacing: 12) {
+        let installed = installedSource(for: listing)
+        return HStack(alignment: .center, spacing: 12) {
             iconView(for: listing)
-            VStack(alignment: .leading, spacing: 5) {
+
+            VStack(alignment: .leading, spacing: 4) {
                 Text(listing.name)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
                     .lineLimit(2)
+
                 if !listing.summary.isEmpty {
                     Text(listing.summary)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
-                compatBadge(report.level)
-                sourceChips(for: listing)
-                orielRatingRow(report.score)
-                if let installed = installedSource(for: listing) {
-                    Text(installed.installedFromLabel)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.green)
-                } else if let rating = listing.rating {
-                    Label(String(format: "Store %.1f", rating), systemImage: "star.fill")
+
+                HStack(spacing: 8) {
+                    compatBadge(report.level)
+                    Text(metaLine(for: listing, report: report, installed: installed))
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
                 }
             }
-            Spacer(minLength: 0)
+
+            Spacer(minLength: 8)
+
             Button {
                 requestInstall(listing)
             } label: {
                 if installingID == listing.id || environment.extensions.isInstallingFromStore {
                     ProgressView()
                         .controlSize(.small)
+                        .frame(minWidth: 52)
                 } else {
-                    Text(installedSource(for: listing) != nil ? "Open" : "Add")
+                    Text(installed != nil ? "Open" : "Add")
                         .font(.subheadline.weight(.semibold))
+                        .frame(minWidth: 52)
                 }
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
+            .tint(accent)
             .controlSize(.small)
             .disabled(installingID != nil || environment.extensions.isInstallingFromStore)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func metaLine(
+        for listing: UnifiedStoreListing,
+        report: ExtensionCompatReport,
+        installed: ExtensionStoreItem.Source?
+    ) -> String {
+        if let installed {
+            return installed.installedFromLabel
+        }
+        var parts: [String] = []
+        let sources = listing.availableSources.map(\.displayName)
+        if !sources.isEmpty {
+            parts.append(sources.joined(separator: " · "))
+        }
+        parts.append("\(report.score.percent)% Oriel")
+        if let rating = listing.rating {
+            parts.append(String(format: "%.1f★", rating))
+        }
+        return parts.joined(separator: " · ")
     }
 
     private func compatBadge(_ level: ExtensionCompatLevel) -> some View {
@@ -248,10 +314,10 @@ struct OrielStoreView: View {
             case .unsupported: return .red
             }
         }()
-        return HStack(spacing: 5) {
+        return HStack(spacing: 4) {
             Circle()
                 .fill(color)
-                .frame(width: 8, height: 8)
+                .frame(width: 7, height: 7)
             Text(level.title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(color)
@@ -259,79 +325,14 @@ struct OrielStoreView: View {
         .accessibilityLabel(level.accessibilityLabel)
     }
 
-    private func orielRatingRow(_ score: OrielCompatScore) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                Text("Oriel compatibility")
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.secondary)
-                Text(starString(for: score.stars))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text("\(score.percent)%")
-                    .font(.caption2.weight(.semibold))
-            }
-            HStack(spacing: 8) {
-                Text("\(formattedCount(score.communityInstalls)) users installed")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                if let works = score.worksAsExpectedPercent {
-                    Text("\(works)% works as expected")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            if score.localInstalls > 0 {
-                Text("\(score.localInstalls) install\(score.localInstalls == 1 ? "" : "s") on this device")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private func starString(for stars: Double) -> String {
-        let count = min(5, max(0, Int(stars.rounded())))
-        return String(repeating: "★", count: count) + String(repeating: "☆", count: 5 - count)
-    }
-
-    private func formattedCount(_ n: Int) -> String {
-        if n >= 1000 {
-            return String(format: "%.1fk", Double(n) / 1000.0)
-        }
-        return "\(n)"
-    }
-
-    private func sourceChips(for listing: UnifiedStoreListing) -> some View {
-        let available = Set(listing.availableSources)
-        return HStack(spacing: 6) {
-            ForEach(ExtensionStoreItem.Source.allCases, id: \.self) { source in
-                let on = available.contains(source)
-                HStack(spacing: 3) {
-                    Image(systemName: on ? "checkmark" : "minus")
-                        .font(.caption2.weight(.bold))
-                    Text(source.displayName)
-                        .font(.caption2.weight(.medium))
-                }
-                .foregroundStyle(on ? Color.primary : Color.secondary.opacity(0.55))
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(
-                    (on ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.08)),
-                    in: Capsule()
-                )
-                .accessibilityLabel("\(source.displayName) \(on ? "available" : "not available")")
-            }
-        }
-    }
-
     @ViewBuilder
     private func iconView(for listing: UnifiedStoreListing) -> some View {
+        let shape = RoundedRectangle(cornerRadius: OrielTheme.chromeButtonRadius, style: .continuous)
         let placeholder = Image(systemName: listing.kind == .theme ? "paintpalette.fill" : "puzzlepiece.extension.fill")
             .font(.title3)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(accent.opacity(0.85))
             .frame(width: 44, height: 44)
-            .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .background(accent.opacity(0.12), in: shape)
 
         if let url = listing.iconURL {
             AsyncImage(url: url) { phase in
@@ -341,7 +342,10 @@ struct OrielStoreView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 44, height: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .clipShape(shape)
+                        .overlay {
+                            shape.strokeBorder(OrielTheme.hairline(for: colorScheme), lineWidth: 1)
+                        }
                 default:
                     placeholder
                 }
