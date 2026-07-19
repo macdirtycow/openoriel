@@ -125,9 +125,22 @@ final class ExtensionThemeAndFirefoxTests: XCTestCase {
             XCTAssertEqual(reloaded.activeExtensionThemeID, "demo")
             XCTAssertEqual(reloaded.customAccentRGB?[0] ?? 0, 0.1, accuracy: 0.0001)
 
+            reloaded.backgroundTheme = .mist
             reloaded.clearExtensionTheme()
             XCTAssertFalse(reloaded.usesExtensionTheme)
             XCTAssertNil(reloaded.activeExtensionThemeID)
+            // Mist follows system — clearing an extension theme restores that.
+            XCTAssertEqual(reloaded.appearance, .system)
+
+            reloaded.applyExtensionTheme(
+                id: "demo-dark",
+                accentRGB: [0.1, 0.2, 0.3],
+                backgroundRGB: [0.1, 0.1, 0.1],
+                prefersDark: true
+            )
+            reloaded.backgroundTheme = .midnight
+            reloaded.clearExtensionTheme()
+            XCTAssertEqual(reloaded.appearance, .dark)
         }
     }
 

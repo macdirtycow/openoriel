@@ -220,16 +220,24 @@ struct ExtensionsView: View {
                         Spacer(minLength: 8)
 
                         if environment.settings.activeExtensionThemeID == theme.id {
-                            Image(systemName: "checkmark.circle.fill")
+                            Text("Active")
+                                .font(.caption2.weight(.semibold))
                                 .foregroundStyle(environment.settings.brandColor)
                         }
 
-                        Button("Apply") {
-                            environment.extensionThemes.apply(id: theme.id)
+                        if environment.settings.activeExtensionThemeID == theme.id {
+                            Button("Deactivate") {
+                                environment.extensionThemes.clearActive()
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        } else {
+                            Button("Activate") {
+                                environment.extensionThemes.apply(id: theme.id)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
                         }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                        .disabled(environment.settings.activeExtensionThemeID == theme.id)
 
                         Button(role: .destructive) {
                             environment.extensionThemes.remove(id: theme.id)
@@ -243,15 +251,17 @@ struct ExtensionsView: View {
                 }
 
                 if environment.settings.usesExtensionTheme {
-                    Button("Use built-in Oriel theme") {
+                    Button {
                         environment.extensionThemes.clearActive()
+                    } label: {
+                        Label("Deactivate theme — use Oriel default", systemImage: "circle.lefthalf.filled")
                     }
                 }
             }
         } header: {
             Text("Themes")
         } footer: {
-            Text("Themes come from Chrome Web Store themes, Firefox themes on AMO, and Safari Web Extension packages that include a theme block.")
+            Text("Activate/deactivate without removing. Themes stay installed until you delete them. Sources: Chrome, Firefox AMO, Safari packages with a theme block.")
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

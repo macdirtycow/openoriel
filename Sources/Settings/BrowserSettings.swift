@@ -176,6 +176,12 @@ final class BrowserSettings {
         customAccentRGB = nil
         customBackgroundRGB = nil
         extensionThemePrefersDark = nil
+        // Restore light/dark from the built-in background theme (extension themes force a scheme).
+        if let forced = backgroundTheme.forcedColorScheme {
+            appearance = forced == .dark ? .dark : .light
+        } else {
+            appearance = .system
+        }
     }
 
     private let defaults: UserDefaults
