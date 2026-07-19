@@ -1,22 +1,22 @@
 # Oriel
 
-Native browser for **iPhone, iPad, and Mac**. Swift, SwiftUI, WebKit — with Classic calm chrome or **Oriel Pulse**, Shields, extensions, and (on Mac) dual-engine browsing.
+Native browser for **iPhone, iPad, and Mac**. Swift, SwiftUI, WebKit — with Classic calm chrome or **Oriel Pulse**, Shields, extensions, and (on Mac) Smart dual-engine browsing with real Blink when available.
 
 <p align="center">
   <a href="https://openoriel.com"><strong>Website</strong></a>
   ·
-  <a href="https://github.com/macdirtycow/openoriel/releases/latest"><strong>Latest release</strong></a>
+  <a href="https://github.com/Ventspew/openoriel/releases/latest"><strong>Latest release</strong></a>
   ·
   <a href="https://inveil.net">inveil.net</a>
 </p>
 
-Bundle ID: `net.inveil.oriel` · Marketing site source: [`site/`](site/)
+Bundle ID: `net.inveil.oriel` · Marketing site source: [`site/`](site/) · Latest: **1.0.0 (67)**
 
 ---
 
 ## Download
 
-Installers ship on [GitHub Releases](https://github.com/macdirtycow/openoriel/releases) and are linked from [openoriel.com](https://openoriel.com/#download).
+Installers ship on [GitHub Releases](https://github.com/Ventspew/openoriel/releases) and are linked from [openoriel.com](https://openoriel.com/#download).
 
 | Platform | Asset | Notes |
 |----------|--------|--------|
@@ -33,7 +33,7 @@ TestFlight uploads: `Scripts/upload-testflight.sh` (needs Apple Developer Progra
 |---|-------------|-----------|
 | Look | Teal, paper, calm chrome | Obsidian + vermillion signal |
 | Extras | — | Pulse Corner, Data/Network Saver, Lucid Mode, ambience, workspace presets, optional Pulse icon |
-| Shared | Shields · extensions · page tools · profiles · iCloud sync · (Mac) engines & governors | Same core |
+| Shared | Shields · extensions · page tools · profiles · iCloud sync · (Mac) engines, vault & governors | Same core |
 
 Switch anytime in **Settings → Appearance**.
 
@@ -43,22 +43,23 @@ Switch anytime in **Settings → Appearance**.
 
 | Mode | What it is |
 |------|------------|
-| **Smart** (default) | Per-tab: Compatible for stubborn web apps; WebKit for Apple / captcha-sensitive hosts |
+| **Smart** (default) | Per-tab: **Native/Blink** for stubborn web apps when CEF or system Chromium is available; **Compatible** as fallback; **WebKit** for Apple / captcha-sensitive hosts |
 | **WebKit** | Native `WKWebView` |
 | **Chromium Compatible** | WebKit paint + Chrome User-Agent / Client Hints — **not Blink** |
-| **Chromium Native** | Embedded CEF when installed (`Scripts/fetch-cef-macos.sh`), else managed system Chromium app-window |
+| **Chromium Native** | Real Blink: in-tab **CEF** when built in (`ORIEL_HAS_CEF`), else managed system Chromium app-window |
 
-**iPhone and iPad stay on WebKit only** — Apple’s rule. Details: [`docs/DUAL_ENGINE.md`](docs/DUAL_ENGINE.md).
+**iPhone and iPad stay on WebKit only** — Apple’s rule. Details: [`docs/DUAL_ENGINE.md`](docs/DUAL_ENGINE.md) · CEF setup: [`docs/CEF_NATIVE.md`](docs/CEF_NATIVE.md).
 
 ---
 
 ## Highlights
 
 - **Everyday tools** — tabs & groups, bookmarks, Reading List, history, downloads that persist, find with match counts, mute tab, screenshot, Save as PDF, per-site zoom, Reader, translate
-- **Oriel Shields** — content-blocker lists, cosmetics, HTTPS upgrade, tracking-parameter strip, Fire; honest about WebKit limits
+- **Oriel Shields** — content-blocker lists, cosmetics, HTTPS upgrade, tracking-parameter strip, Fire (clears WebKit + CEF cookies when Native is linked)
 - **Extensions** — Chrome Web Store, Firefox Add-ons, Safari `.appex` import via Oriel Store (`WKWebExtension` where the OS allows)
-- **Password Vault** (Mac) — optional AES-GCM vault, Keychain-wrapped key, Touch ID / Face ID unlock; system Keychain autofill still available
+- **Password Vault** — optional AES-GCM vault, Keychain-wrapped key, Touch ID / Face ID unlock; system Keychain autofill still available
 - **Mac governors** — timer throttle, WebView pool, memory-pressure hibernate (real Oriel-side controls — not fake OS CPU% gauges)
+- **Smart + Blink (Mac)** — stubborn apps prefer real Chromium when available; toggle “Smart prefers Native / Blink” in Chromium settings (on by default)
 - **iCloud sync** — bookmarks, Reading List, open tabs, limited history, appearance (not vault secrets)
 
 ---
@@ -68,7 +69,7 @@ Switch anytime in **Settings → Appearance**.
 Needs **Xcode 16+**, [XcodeGen](https://github.com/yonaskolb/XcodeGen), iOS/iPadOS 17+, macOS 14+ (WebExtensions need iOS/iPadOS 18.4+ or macOS 15.4+).
 
 ```bash
-git clone https://github.com/macdirtycow/openoriel.git
+git clone https://github.com/Ventspew/openoriel.git
 cd openoriel
 xcodegen generate
 open Oriel.xcodeproj
@@ -92,18 +93,16 @@ bash Scripts/make-unsigned-ipa.sh
 Optional Mac CEF (in-tab Blink for Chromium Native):
 
 ```bash
-bash Scripts/fetch-cef-macos.sh
-bash Scripts/enable-cef-macos.sh
+bash Scripts/fetch-cef-macos.sh   # pinned Chromium Standard CEF (~250–300 MB)
+bash Scripts/enable-cef-macos.sh  # writes Vendor/CEF.xcconfig
 # Apply Vendor/CEF.xcconfig in Xcode (Mac), embed the framework, clean build.
 ```
 
 See [`docs/CEF_NATIVE.md`](docs/CEF_NATIVE.md).
 
-CI builds the unsigned IPA on pushes to `main` (Actions → Build unsigned IPA).
+CI builds the unsigned IPA on pushes to `main` (Actions → Build unsigned IPA). Tag `v*` runs the Release workflow (macOS DMG).
 
 ### Release tagging
-
-Push a `v*` tag (or run Actions → Release) to attach installers to the GitHub release:
 
 ```bash
 git tag v1.0.0-N
@@ -118,6 +117,7 @@ git push origin v1.0.0-N
 Sources/
   App/              # Entry, composition root
   BrowserCore/      # Engines, Smart routing, Chromium Native host
+  CEF/              # ObjC++ CEF bridge + in-tab Blink host (Mac)
   WebView/          # WKWebView, pool, navigation
   Tabs/ History/ Bookmarks/ Downloads/
   Privacy/          # Shields, fingerprint, Fire
@@ -129,7 +129,7 @@ Sources/
 Resources/          # Icons, content blocker lists
 Scripts/            # IPA, DMG, CEF, TestFlight
 site/               # openoriel.com
-docs/               # Architecture, privacy, dual engine, …
+docs/               # Architecture, privacy, dual engine, CEF, …
 ```
 
 ---
@@ -139,7 +139,7 @@ docs/               # Architecture, privacy, dual engine, …
 | Doc | Topic |
 |-----|--------|
 | [Architecture](docs/ARCHITECTURE.md) | Modules and data flow |
-| [Dual engine](docs/DUAL_ENGINE.md) | Compatible vs Native honesty |
+| [Dual engine](docs/DUAL_ENGINE.md) | Smart, Compatible vs Native honesty |
 | [CEF / Blink Native (Mac)](docs/CEF_NATIVE.md) | Fetch, enable, sandbox, updates |
 | [Privacy](docs/PRIVACY.md) | Shields and WebKit limits |
 | [Product priorities](docs/PRODUCT_PRIORITIES.md) | What ships next |
@@ -159,4 +159,4 @@ Copyright 2025–2026 inveil.net
 
 Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
-Oriel is independent and not affiliated with Apple, Google, or Opera. “Chromium Compatible” is not Blink.
+Oriel is independent and not affiliated with Apple, Google, or Opera. “Chromium Compatible” is not Blink. Chromium Native is real Blink (CEF or managed Chromium) on Mac only.

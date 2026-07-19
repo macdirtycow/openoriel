@@ -29,7 +29,7 @@
   const meta = document.getElementById("release-meta");
   const ipa = document.getElementById("download-ipa");
   const dmg = document.getElementById("download-dmg");
-  const releasesURL = "https://api.github.com/repos/macdirtycow/openoriel/releases/latest";
+  const releasesURL = "https://api.github.com/repos/Ventspew/openoriel/releases/latest";
 
   fetch(releasesURL, {
     headers: { Accept: "application/vnd.github+json" },

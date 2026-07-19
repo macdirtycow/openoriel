@@ -276,6 +276,15 @@ a:hover {
   color: var(--teal-deep);
 }
 
+.band code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  padding: 0.12em 0.35em;
+  border-radius: 0.3rem;
+  background: rgba(28, 31, 33, 0.06);
+  color: var(--teal-deep);
+}
+
 .band p {
   margin: 0;
   color: var(--ink-soft);
