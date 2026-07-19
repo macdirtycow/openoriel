@@ -186,7 +186,8 @@ enum ChromeWebStoreBridge {
     })();
     """#
 
-    /// Lightweight DOM bridge — labels + one floating install button (page world).
+    /// DOM bridge — hide “desktop only”, rewrite native CTAs, sticky Install bar on detail pages.
+    /// Readable layout stays in `StoreReadableLayout`; install does not need a Python proxy.
     static let userScriptSource = #"""
     (function () {
       if (window.__orielChromeWebStoreBridge) return;
@@ -306,7 +307,7 @@ enum ChromeWebStoreBridge {
         );
         for (var i = 0; i < nodes.length; i++) {
           var el = nodes[i];
-          if (el.id === 'oriel-add-to-oriel' || el.id === 'oriel-cws-tip') continue;
+          if (el.id === 'oriel-add-to-oriel' || el.id === 'oriel-install-bar' || el.id === 'oriel-cws-tip') continue;
           var aria = normalizeLabel(el.getAttribute('aria-label'));
           var title = normalizeLabel(el.getAttribute('title'));
           var text = normalizeLabel(el.textContent);
@@ -336,30 +337,104 @@ enum ChromeWebStoreBridge {
       function isPhoneIncompatText(text) {
         var api = i18n();
         if (api) return api.isPhoneIncompatText(text);
-        return /not compatible with|Item currently unavailable/i.test(text || '');
+        return /not compatible with|Item currently unavailable|only (works|available|installable) on (a )?(desktop|computer)|alleen (beschikbaar|te installeren) op/i.test(text || '');
       }
 
       function hideUnavailable() {
         if (!document.body) return;
-        var candidates = document.querySelectorAll('div, section, span, p, h1, h2, h3, li');
+        var candidates = document.querySelectorAll('div, section, span, p, h1, h2, h3, li, button, a');
         for (var i = 0; i < candidates.length; i++) {
           var el = candidates[i];
           if (el.getAttribute('data-oriel-hidden-unavailable') === '1') continue;
-          if (el.id === 'oriel-add-to-oriel' || el.id === 'oriel-cws-tip') continue;
-          if (el.childElementCount > 8) continue;
+          if (el.id === 'oriel-add-to-oriel' || el.id === 'oriel-install-bar' || el.id === 'oriel-cws-tip') continue;
+          if (el.closest && el.closest('#oriel-install-bar')) continue;
+          if (el.childElementCount > 12) continue;
           var text = normalizeLabel(el.textContent);
-          if (text.length < 10 || text.length > 240) continue;
+          if (text.length < 10 || text.length > 320) continue;
           if (!isPhoneIncompatText(text)) continue;
-          el.style.setProperty('display', 'none', 'important');
-          el.setAttribute('data-oriel-hidden-unavailable', '1');
+          var target = el;
+          // Prefer hiding a small banner wrapper, not the whole page.
+          var parent = el.parentElement;
+          if (parent && parent !== document.body && parent.childElementCount <= 4) {
+            var pText = normalizeLabel(parent.textContent);
+            if (pText.length <= 360 && isPhoneIncompatText(pText)) target = parent;
+          }
+          target.style.setProperty('display', 'none', 'important');
+          target.setAttribute('data-oriel-hidden-unavailable', '1');
         }
+      }
+
+      /** Sticky phone-width install bar — CWS often hides native install on mobile layouts. */
+      function ensureInstallBar() {
+        var id = idFromPath();
+        var bar = document.getElementById('oriel-install-bar');
+        if (!id) {
+          if (bar) bar.remove();
+          document.documentElement.style.removeProperty('padding-bottom');
+          return;
+        }
+        if (!document.body) return;
+        if (!bar) {
+          bar = document.createElement('div');
+          bar.id = 'oriel-install-bar';
+          bar.setAttribute('role', 'region');
+          bar.setAttribute('aria-label', 'Oriel');
+          bar.style.cssText = [
+            'position:fixed', 'left:0', 'right:0', 'bottom:0', 'z-index:2147483646',
+            'padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px))',
+            'background:rgba(255,255,255,0.96)', 'backdrop-filter:blur(12px)',
+            '-webkit-backdrop-filter:blur(12px)',
+            'border-top:1px solid rgba(0,0,0,0.08)',
+            'box-shadow:0 -4px 24px rgba(0,0,0,0.08)',
+            'font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif'
+          ].join(';');
+          var tip = document.createElement('p');
+          tip.id = 'oriel-cws-tip';
+          tip.style.cssText = 'margin:0 0 8px;font-size:13px;line-height:1.35;color:#444;text-align:center';
+          tip.textContent = L('tipChrome');
+          var btn = document.createElement('button');
+          btn.id = 'oriel-add-to-oriel';
+          btn.type = 'button';
+          btn.style.cssText = [
+            'display:block', 'width:100%', 'min-height:48px', 'border:0', 'border-radius:12px',
+            'background:#1a73e8', 'color:#fff', 'font-size:16px', 'font-weight:600',
+            'padding:12px 16px', '-webkit-tap-highlight-color:transparent'
+          ].join(';');
+          btn.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            var extId = idFromPath();
+            if (!extId) return;
+            if (isInstalled(extId)) openManage();
+            else postInstall(extId);
+          });
+          bar.appendChild(tip);
+          bar.appendChild(btn);
+          document.body.appendChild(bar);
+        }
+        var tipEl = document.getElementById('oriel-cws-tip');
+        if (tipEl) tipEl.textContent = L('tipChrome');
+        var btnEl = document.getElementById('oriel-add-to-oriel');
+        if (btnEl) {
+          var label = isInstalled(id) ? L('installed') : L('add');
+          btnEl.textContent = label;
+          btnEl.setAttribute('aria-label', label);
+          btnEl.style.background = isInstalled(id) ? '#5f6368' : '#1a73e8';
+        }
+        document.documentElement.style.setProperty(
+          'padding-bottom',
+          'calc(108px + env(safe-area-inset-bottom, 0px))',
+          'important'
+        );
       }
 
       function onClick(event) {
         var t = event.target;
         if (!t || !t.closest) return;
+        if (t.closest('#oriel-install-bar')) return; // handled by button listener
         var el = t.closest('button, a, div[role="button"], span[role="button"]');
-        if (!el || el.id === 'oriel-add-to-oriel') return;
+        if (!el) return;
         var label = normalizeLabel(el.textContent);
         var aria = normalizeLabel(el.getAttribute('aria-label'));
         var title = normalizeLabel(el.getAttribute('title'));
@@ -388,11 +463,7 @@ enum ChromeWebStoreBridge {
         try {
           rewriteLabels();
           if (idFromPath()) hideUnavailable();
-          // Remove legacy floating FAB/tip if an older build left them behind.
-          var legacyBtn = document.getElementById('oriel-add-to-oriel');
-          if (legacyBtn) legacyBtn.remove();
-          var legacyTip = document.getElementById('oriel-cws-tip');
-          if (legacyTip) legacyTip.remove();
+          ensureInstallBar();
         } finally { busy = false; }
       }
       function schedule() {

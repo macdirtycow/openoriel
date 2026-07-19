@@ -29,8 +29,8 @@ The store often shows **“not compatible with a phone”** when it sees a mobil
 2. **`preferredContentMode = .mobile`** on iOS unless the user explicitly taps Request Desktop Website — never auto-desktop for normal sites.
 3. **JS spoof** of `navigator.userAgent` / `userAgentData` / `platform` / `maxTouchPoints` so install UI stays available.
 4. **Readable layout** (`StoreReadableLayout`) on CWS/AMO only — kills CWS’s `.IqBfM { min-width: 1249px/1280px }` desktop shell, locks `viewport=device-width`, and re-applies after SPA class swaps. Other sites are untouched.
-5. **Hide** phone-incompatibility banners.
-6. **Rewrite** the native store CTA to localized **Add to Oriel** / **Installed in Oriel** / **Remove from Oriel** — no extra floating FAB.
+5. **Hide** phone-incompatibility / “desktop only” banners (multilingual).
+6. **Sticky Install bar** on extension detail pages (**Add to Oriel**) when the mobile-width store hides Chrome’s native install CTA — plus rewrite any native CTA that does appear. Install is handled in-app (CRX download); no Python proxy.
 7. **Multilingual** (`StoreBridgeI18n`): 60+ locales for CTA detection and Oriel labels.
 8. **Installed state**: inject Chrome store IDs + Firefox AMO slugs on **macOS, iOS, and iPadOS** — including **theme-only** packages.
 

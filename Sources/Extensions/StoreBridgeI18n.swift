@@ -811,14 +811,17 @@ enum StoreBridgeI18n {
 
       function isPhoneIncompatText(text) {
         text = norm(text);
-        if (!text || text.length < 10 || text.length > 240) return false;
+        if (!text || text.length < 10 || text.length > 320) return false;
         if (/Item currently unavailable|Artikel momenteel niet beschikbaar|Element derzeit nicht verfügbar|Élément actuellement indisponible|Elemento no disponible|Elemento attualmente non disponibile|Item indisponível|Элемент сейчас недоступен|項目目前無法使用|目前无法使用|현재 사용할 수 없음|現在利用できません/i.test(text)) return true;
         if (/not compatible with (a )?(phone|mobile|device)|niet compatibel met (een )?(telefoon|mobiel)|nicht (mit|für) (einem )?(telefon|handy|mobilgerät)|pas compatible avec (un )?(téléphone|mobile)|no compatible con (un )?(teléfono|móvil|dispositivo)|non compatibile con (un )?(telefono|dispositivo)|não compatível com (um )?(telefone|dispositivo)|не совместим|غير متوافق|غير متوافقة|غير متوافق مع|スマホ|スマートフォン|携帯電話|スマートフォンには対応|モバイル|手机|手機|모바일|휴대전화/i.test(text)) return true;
         if (/not available (on|for) (your )?(phone|mobile|ios|iphone|ipad)|niet beschikbaar op|nicht verfügbar|pas disponible|no disponible|non disponibile|não disponível|не доступ|غير متاح|iPhone|iPad|iOS/i.test(text)
             && /(phone|mobile|telefoon|telefon|téléphone|móvil|telefono|スマートフォン|手机|手機|모바일|iphone|ipad|ios)/i.test(text)) {
           return true;
         }
-        if (/only (works|available) on (desktop|computer)|alleen (beschikbaar|werkzaam) op|nur (auf|für) (dem )?desktop|uniquement (sur|disponible)|solo (en|disponible)|solo su|apenas (no|em)|только на|فقط على|デスクトップのみ|仅限电脑|僅限電腦|데스크톱에서만/i.test(text)) return true;
+        // “Only on desktop / computer” — common when CWS sees a phone-width layout.
+        if (/only (works|available|installable) on (a )?(desktop|computer|pc)|alleen (beschikbaar|werkzaam|te installeren) op (een )?(desktop|computer|pc)|nur (auf|für) (dem )?(desktop|computer)|uniquement (sur|disponible).*(ordinateur|desktop)|solo (en|disponible).*(escritorio|ordenador|computadora)|solo su (desktop|computer)|apenas (no|em).*(computador|desktop)|только на|فقط على|デスクトップのみ|仅限电脑|僅限電腦|데스크톱에서만/i.test(text)) return true;
+        if (/install( this)? (on|from) (a )?(desktop|computer)|installeer.*(desktop|computer)|auf (einem )?(desktop|computer) installieren/i.test(text)) return true;
+        if (/available (for|on) chrome (on )?(desktop|mac|windows|computer)|beschikbaar (voor|op) chrome.*(desktop|computer|mac|windows)/i.test(text)) return true;
         if (/requires? chrome|chrome (for )?(desktop|mac|windows) (required|nodig|erforderlich|requis|necesario|necessario|necessário)/i.test(text)) return true;
         return false;
       }

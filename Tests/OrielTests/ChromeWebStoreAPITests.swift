@@ -40,14 +40,15 @@ final class ChromeWebStoreAPITests: XCTestCase {
         XCTAssertTrue(ChromeWebStoreBridge.chromeAPIStubSource.contains("MacIntel"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("not compatible with")
             || StoreBridgeI18n.catalogSource.contains("isPhoneIncompatText"))
-        // No floating FAB — only rewrite the native store CTA.
-        XCTAssertFalse(ChromeWebStoreBridge.userScriptSource.contains("function ensureButton"))
-        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("legacyBtn"))
+        // Sticky install bar for phone-width CWS (native install CTA often missing).
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("function ensureInstallBar"))
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("oriel-install-bar"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("__orielStoreI18n"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("oriel-installed-changed"))
         XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("Toevoegen aan Oriel"))
         XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("Verwijderen uit Oriel"))
         XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("isChromeInstallLabel"))
+        XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("only (works|available|installable) on"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("isRemoveChromeLabel"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("L('remove')"))
     }
