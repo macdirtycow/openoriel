@@ -8,15 +8,13 @@ Native browser for iOS, iPadOS, and macOS. Swift, SwiftUI, WebKit.
 
 Marketing site source: [`site/`](site/).
 
-## Download (macOS)
+## Download
 
-DMG builds are on [GitHub Releases](https://github.com/macdirtycow/openoriel/releases).
+Installers are on [GitHub Releases](https://github.com/macdirtycow/openoriel/releases) and linked from [openoriel.com](https://openoriel.com/#download).
 
-1. Download `Oriel-*-macOS.dmg`
-2. Open it and drag Oriel into Applications
-3. First launch: right-click Oriel, then Open (Gatekeeper may warn once)
+**Mac:** download `Oriel-*-macOS.dmg`, open it, drag Oriel into Applications. First launch: right-click → Open.
 
-iOS / iPadOS: build from source, or use TestFlight when a build is up (`Scripts/upload-testflight.sh`).
+**iPhone / iPad:** download `Oriel-*-unsigned.ipa` and sideload with your usual installer (e.g. TrollStore). TestFlight builds: `Scripts/upload-testflight.sh`.
 
 ## Build
 

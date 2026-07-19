@@ -257,6 +257,10 @@ a:hover {
   margin: 0 auto;
 }
 
+.band-inner.band-wide {
+  width: min(100%, 42rem);
+}
+
 .band h2 {
   margin: 0 0 0.85rem;
   font-family: var(--serif);
@@ -273,6 +277,59 @@ a:hover {
 
 .band p + p {
   margin-top: 1rem;
+}
+
+.release-meta {
+  margin-top: 0.65rem !important;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--teal) !important;
+}
+
+.download-list {
+  list-style: none;
+  margin: 1.5rem 0 1.1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.download-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.download-list li:last-child {
+  border-bottom: none;
+}
+
+.download-platform {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  font-weight: 550;
+  color: var(--teal-deep);
+}
+
+.btn-compact {
+  min-height: 2.45rem;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.92rem;
+}
+
+.btn-on-paper {
+  background: var(--teal);
+  color: var(--paper);
+  box-shadow: 0 8px 24px rgba(46, 97, 107, 0.22);
+}
+
+.btn-on-paper:hover {
+  background: var(--teal-deep);
+  color: #fff;
+  transform: translateY(-1px);
 }
 
 .platforms {

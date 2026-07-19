@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Oriel — A calm view of the web</title>
-  <meta name="description" content="Oriel is a native browser for iPhone, iPad, and Mac. Built with Swift, SwiftUI, and WebKit by inveil.net." />
+  <meta name="description" content="Oriel is a native browser for iPhone, iPad, and Mac. Download unsigned IPA and macOS DMG builds from GitHub. Built with Swift, SwiftUI, and WebKit by inveil.net." />
   <link rel="canonical" href="https://openoriel.com/" />
   <meta name="theme-color" content="#2E616B" />
   <meta property="og:title" content="Oriel — A calm view of the web" />
-  <meta property="og:description" content="A native Apple browser by inveil.net. Open source on GitHub." />
+  <meta property="og:description" content="A native Apple browser by inveil.net. Download for iPhone, iPad, and Mac — open source on GitHub." />
   <meta property="og:url" content="https://openoriel.com" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="assets/hero.jpg" />
@@ -27,6 +27,7 @@
       <span>Oriel</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
+      <a href="#download">Download</a>
       <a href="#why">Why</a>
       <a href="#shields">Shields</a>
       <a href="#platforms">Platforms</a>
@@ -45,27 +46,49 @@
         <h1>A calm view of the web.</h1>
         <p class="lede">A native browser for iPhone, iPad, and Mac — built with Swift, SwiftUI, and WebKit.</p>
         <div class="cta">
-          <a class="btn btn-primary" href="https://github.com/macdirtycow/openoriel">View on GitHub</a>
-          <a class="btn btn-ghost" href="https://inveil.net">Publisher</a>
+          <a class="btn btn-primary" href="#download">Download</a>
+          <a class="btn btn-ghost" href="https://github.com/macdirtycow/openoriel">View on GitHub</a>
         </div>
       </div>
     </section>
 
-    <section class="band" id="why">
+    <section class="band" id="download">
+      <div class="band-inner band-wide reveal">
+        <h2>Download</h2>
+        <p>Installers ship on GitHub Releases — unsigned IPA for iPhone &amp; iPad, DMG for Mac.</p>
+        <p class="release-meta" id="release-meta" hidden></p>
+        <ul class="download-list" id="download-list">
+          <li>
+            <span class="download-platform">iPhone &amp; iPad</span>
+            <a class="btn btn-on-paper btn-compact" id="download-ipa" href="https://github.com/macdirtycow/openoriel/releases/latest">Get IPA</a>
+          </li>
+          <li>
+            <span class="download-platform">Mac</span>
+            <a class="btn btn-on-paper btn-compact" id="download-dmg" href="https://github.com/macdirtycow/openoriel/releases/latest">Get DMG</a>
+          </li>
+        </ul>
+        <p class="note">
+          Sideload the IPA with your usual installer (e.g. TrollStore). On Mac, open the DMG and drag Oriel into Applications — first launch may need right-click → Open.
+          <a class="text-link" href="https://github.com/macdirtycow/openoriel/releases">All releases</a>
+        </p>
+      </div>
+    </section>
+
+    <section class="band band-alt" id="why">
       <div class="band-inner reveal">
         <h2>Native on purpose</h2>
         <p>Oriel is not a Chromium shell. It is an Apple-first browser: process-shared WebKit, system materials, and chrome that stays out of the way so the page can breathe.</p>
       </div>
     </section>
 
-    <section class="band band-alt" id="shields">
+    <section class="band" id="shields">
       <div class="band-inner reveal">
         <h2>Oriel Shields</h2>
         <p>Bundled content-blocker lists — EasyList, AdGuard-derived filters, DuckDuckGo tracker hosts — plus cosmetics and YouTube help. Honest about WebKit limits: some first-party stacks still slip through.</p>
       </div>
     </section>
 
-    <section class="band" id="platforms">
+    <section class="band band-alt" id="platforms">
       <div class="band-inner reveal">
         <h2>One browser, three surfaces</h2>
         <ul class="platforms">
@@ -73,11 +96,11 @@
           <li>iPad</li>
           <li>Mac</li>
         </ul>
-        <p class="note">Open source under Apache 2.0. Build with Xcode from the repository.</p>
+        <p class="note">Open source under Apache 2.0. Build with Xcode from the repository, or use the installers above.</p>
       </div>
     </section>
 
-    <section class="band band-alt" id="open">
+    <section class="band" id="open">
       <div class="band-inner reveal">
         <h2>Open source</h2>
         <p>Source, issues, and releases live on GitHub. Contributions welcome.</p>
@@ -93,8 +116,10 @@
         <span>Oriel</span>
       </div>
       <div class="footer-links">
+        <a href="#download">Download</a>
         <a href="https://openoriel.com">openoriel.com</a>
         <a href="https://inveil.net">inveil.net</a>
+        <a href="https://github.com/macdirtycow/openoriel/releases">Releases</a>
         <a href="https://github.com/macdirtycow/openoriel">GitHub</a>
       </div>
       <p class="copy">© 2025–2026 inveil.net</p>

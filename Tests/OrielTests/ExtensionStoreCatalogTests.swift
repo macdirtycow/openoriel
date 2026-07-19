@@ -197,4 +197,105 @@ final class ExtensionStoreCatalogTests: XCTestCase {
         XCTAssertTrue(sources.contains(.firefox))
         XCTAssertTrue(sources.contains(.safari))
     }
+
+    func testParseAMODetailIncludesDescriptionAndScreenshots() throws {
+        let json: [String: Any] = [
+            "slug": "darkreader",
+            "name": ["en-US": "Dark Reader"],
+            "summary": ["en-US": "Dark mode for every website."],
+            "description": ["en-US": "<p>This eye-care extension enables night mode.</p><p>Adjust brightness.</p>"],
+            "icon_url": "https://addons.mozilla.org/icon.png",
+            "average_daily_users": 1_000_000,
+            "ratings": ["average": 4.5],
+            "authors": [["name": "Dark Reader Ltd"]],
+            "previews": [
+                ["image_url": "https://addons.mozilla.org/preview1.png"],
+                ["thumbnail_url": "https://addons.mozilla.org/thumb2.jpg"]
+            ],
+            "current_version": [
+                "version": "4.9.0",
+                "file": ["permissions": ["storage", "tabs"]]
+            ]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: json)
+        let listing = UnifiedStoreListing(
+            id: "darkreader",
+            kind: .extension,
+            name: "Dark Reader",
+            summary: "fallback",
+            iconURL: nil,
+            rating: nil,
+            offers: [
+                ExtensionStoreItem(
+                    source: .firefox,
+                    kind: .extension,
+                    storeIdentifier: "darkreader",
+                    name: "Dark Reader",
+                    summary: "fallback",
+                    iconURL: nil,
+                    rating: nil,
+                    storeURL: nil
+                )
+            ]
+        )
+        let detail = try XCTUnwrap(ExtensionStoreCatalog.parseAMODetail(data: data, listing: listing))
+        XCTAssertEqual(detail.name, "Dark Reader")
+        XCTAssertTrue(detail.description.contains("eye-care"))
+        XCTAssertEqual(detail.screenshotURLs.count, 2)
+        XCTAssertEqual(detail.userCount, 1_000_000)
+        XCTAssertEqual(detail.authorName, "Dark Reader Ltd")
+        XCTAssertEqual(detail.version, "4.9.0")
+        XCTAssertEqual(detail.permissions, ["storage", "tabs"])
+        XCTAssertEqual(detail.primarySource, .firefox)
+    }
+
+    func testParseChromeDetailHTMLExtractsDescriptionAndScreenshots() {
+        let html = """
+        <meta property="og:title" content="Dark Reader - Chrome Web Store">
+        <meta property="og:description" content="Dark mode for every website.">
+        <p>Short nav</p>
+        <p>This eye-care extension enables night mode by creating dark themes for websites on the fly. Dark Reader inverts bright colors.</p>
+        <p>Adjust brightness, contrast, the sepia filter, and font preferences for comfortable reading.</p>
+        <img src="https://lh3.googleusercontent.com/abc123XYZ=s550-w550-h350">
+        <img src="https://lh3.googleusercontent.com/def456UVW=s550-w550-h350">
+        <img src="https://lh3.googleusercontent.com/abc123XYZ=s128-rj">
+        """
+        let listing = UnifiedStoreListing(
+            id: "darkreader",
+            kind: .extension,
+            name: "Dark Reader",
+            summary: "fallback",
+            iconURL: nil,
+            rating: 4.4,
+            offers: [
+                ExtensionStoreItem(
+                    source: .chrome,
+                    kind: .extension,
+                    storeIdentifier: "eimadpbcbfnmbkopoojfekhnkhdbieeh",
+                    name: "Dark Reader",
+                    summary: "fallback",
+                    iconURL: nil,
+                    rating: 4.4,
+                    storeURL: nil
+                )
+            ]
+        )
+        let detail = ExtensionStoreCatalog.parseChromeDetailHTML(
+            html,
+            storeID: "eimadpbcbfnmbkopoojfekhnkhdbieeh",
+            listing: listing
+        )
+        XCTAssertNotNil(detail)
+        XCTAssertEqual(detail?.name, "Dark Reader")
+        XCTAssertTrue(detail?.description.contains("eye-care") == true)
+        XCTAssertEqual(detail?.screenshotURLs.count, 2)
+        XCTAssertEqual(detail?.primarySource, .chrome)
+    }
+
+    func testStripHTMLRemovesTags() {
+        let plain = ExtensionStoreCatalog.stripHTML("<p>Hello <b>world</b></p><br/>Next")
+        XCTAssertTrue(plain.contains("Hello world"))
+        XCTAssertTrue(plain.contains("Next"))
+        XCTAssertFalse(plain.contains("<"))
+    }
 }

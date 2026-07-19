@@ -819,4 +819,311 @@ enum ExtensionStoreCatalog {
             storeURL: storeURL
         )
     }
+
+    // MARK: - Product detail (AMO + Chrome)
+
+    /// Rich product page for one universal listing — description, screenshots, author.
+    /// Prefers Firefox AMO (official API), then Chrome Web Store HTML, then listing summary.
+    static func fetchProductDetail(for listing: UnifiedStoreListing) async -> StoreProductDetail {
+        if let firefox = listing.offers.first(where: { $0.source == .firefox }) {
+            if let detail = try? await fetchFirefoxDetail(slug: firefox.storeIdentifier, listing: listing) {
+                return detail
+            }
+        }
+        if let chrome = listing.offers.first(where: { $0.source == .chrome }) {
+            if let detail = try? await fetchChromeDetail(storeID: chrome.storeIdentifier, listing: listing) {
+                return detail
+            }
+        }
+        return StoreProductDetail.fallback(from: listing)
+    }
+
+    static func fetchFirefoxDetail(slug: String, listing: UnifiedStoreListing) async throws -> StoreProductDetail {
+        let encoded = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
+        guard let url = URL(string: "https://addons.mozilla.org/api/v5/addons/addon/\(encoded)/") else {
+            throw URLError(.badURL)
+        }
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(
+            "Oriel/\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") (extension store)",
+            forHTTPHeaderField: "User-Agent"
+        )
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+        guard let detail = parseAMODetail(data: data, listing: listing) else {
+            throw URLError(.cannotParseResponse)
+        }
+        return detail
+    }
+
+    static func parseAMODetail(data: Data, listing: UnifiedStoreListing) -> StoreProductDetail? {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return nil
+        }
+        let name = localizedString(root["name"]) ?? listing.name
+        let summary = localizedString(root["summary"]) ?? listing.summary
+        let descriptionHTML = localizedString(root["description"]) ?? ""
+        let description = stripHTML(descriptionHTML)
+        let icon: URL? = {
+            if let s = root["icon_url"] as? String { return URL(string: s) }
+            return listing.iconURL
+        }()
+        let rating: Double? = {
+            guard let ratings = root["ratings"] as? [String: Any] else { return listing.rating }
+            if let d = ratings["average"] as? Double { return d }
+            if let n = ratings["average"] as? NSNumber { return n.doubleValue }
+            return listing.rating
+        }()
+        let users: Int? = {
+            if let n = root["average_daily_users"] as? Int { return n }
+            if let n = root["average_daily_users"] as? NSNumber { return n.intValue }
+            return nil
+        }()
+        let author: String? = {
+            guard let authors = root["authors"] as? [[String: Any]],
+                  let first = authors.first else { return nil }
+            return first["name"] as? String
+        }()
+        let homepage: URL? = {
+            if let s = localizedString(root["homepage"]), let u = URL(string: s) { return u }
+            return nil
+        }()
+        let version: String? = {
+            guard let current = root["current_version"] as? [String: Any] else { return nil }
+            return current["version"] as? String
+        }()
+        let screenshots: [URL] = {
+            guard let previews = root["previews"] as? [[String: Any]] else { return [] }
+            return previews.compactMap { row in
+                if let s = row["image_url"] as? String { return URL(string: s) }
+                if let s = row["thumbnail_url"] as? String { return URL(string: s) }
+                return nil
+            }
+        }()
+        let permissions: [String] = {
+            guard let version = root["current_version"] as? [String: Any],
+                  let file = version["file"] as? [String: Any] else { return [] }
+            var perms: [String] = []
+            if let p = file["permissions"] as? [String] { perms.append(contentsOf: p) }
+            if let p = file["optional_permissions"] as? [String] { perms.append(contentsOf: p) }
+            if let p = file["host_permissions"] as? [String] { perms.append(contentsOf: p) }
+            return perms
+        }()
+        let storeURL = URL(string: "https://addons.mozilla.org/firefox/addon/\(root["slug"] as? String ?? "")/")
+        let body = description.isEmpty ? summary : description
+        return StoreProductDetail(
+            listingID: listing.id,
+            name: name,
+            summary: summary,
+            description: body,
+            iconURL: icon,
+            screenshotURLs: screenshots,
+            rating: rating,
+            userCount: users,
+            authorName: author,
+            homepageURL: homepage,
+            version: version,
+            primarySource: .firefox,
+            storeURL: storeURL,
+            permissions: permissions
+        )
+    }
+
+    static func fetchChromeDetail(storeID: String, listing: UnifiedStoreListing) async throws -> StoreProductDetail {
+        guard ChromeWebStoreAPI.isValidExtensionID(storeID) else {
+            throw URLError(.badURL)
+        }
+        let urls = [
+            URL(string: "https://chromewebstore.google.com/detail/\(storeID)?hl=en&gl=US")!,
+            URL(string: "https://chromewebstore.google.com/detail/\(storeID)?hl=en")!
+        ]
+        var lastError: Error?
+        for url in urls {
+            do {
+                let html = try await fetchChromeHTML(url)
+                if let detail = parseChromeDetailHTML(html, storeID: storeID, listing: listing) {
+                    return detail
+                }
+            } catch {
+                lastError = error
+            }
+        }
+        throw lastError ?? URLError(.cannotParseResponse)
+    }
+
+    static func parseChromeDetailHTML(_ html: String, storeID: String, listing: UnifiedStoreListing) -> StoreProductDetail? {
+        let ogDescription = metaContent(html: html, property: "og:description")
+            ?? metaContent(html: html, name: "description")
+            ?? listing.summary
+        let longDescription = chromeLongDescription(from: html) ?? ""
+        let description: String = {
+            if !longDescription.isEmpty { return longDescription }
+            if !ogDescription.isEmpty { return ogDescription }
+            return listing.summary
+        }()
+        guard !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                || listing.iconURL != nil
+                || !listing.name.isEmpty else {
+            return nil
+        }
+        let title = metaContent(html: html, property: "og:title")?
+            .replacingOccurrences(of: " - Chrome Web Store", with: "")
+            ?? listing.name
+        let screenshots = chromeScreenshotURLs(from: html)
+        return StoreProductDetail(
+            listingID: listing.id,
+            name: title,
+            summary: ogDescription.isEmpty ? listing.summary : ogDescription,
+            description: description,
+            iconURL: listing.iconURL,
+            screenshotURLs: screenshots,
+            rating: listing.rating,
+            userCount: nil,
+            authorName: nil,
+            homepageURL: nil,
+            version: nil,
+            primarySource: .chrome,
+            storeURL: URL(string: "https://chromewebstore.google.com/detail/\(storeID)"),
+            permissions: listing.offers.first(where: { $0.source == .chrome })?.permissions ?? []
+        )
+    }
+
+    private static func metaContent(html: String, property: String) -> String? {
+        let pattern = #"property="\#(NSRegularExpression.escapedPattern(for: property))" content="([^"]+)""#
+        return firstCapture(html: html, pattern: pattern).map(decodeHTMLEntities)
+    }
+
+    private static func metaContent(html: String, name: String) -> String? {
+        let pattern = #"name="\#(NSRegularExpression.escapedPattern(for: name))" content="([^"]+)""#
+        return firstCapture(html: html, pattern: pattern).map(decodeHTMLEntities)
+    }
+
+    private static func firstCapture(html: String, pattern: String) -> String? {
+        guard let regex = try? NSRegularExpression(pattern: pattern),
+              let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),
+              match.numberOfRanges >= 2,
+              let range = Range(match.range(at: 1), in: html) else {
+            return nil
+        }
+        return String(html[range])
+    }
+
+    /// Pulls the long CWS description from consecutive `<p>` blocks after the short blurb.
+    static func chromeLongDescription(from html: String) -> String? {
+        guard let regex = try? NSRegularExpression(
+            pattern: #"<p>(.*?)</p>"#,
+            options: [.dotMatchesLineSeparators, .caseInsensitive]
+        ) else { return nil }
+        let ns = html as NSString
+        let matches = regex.matches(in: html, range: NSRange(location: 0, length: ns.length))
+        var paragraphs: [String] = []
+        for match in matches {
+            guard match.numberOfRanges >= 2,
+                  let range = Range(match.range(at: 1), in: html) else { continue }
+            let text = stripHTML(String(html[range]))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard text.count >= 40 else { continue }
+            // Skip nav / cookie / boilerplate crumbs.
+            let lower = text.lowercased()
+            if lower.contains("cookie") || lower.contains("sign in") || lower.contains("chrome web store") {
+                continue
+            }
+            paragraphs.append(text)
+            if paragraphs.count >= 6 { break }
+        }
+        guard !paragraphs.isEmpty else { return nil }
+        // Prefer the longest contiguous run starting at the first substantial paragraph.
+        return paragraphs.joined(separator: "\n\n")
+    }
+
+    static func chromeScreenshotURLs(from html: String) -> [URL] {
+        // Prefer mid-size screenshot variants used on detail pages.
+        let shotPattern = #"https://lh3\.googleusercontent\.com/[A-Za-z0-9_\-=]+=s\d+-w\d+-h\d+"#
+        guard let shotRegex = try? NSRegularExpression(pattern: shotPattern) else { return [] }
+        let ns = html as NSString
+        let matches = shotRegex.matches(in: html, range: NSRange(location: 0, length: ns.length))
+        var seen = Set<String>()
+        var urls: [URL] = []
+        for match in matches {
+            guard let range = Range(match.range, in: html) else { continue }
+            let full = String(html[range])
+            // Dedupe by image id (before =s…).
+            let key = full.split(separator: "=").first.map(String.init) ?? full
+            guard !seen.contains(key) else { continue }
+            // Prefer larger variants.
+            guard full.contains("-w550-") || full.contains("-w640-") || full.contains("-w1280-")
+                    || full.contains("s550-") || full.contains("s1280-") else { continue }
+            seen.insert(key)
+            if let url = URL(string: full) {
+                urls.append(url)
+            }
+            if urls.count >= 8 { break }
+        }
+        return urls
+    }
+
+    static func stripHTML(_ html: String) -> String {
+        var s = html
+        s = s.replacingOccurrences(of: #"<br\s*/?>"#, with: "\n", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"</p>"#, with: "\n\n", options: [.regularExpression, .caseInsensitive])
+        s = s.replacingOccurrences(of: #"<[^>]+>"#, with: "", options: .regularExpression)
+        s = decodeHTMLEntities(s)
+        while s.contains("\n\n\n") {
+            s = s.replacingOccurrences(of: "\n\n\n", with: "\n\n")
+        }
+        return s.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func decodeHTMLEntities(_ s: String) -> String {
+        var out = s
+        let entities: [(String, String)] = [
+            ("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", "\""),
+            ("&#39;", "'"), ("&apos;", "'"), ("&nbsp;", " ")
+        ]
+        for (entity, value) in entities {
+            out = out.replacingOccurrences(of: entity, with: value)
+        }
+        return out
+    }
+}
+
+/// Rich detail payload for Oriel Store product pages (iPhone / iPad / Mac).
+struct StoreProductDetail: Hashable, Sendable {
+    let listingID: String
+    let name: String
+    let summary: String
+    let description: String
+    let iconURL: URL?
+    let screenshotURLs: [URL]
+    let rating: Double?
+    let userCount: Int?
+    let authorName: String?
+    let homepageURL: URL?
+    let version: String?
+    let primarySource: ExtensionStoreItem.Source
+    let storeURL: URL?
+    let permissions: [String]
+
+    static func fallback(from listing: UnifiedStoreListing) -> StoreProductDetail {
+        let offer = listing.preferredOffer
+        return StoreProductDetail(
+            listingID: listing.id,
+            name: listing.name,
+            summary: listing.summary,
+            description: listing.summary,
+            iconURL: listing.iconURL,
+            screenshotURLs: [],
+            rating: listing.rating,
+            userCount: nil,
+            authorName: nil,
+            homepageURL: nil,
+            version: nil,
+            primarySource: offer?.source ?? .firefox,
+            storeURL: offer?.storeURL,
+            permissions: offer?.permissions ?? []
+        )
+    }
 }

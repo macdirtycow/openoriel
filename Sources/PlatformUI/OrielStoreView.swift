@@ -222,16 +222,22 @@ struct OrielStoreView: View {
         } else {
             Section {
                 ForEach(listings) { listing in
-                    storeRow(listing)
+                    NavigationLink {
+                        OrielStoreDetailView(listing: listing)
+                    } label: {
+                        storeRow(listing)
+                    }
                 }
             } header: {
                 Text(query.isEmpty ? "Popular" : "Results")
+            } footer: {
+                Text("Open a listing for screenshots, full description, and install options.")
             }
         }
     }
 
     private var footerBlurb: String {
-        "One catalog for Chrome, Firefox, and Safari. Compatibility reflects WebKit limits — Oriel picks the best source when you tap Add."
+        "One catalog for Chrome, Firefox, and Safari. Open a listing for the full description — Oriel picks the best source when you install."
     }
 
     private func storeRow(_ listing: UnifiedStoreListing) -> some View {
@@ -261,29 +267,10 @@ struct OrielStoreView: View {
                         .lineLimit(1)
                 }
             }
-
-            Spacer(minLength: 8)
-
-            Button {
-                requestInstall(listing)
-            } label: {
-                if installingID == listing.id || environment.extensions.isInstallingFromStore {
-                    ProgressView()
-                        .controlSize(.small)
-                        .frame(minWidth: 52)
-                } else {
-                    Text(installed != nil ? "Open" : "Add")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(minWidth: 52)
-                }
-            }
-            .buttonStyle(.bordered)
-            .tint(accent)
-            .controlSize(.small)
-            .disabled(installingID != nil || environment.extensions.isInstallingFromStore)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
+        .accessibilityHint("Shows description and screenshots")
     }
 
     private func metaLine(
