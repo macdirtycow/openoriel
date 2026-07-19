@@ -13,11 +13,9 @@
 @end
 
 @implementation OrielCEFHost
-- (instancetype)initWithFrame:(NSRect)frame {
-    (void)frame;
+- (instancetype)init {
     return [super init];
 }
-- (NSView *)view { return [[NSView alloc] initWithFrame:NSZeroRect]; }
 - (NSURL *)URL { return nil; }
 - (NSString *)title { return @""; }
 - (BOOL)isLoading { return NO; }
