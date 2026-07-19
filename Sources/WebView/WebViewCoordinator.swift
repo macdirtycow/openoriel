@@ -69,6 +69,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var onInstallFirefoxAddon: ((String) -> Void)?
     var onManageChromeExtensions: (() -> Void)?
     var installedChromeStoreIDs: [String] = []
+    var installedFirefoxSlugs: [String] = []
     var youTubeAdBlockingEnabled: Bool = true
     var appliedThirdPartyCookieBlocking = false
     var appliedContentBlockerGeneration: Int = 0
@@ -101,7 +102,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         onInstallChromeExtension: ((String) -> Void)? = nil,
         onInstallFirefoxAddon: ((String) -> Void)? = nil,
         onManageChromeExtensions: (() -> Void)? = nil,
-        installedChromeStoreIDs: [String] = []
+        installedChromeStoreIDs: [String] = [],
+        installedFirefoxSlugs: [String] = []
     ) {
         self.tab = tab
         self.contentBlockingEnabled = contentBlockingEnabled
@@ -119,6 +121,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         self.onInstallFirefoxAddon = onInstallFirefoxAddon
         self.onManageChromeExtensions = onManageChromeExtensions
         self.installedChromeStoreIDs = installedChromeStoreIDs
+        self.installedFirefoxSlugs = installedFirefoxSlugs
     }
 
     /// Retained weakly by `WKUserContentController`; keep the proxy alive on the coordinator.
@@ -412,15 +415,34 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     #if os(macOS) || os(iOS)
+    /// Pushes installed Chrome IDs / Firefox slugs into store pages so bridges can show
+    /// localized “Installed in Oriel” on macOS, iOS, and iPadOS.
     func injectInstalledExtensionIDs(into webView: WKWebView) {
-        guard let host = webView.url?.host?.lowercased(),
-              host == "chromewebstore.google.com"
-                || host == "chrome.google.com"
-                || host.hasSuffix(".chrome.google.com") else { return }
-        let idsJSON = installedChromeStoreIDs
-            .map { "\"\($0)\"" }
-            .joined(separator: ",")
-        let script = "window.__orielInstalledExtensionIDs = [\(idsJSON)];"
+        guard let host = webView.url?.host?.lowercased() else { return }
+        let isCWS = host == "chromewebstore.google.com"
+            || host == "chrome.google.com"
+            || host.hasSuffix(".chrome.google.com")
+        let isAMO = host == "addons.mozilla.org"
+            || host == "addons-dev.allizom.org"
+            || host.hasSuffix(".addons.mozilla.org")
+        guard isCWS || isAMO else { return }
+
+        func jsonArray(_ values: [String]) -> String {
+            "[" + values.map { value -> String in
+                let escaped = value
+                    .replacingOccurrences(of: "\\", with: "\\\\")
+                    .replacingOccurrences(of: "\"", with: "\\\"")
+                return "\"\(escaped)\""
+            }.joined(separator: ",") + "]"
+        }
+
+        let chromeJSON = jsonArray(installedChromeStoreIDs.map { $0.lowercased() })
+        let firefoxJSON = jsonArray(installedFirefoxSlugs.map { $0.lowercased() })
+        let script = """
+        window.__orielInstalledExtensionIDs = \(chromeJSON);
+        window.__orielInstalledFirefoxSlugs = \(firefoxJSON);
+        try { window.dispatchEvent(new CustomEvent('oriel-installed-changed')); } catch (e) {}
+        """
         webView.evaluateJavaScript(script, in: nil, in: .page) { _ in }
     }
     #endif

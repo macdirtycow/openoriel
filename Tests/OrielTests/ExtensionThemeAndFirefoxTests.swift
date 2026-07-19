@@ -67,6 +67,8 @@ final class ExtensionThemeAndFirefoxTests: XCTestCase {
         XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("__orielStoreI18n"))
         XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("oriel-amo-tip"))
         XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("oriel-add-firefox-to-oriel"))
+        XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("__orielInstalledFirefoxSlugs"))
+        XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("oriel-installed-changed"))
         XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("isNeedFirefoxBanner"))
     }
 

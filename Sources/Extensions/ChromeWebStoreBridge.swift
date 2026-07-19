@@ -62,6 +62,7 @@ enum ChromeWebStoreBridge {
       if (h !== 'chromewebstore.google.com' && h !== 'chrome.google.com' && !h.endsWith('.chrome.google.com')) return;
 
       window.__orielInstalledExtensionIDs = window.__orielInstalledExtensionIDs || [];
+      window.__orielInstalledFirefoxSlugs = window.__orielInstalledFirefoxSlugs || [];
 
       function validId(id) { return typeof id === 'string' && /^[a-p]{32}$/.test(id); }
       function idFromPath() {
@@ -284,6 +285,10 @@ enum ChromeWebStoreBridge {
         return false;
       }
       function rewriteLabels() {
+        var pageID = idFromPath();
+        var pageInstalled = !!(pageID && isInstalled(pageID));
+        var addLabel = L('add');
+        var installedLabel = L('installed');
         var nodes = document.querySelectorAll(
           'button, a, div[role="button"], span[role="button"], [jsname], [data-test-id], [aria-label]'
         );
@@ -294,10 +299,12 @@ enum ChromeWebStoreBridge {
           var title = normalizeLabel(el.getAttribute('title'));
           var text = normalizeLabel(el.textContent);
           var targetLabel = null;
-          if (isInstallChromeLabel(text) || isInstallChromeLabel(aria) || isInstallChromeLabel(title)) {
-            targetLabel = L('add');
-          } else if (isInstalledChromeLabel(text) || isInstalledChromeLabel(aria) || isInstalledChromeLabel(title)) {
-            targetLabel = L('installed');
+          var looksInstall = isInstallChromeLabel(text) || isInstallChromeLabel(aria) || isInstallChromeLabel(title)
+            || text === addLabel || aria === addLabel;
+          var looksInstalled = isInstalledChromeLabel(text) || isInstalledChromeLabel(aria) || isInstalledChromeLabel(title)
+            || text === installedLabel || aria === installedLabel;
+          if (looksInstall || looksInstalled) {
+            targetLabel = (pageInstalled || looksInstalled) ? installedLabel : addLabel;
           }
           if (!targetLabel) continue;
           if (aria && (isInstallChromeLabel(aria) || isInstalledChromeLabel(aria))) {
@@ -335,7 +342,7 @@ enum ChromeWebStoreBridge {
       function ensureTip() {
         var id = idFromPath();
         var tip = document.getElementById('oriel-cws-tip');
-        if (!id) { if (tip) tip.remove(); return; }
+        if (!id || isInstalled(id)) { if (tip) tip.remove(); return; }
         if (!tip) {
           tip = document.createElement('div');
           tip.id = 'oriel-cws-tip';
@@ -435,6 +442,7 @@ enum ChromeWebStoreBridge {
       }
 
       document.addEventListener('click', onClick, true);
+      window.addEventListener('oriel-installed-changed', function () { schedule(); });
       refresh();
       new MutationObserver(function () { if (!busy) schedule(); })
         .observe(document.documentElement, { childList: true, subtree: true });

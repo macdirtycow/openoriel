@@ -15,6 +15,8 @@ struct InstalledExtensionInfo: Identifiable, Equatable, Sendable {
     var directoryName: String
     /// Chrome Web Store id when installed from the store (stable across reinstalls).
     var chromeStoreID: String?
+    /// Firefox AMO slug when installed from addons.mozilla.org.
+    var firefoxSlug: String?
 }
 
 /// Loads Chrome/Firefox-style WebExtensions via Apple’s `WKWebExtension` (macOS 15.4+ / iOS 18.4+).
@@ -97,9 +99,26 @@ final class WebExtensionManager {
         ).sorted()
     }
 
+    /// Firefox AMO slugs for store pages (so “Installed in Oriel” can show on AMO).
+    var installedFirefoxSlugs: [String] {
+        Array(
+            Set(
+                extensions.compactMap { item -> String? in
+                    guard let slug = item.firefoxSlug?.lowercased(), !slug.isEmpty else { return nil }
+                    return slug
+                }
+            )
+        ).sorted()
+    }
+
     func isInstalledFromChromeWebStore(extensionID: String) -> Bool {
         let id = extensionID.lowercased()
         return installedChromeStoreIDs.contains(id)
+    }
+
+    func isInstalledFromFirefoxAMO(slug: String) -> Bool {
+        let key = slug.lowercased()
+        return installedFirefoxSlugs.contains(key)
     }
 
     var extensionsDirectory: URL {
@@ -266,7 +285,8 @@ final class WebExtensionManager {
                         chromeStoreID: entry.chromeStoreID
                             ?? (ChromeWebStoreAPI.isValidExtensionID(entry.directoryName)
                                 ? entry.directoryName
-                                : nil)
+                                : nil),
+                        firefoxSlug: entry.firefoxSlug
                     )
                 )
             } catch {
@@ -452,10 +472,15 @@ final class WebExtensionManager {
             try fileManager.moveItem(at: staging, to: destination)
 
             var catalog = dedupeCatalog(loadCatalog())
+            let resolvedChromeID = chromeStoreID ?? preferredUniqueID.flatMap {
+                ChromeWebStoreAPI.isValidExtensionID($0) ? $0 : nil
+            }
+            let resolvedFirefoxSlug = firefoxSlug?.lowercased()
             catalog.removeAll {
                 $0.directoryName == extensionID
-                    || ($0.chromeStoreID != nil && $0.chromeStoreID == chromeStoreID)
+                    || ($0.chromeStoreID != nil && $0.chromeStoreID == resolvedChromeID)
                     || ($0.chromeStoreID != nil && $0.chromeStoreID == preferredUniqueID)
+                    || ($0.firefoxSlug != nil && $0.firefoxSlug?.lowercased() == resolvedFirefoxSlug)
             }
             catalog.append(
                 CatalogEntry(
@@ -463,9 +488,8 @@ final class WebExtensionManager {
                     displayName: webExtension.displayName ?? webExtension.displayShortName ?? "Extension",
                     version: webExtension.displayVersion ?? "—",
                     isEnabled: true,
-                    chromeStoreID: chromeStoreID ?? preferredUniqueID.flatMap {
-                        ChromeWebStoreAPI.isValidExtensionID($0) ? $0 : nil
-                    }
+                    chromeStoreID: resolvedChromeID,
+                    firefoxSlug: resolvedFirefoxSlug
                 )
             )
             saveCatalog(catalog)
@@ -698,11 +722,14 @@ final class WebExtensionManager {
         var result: [CatalogEntry] = []
         var seenDirectories = Set<String>()
         var seenStoreIDs = Set<String>()
+        var seenFirefoxSlugs = Set<String>()
         for entry in entries.reversed() {
             if seenDirectories.contains(entry.directoryName) { continue }
             if let storeID = entry.chromeStoreID, seenStoreIDs.contains(storeID) { continue }
+            if let slug = entry.firefoxSlug?.lowercased(), seenFirefoxSlugs.contains(slug) { continue }
             seenDirectories.insert(entry.directoryName)
             if let storeID = entry.chromeStoreID { seenStoreIDs.insert(storeID) }
+            if let slug = entry.firefoxSlug?.lowercased() { seenFirefoxSlugs.insert(slug) }
             result.append(entry)
         }
         return result.reversed()
@@ -714,6 +741,7 @@ final class WebExtensionManager {
         var version: String
         var isEnabled: Bool
         var chromeStoreID: String?
+        var firefoxSlug: String?
     }
 
     private func loadCatalog() -> [CatalogEntry] {

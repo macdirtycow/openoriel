@@ -1132,6 +1132,7 @@ struct BrowserShellView: View {
                 blockAutoplay: environment.settings.blockAutoplay,
                 chromeWebStoreInstallEnabled: environment.extensions.isSupported,
                 installedChromeStoreIDs: environment.extensions.installedChromeStoreIDs,
+                installedFirefoxSlugs: environment.extensions.installedFirefoxSlugs,
                 applyContentBlocking: { webView, enabled in
                     environment.contentBlocker.apply(to: webView, enabled: enabled)
                 },

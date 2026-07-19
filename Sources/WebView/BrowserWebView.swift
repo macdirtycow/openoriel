@@ -33,6 +33,7 @@ struct BrowserWebView: PlatformViewRepresentable {
     var blockAutoplay: Bool = true
     var chromeWebStoreInstallEnabled: Bool = false
     var installedChromeStoreIDs: [String] = []
+    var installedFirefoxSlugs: [String] = []
     var applyContentBlocking: ((WKWebView, Bool) -> Void)?
     /// Bumps when compiled rule lists change so existing tabs re-attach them.
     var contentBlockerGeneration: Int = 0
@@ -89,7 +90,8 @@ struct BrowserWebView: PlatformViewRepresentable {
             onInstallChromeExtension: onInstallChromeExtension,
             onInstallFirefoxAddon: onInstallFirefoxAddon,
             onManageChromeExtensions: onManageChromeExtensions,
-            installedChromeStoreIDs: installedChromeStoreIDs
+            installedChromeStoreIDs: installedChromeStoreIDs,
+            installedFirefoxSlugs: installedFirefoxSlugs
         )
     }
 
@@ -282,7 +284,8 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.onInstallFirefoxAddon = onInstallFirefoxAddon
         context.coordinator.onManageChromeExtensions = onManageChromeExtensions
         context.coordinator.installedChromeStoreIDs = installedChromeStoreIDs
-        #if os(macOS)
+        context.coordinator.installedFirefoxSlugs = installedFirefoxSlugs
+        #if os(macOS) || os(iOS)
         context.coordinator.injectInstalledExtensionIDs(into: webView)
         #endif
 

@@ -328,6 +328,270 @@ enum StoreBridgeI18n {
           installed: 'Nameščeno v Oriel',
           tipChrome: 'Oriel lahko to razširitev namesti na iPhone in iPad — tapnite Dodaj v Oriel.',
           tipFirefox: 'Oriel lahko ta Firefoxov dodatek namesti na iPhone in iPad — tapnite Dodaj v Oriel.'
+        },
+        ga: {
+          add: 'Cuir le Oriel',
+          addTheme: 'Cuir téama le Oriel',
+          installing: 'Á shuiteáil…',
+          installed: 'Suiteáilte in Oriel',
+          tipChrome: 'Is féidir le Oriel an eisínteacht seo a shuiteáil ar iPhone agus iPad — tapáil Cuir le Oriel.',
+          tipFirefox: 'Is féidir le Oriel an breiseán Firefox seo a shuiteáil ar iPhone agus iPad — tapáil Cuir le Oriel.'
+        },
+        eu: {
+          add: 'Gehitu Oriel-era',
+          addTheme: 'Gehitu gaia Oriel-era',
+          installing: 'Instalatzen…',
+          installed: 'Oriel-en instalatuta',
+          tipChrome: 'Oriel-ek luzapen hau iPhone eta iPad-ean instala dezake — sakatu Gehitu Oriel-era.',
+          tipFirefox: 'Oriel-ek Firefox gehigarri hau iPhone eta iPad-ean instala dezake — sakatu Gehitu Oriel-era.'
+        },
+        gl: {
+          add: 'Engadir a Oriel',
+          addTheme: 'Engadir tema a Oriel',
+          installing: 'Instalando…',
+          installed: 'Instalado en Oriel',
+          tipChrome: 'Oriel pode instalar esta extensión no iPhone e no iPad — toca Engadir a Oriel.',
+          tipFirefox: 'Oriel pode instalar este complemento de Firefox no iPhone e no iPad — toca Engadir a Oriel.'
+        },
+        af: {
+          add: 'Voeg by Oriel',
+          addTheme: 'Voeg tema by Oriel',
+          installing: 'Installeer…',
+          installed: 'In Oriel geïnstalleer',
+          tipChrome: 'Oriel kan hierdie uitbreiding op iPhone en iPad installeer — tik Voeg by Oriel.',
+          tipFirefox: 'Oriel kan hierdie Firefox-byvoeging op iPhone en iPad installeer — tik Voeg by Oriel.'
+        },
+        sq: {
+          add: 'Shto te Oriel',
+          addTheme: 'Shto temën te Oriel',
+          installing: 'Duke instaluar…',
+          installed: 'E instaluar në Oriel',
+          tipChrome: 'Oriel mund ta instalojë këtë zgjerim në iPhone dhe iPad — trokit Shto te Oriel.',
+          tipFirefox: 'Oriel mund ta instalojë këtë shtesë Firefox në iPhone dhe iPad — trokit Shto te Oriel.'
+        },
+        mk: {
+          add: 'Додај во Oriel',
+          addTheme: 'Додај тема во Oriel',
+          installing: 'Се инсталира…',
+          installed: 'Инсталирано во Oriel',
+          tipChrome: 'Oriel може да го инсталира ова проширување на iPhone и iPad — допрете Додај во Oriel.',
+          tipFirefox: 'Oriel може да го инсталира овој додаток за Firefox на iPhone и iPad — допрете Додај во Oriel.'
+        },
+        be: {
+          add: 'Дадаць у Oriel',
+          addTheme: 'Дадаць тэму ў Oriel',
+          installing: 'Усталёўка…',
+          installed: 'Усталявана ў Oriel',
+          tipChrome: 'Oriel можа ўсталяваць гэтае пашырэнне на iPhone і iPad — націсніце «Дадаць у Oriel».',
+          tipFirefox: 'Oriel можа ўсталяваць гэты дадатак Firefox на iPhone і iPad — націсніце «Дадаць у Oriel».'
+        },
+        ka: {
+          add: 'Oriel-ში დამატება',
+          addTheme: 'თემის დამატება Oriel-ში',
+          installing: 'მიმდინარეობს დაყენება…',
+          installed: 'დაყენებულია Oriel-ში',
+          tipChrome: 'Oriel-ს შეუძლია ამ გაფართოების დაყენება iPhone-სა და iPad-ზე — შეეხეთ „Oriel-ში დამატება“.',
+          tipFirefox: 'Oriel-ს შეუძლია ამ Firefox დამატების დაყენება iPhone-სა და iPad-ზე — შეეხეთ „Oriel-ში დამატება“.'
+        },
+        hy: {
+          add: 'Ավելացնել Oriel',
+          addTheme: 'Ավելացնել թեմա Oriel',
+          installing: 'Տեղադրվում է…',
+          installed: 'Տեղադրված է Oriel-ում',
+          tipChrome: 'Oriel-ը կարող է տեղադրել այս ընդլայնումը iPhone-ում և iPad-ում — հպեք Ավելացնել Oriel։',
+          tipFirefox: 'Oriel-ը կարող է տեղադրել այս Firefox հավելումը iPhone-ում և iPad-ում — հպեք Ավելացնել Oriel։'
+        },
+        az: {
+          add: 'Oriel-ə əlavə et',
+          addTheme: 'Oriel-ə tema əlavə et',
+          installing: 'Quraşdırılır…',
+          installed: 'Oriel-də quraşdırılıb',
+          tipChrome: 'Oriel bu genişləndirməni iPhone və iPad-ə quraşdıra bilər — Oriel-ə əlavə et düyməsinə toxunun.',
+          tipFirefox: 'Oriel bu Firefox əlavəsini iPhone və iPad-ə quraşdıra bilər — Oriel-ə əlavə et düyməsinə toxunun.'
+        },
+        kk: {
+          add: 'Oriel-ге қосу',
+          addTheme: 'Oriel-ге тема қосу',
+          installing: 'Орнатылуда…',
+          installed: 'Oriel-де орнатылған',
+          tipChrome: 'Oriel бұл кеңейтімді iPhone және iPad құрылғысына орната алады — «Oriel-ге қосу» түймесін түртіңіз.',
+          tipFirefox: 'Oriel бұл Firefox қосымшасын iPhone және iPad құрылғысына орната алады — «Oriel-ге қосу» түймесін түртіңіз.'
+        },
+        uz: {
+          add: "Orielga qo'shish",
+          addTheme: "Orielga mavzu qo'shish",
+          installing: "O'rnatilmoqda…",
+          installed: "Orielda o'rnatilgan",
+          tipChrome: "Oriel ushbu kengaytmani iPhone va iPadga o'rnatishi mumkin — Orielga qo'shish tugmasini bosing.",
+          tipFirefox: "Oriel ushbu Firefox qo'shimchasini iPhone va iPadga o'rnatishi mumkin — Orielga qo'shish tugmasini bosing."
+        },
+        bn: {
+          add: 'Oriel-এ যোগ করুন',
+          addTheme: 'Oriel-এ থিম যোগ করুন',
+          installing: 'ইনস্টল হচ্ছে…',
+          installed: 'Oriel-এ ইনস্টল করা হয়েছে',
+          tipChrome: 'Oriel এই এক্সটেনশনটি iPhone ও iPad-এ ইনস্টল করতে পারে — Oriel-এ যোগ করুন ট্যাপ করুন।',
+          tipFirefox: 'Oriel এই Firefox অ্যাড-অনটি iPhone ও iPad-এ ইনস্টল করতে পারে — Oriel-এ যোগ করুন ট্যাপ করুন।'
+        },
+        ta: {
+          add: 'Oriel இல் சேர்',
+          addTheme: 'Oriel இல் தீம் சேர்',
+          installing: 'நிறுவுகிறது…',
+          installed: 'Oriel இல் நிறுவப்பட்டது',
+          tipChrome: 'Oriel இந்த நீட்டிப்பை iPhone மற்றும் iPad இல் நிறுவலாம் — Oriel இல் சேர் என்பதைத் தட்டவும்.',
+          tipFirefox: 'Oriel இந்த Firefox துணை நிரலை iPhone மற்றும் iPad இல் நிறுவலாம் — Oriel இல் சேர் என்பதைத் தட்டவும்.'
+        },
+        te: {
+          add: 'Orielకి జోడించు',
+          addTheme: 'Orielకి థీమ్ జోడించు',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        ml: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        kn: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        gu: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        pa: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        si: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        my: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        km: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        lo: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        fil: {
+          add: 'Idagdag sa Oriel',
+          addTheme: 'Idagdag ang tema sa Oriel',
+          installing: 'Ini-install…',
+          installed: 'Naka-install sa Oriel',
+          tipChrome: 'Maaaring i-install ng Oriel ang extension na ito sa iPhone at iPad — i-tap ang Idagdag sa Oriel.',
+          tipFirefox: 'Maaaring i-install ng Oriel ang Firefox add-on na ito sa iPhone at iPad — i-tap ang Idagdag sa Oriel.'
+        },
+        sw: {
+          add: 'Ongeza kwa Oriel',
+          addTheme: 'Ongeza tema kwa Oriel',
+          installing: 'Inasakinisha…',
+          installed: 'Imesakinishwa katika Oriel',
+          tipChrome: 'Oriel inaweza kusakinisha kiendelezi hiki kwenye iPhone na iPad — gusa Ongeza kwa Oriel.',
+          tipFirefox: 'Oriel inaweza kusakinisha kiendelezi hiki cha Firefox kwenye iPhone na iPad — gusa Ongeza kwa Oriel.'
+        },
+        am: {
+          add: 'Add to Oriel',
+          addTheme: 'Add theme to Oriel',
+          installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        },
+        is: {
+          add: 'Bæta við Oriel',
+          addTheme: 'Bæta þema við Oriel',
+          installing: 'Setur upp…',
+          installed: 'Uppsett í Oriel',
+          tipChrome: 'Oriel getur sett þessa viðbót upp á iPhone og iPad — ýttu á Bæta við Oriel.',
+          tipFirefox: 'Oriel getur sett þessa Firefox-viðbót upp á iPhone og iPad — ýttu á Bæta við Oriel.'
+        },
+        mt: {
+          add: "Żid ma' Oriel",
+          addTheme: "Żid tema ma' Oriel",
+          installing: 'Qed jinstalla…',
+          installed: "Installat f'Oriel",
+          tipChrome: "Oriel jista' jinstalla din l-estensjoni fuq iPhone u iPad — agħfas Żid ma' Oriel.",
+          tipFirefox: "Oriel jista' jinstalla dan il-add-on ta' Firefox fuq iPhone u iPad — agħfas Żid ma' Oriel."
+        },
+        cy: {
+          add: 'Ychwanegu at Oriel',
+          addTheme: 'Ychwanegu thema at Oriel',
+          installing: 'Yn gosod…',
+          installed: "Wedi'i osod yn Oriel",
+          tipChrome: 'Gall Oriel osod yr estyniad hwn ar iPhone a iPad — tapiwch Ychwanegu at Oriel.',
+          tipFirefox: 'Gall Oriel osod yr ychwanegyn Firefox hwn ar iPhone a iPad — tapiwch Ychwanegu at Oriel.'
+        },
+        sr: {
+          add: 'Dodaj u Oriel',
+          addTheme: 'Dodaj temu u Oriel',
+          installing: 'Instaliranje…',
+          installed: 'Instalirano u Oriel',
+          tipChrome: 'Oriel može da instalira ovo proširenje na iPhone i iPad — dodirnite Dodaj u Oriel.',
+          tipFirefox: 'Oriel može da instalira ovaj Firefox dodatak na iPhone i iPad — dodirnite Dodaj u Oriel.'
+        },
+        bs: {
+          add: 'Dodaj u Oriel',
+          addTheme: 'Dodaj temu u Oriel',
+          installing: 'Instaliranje…',
+          installed: 'Instalirano u Oriel',
+          tipChrome: 'Oriel može instalirati ovo proširenje na iPhone i iPad — dodirnite Dodaj u Oriel.',
+          tipFirefox: 'Oriel može instalirati ovaj Firefox dodatak na iPhone i iPad — dodirnite Dodaj u Oriel.'
+        },
+        ne: {
+          add: 'Oriel मा थप्नुहोस्',
+          addTheme: 'Oriel मा थिम थप्नुहोस्',
+          installing: 'इन्स्टल हुँदै…',
+          installed: 'Oriel मा इन्स्टल भयो',
+          tipChrome: 'Oriel ले यो एक्स्टेन्सन iPhone र iPad मा इन्स्टल गर्न सक्छ — Oriel मा थप्नुहोस् ट्याप गर्नुहोस्।',
+          tipFirefox: 'Oriel ले यो Firefox एड-अन iPhone र iPad मा इन्स्टल गर्न सक्छ — Oriel मा थप्नुहोस् ट्याप गर्नुहोस्।'
+        },
+        mn: {
+          add: 'Oriel-д нэмэх',
+          addTheme: 'Oriel-д загвар нэмэх',
+          installing: 'Суулгаж байна…',
+          installed: 'Oriel-д суулгасан',
+          tipChrome: 'Oriel энэ өргөтгөлийг iPhone болон iPad дээр суулгаж чадна — Oriel-д нэмэх дээр дарна уу.',
+          tipFirefox: 'Oriel энэ Firefox нэмэлтийг iPhone болон iPad дээр суулгаж чадна — Oriel-д нэмэх дээр дарна уу.'
         }
       };
 
@@ -338,6 +602,10 @@ enum StoreBridgeI18n {
       STRINGS['zh-hant'] = STRINGS['zh-tw'];
       STRINGS.zh = STRINGS['zh-cn'];
       STRINGS.in = STRINGS.id;
+      STRINGS.iw = STRINGS.he;
+      STRINGS.tl = STRINGS.fil;
+      STRINGS['sr-latn'] = STRINGS.sr;
+      STRINGS['sr-cyrl'] = STRINGS.sr;
 
       function resolveLang() {
         var raw = (document.documentElement.lang || navigator.language || 'en').toLowerCase().replace(/_/g, '-');

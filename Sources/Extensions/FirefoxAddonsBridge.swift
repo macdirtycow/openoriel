@@ -141,6 +141,15 @@ enum FirefoxAddonsBridge {
         } catch (e2) {}
       }
       window.__orielPostFirefoxInstall = postInstall;
+      window.__orielInstalledFirefoxSlugs = window.__orielInstalledFirefoxSlugs || [];
+      function isFirefoxInstalled(slug) {
+        if (!slug) return false;
+        var list = window.__orielInstalledFirefoxSlugs || [];
+        var key = String(slug).toLowerCase();
+        for (var i = 0; i < list.length; i++) if (String(list[i]).toLowerCase() === key) return true;
+        return false;
+      }
+
 
       function i18n() { return window.__orielStoreI18n || null; }
       function L(key) {
@@ -189,7 +198,7 @@ enum FirefoxAddonsBridge {
       function ensureTip() {
         var slug = slugFromPath();
         var tip = document.getElementById('oriel-amo-tip');
-        if (!slug) { if (tip) tip.remove(); return; }
+        if (!slug || isFirefoxInstalled(slug)) { if (tip) tip.remove(); return; }
         if (!tip) {
           tip = document.createElement('div');
           tip.id = 'oriel-amo-tip';
@@ -211,6 +220,7 @@ enum FirefoxAddonsBridge {
         var slug = slugFromPath();
         var btn = document.getElementById('oriel-add-firefox-to-oriel');
         if (!slug) { if (btn) btn.remove(); return; }
+        var installed = isFirefoxInstalled(slug);
         if (!btn) {
           btn = document.createElement('button');
           btn.id = 'oriel-add-firefox-to-oriel';
@@ -218,7 +228,7 @@ enum FirefoxAddonsBridge {
           Object.assign(btn.style, {
             position: 'fixed', right: '20px', bottom: '20px', zIndex: '2147483646',
             padding: '12px 18px', border: '0', borderRadius: '10px',
-            background: '#ff7139', color: '#fff', cursor: 'pointer',
+            color: '#fff', cursor: 'pointer',
             font: '600 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
             boxShadow: '0 6px 20px rgba(0,0,0,0.22)'
           });
@@ -227,30 +237,50 @@ enum FirefoxAddonsBridge {
             event.stopPropagation();
             var current = slugFromPath();
             if (!current) return;
+            if (isFirefoxInstalled(current)) {
+              try {
+                var a = document.createElement('a');
+                a.href = 'oriel-firefox-addon://manage';
+                a.style.display = 'none';
+                document.documentElement.appendChild(a);
+                a.click();
+                a.remove();
+              } catch (e) {}
+              return;
+            }
             btn.disabled = true;
             btn.textContent = L('installing');
             postInstall(current);
             setTimeout(function () {
               btn.disabled = false;
-              btn.textContent = L('add');
+              var done = isFirefoxInstalled(current);
+              btn.textContent = done ? L('installed') : L('add');
+              btn.style.background = done ? '#5f6368' : '#ff7139';
             }, 4500);
           }, true);
           (document.body || document.documentElement).appendChild(btn);
         }
-        btn.textContent = L('add');
+        btn.textContent = installed ? L('installed') : L('add');
+        btn.style.background = installed ? '#5f6368' : '#ff7139';
       }
 
       function relabel() {
         var slug = slugFromPath();
         if (!slug) return;
+        var pageInstalled = isFirefoxInstalled(slug);
+        var addLabel = L('add');
+        var installedLabel = L('installed');
         var buttons = document.querySelectorAll(
           'button, a, .InstallButtonWrapper a, .AMInstallButton-button, [class*="InstallButton"], [aria-label]'
         );
         buttons.forEach(function (el) {
           var text = normalizeLabel(el.textContent);
           var aria = normalizeLabel(el.getAttribute('aria-label'));
-          if (!isFirefoxInstallLabel(text) && !isFirefoxInstallLabel(aria)) return;
-          var label = orielLabelFor(text || aria);
+          var looks = isFirefoxInstallLabel(text) || isFirefoxInstallLabel(aria)
+            || text === addLabel || aria === addLabel
+            || text === installedLabel || aria === installedLabel;
+          if (!looks) return;
+          var label = pageInstalled ? installedLabel : orielLabelFor(text || aria);
           if (el.childElementCount === 0) {
             el.textContent = label;
           } else {
@@ -298,6 +328,7 @@ enum FirefoxAddonsBridge {
         scheduled = setTimeout(function () { scheduled = null; refresh(); }, 300);
       }
 
+      window.addEventListener('oriel-installed-changed', function () { schedule(); });
       refresh();
       new MutationObserver(function () { if (!busy) schedule(); })
         .observe(document.documentElement, { childList: true, subtree: true });

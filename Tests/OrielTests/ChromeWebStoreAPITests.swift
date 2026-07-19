@@ -43,6 +43,7 @@ final class ChromeWebStoreAPITests: XCTestCase {
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("Add to Oriel"))
         // Shared multilingual catalog drives localized CTA rewrites.
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("__orielStoreI18n"))
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("oriel-installed-changed"))
         XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("Toevoegen aan Oriel"))
         XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("isChromeInstallLabel"))
     }
