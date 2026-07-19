@@ -89,8 +89,12 @@ rsync -a \
 rm -f "$DEST/Chromium Embedded Framework.framework"
 ln -s "Release/Chromium Embedded Framework.framework" "$DEST/Chromium Embedded Framework.framework"
 
-printf '%s\n' "$PIN_VERSION" > "$DEST/VERSION"
-printf '%s\n' "$ARCH" > "$DEST/ARCH"
+# Do NOT write a file named VERSION/version — on macOS (case-insensitive)
+# it shadows the C++ standard header <version> when -I$DEST is used.
+mkdir -p "$DEST/oriel-meta"
+printf '%s\n' "$PIN_VERSION" > "$DEST/oriel-meta/CEF_VERSION"
+printf '%s\n' "$ARCH" > "$DEST/oriel-meta/CEF_ARCH"
+rm -f "$DEST/VERSION" "$DEST/version" "$DEST/ARCH" "$DEST/arch"
 
 mkdir -p "$(dirname "$VENDOR_LINK")"
 rm -rf "$VENDOR_LINK"
