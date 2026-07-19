@@ -10,7 +10,7 @@ Native browser for **iPhone, iPad, and Mac**. Swift, SwiftUI, WebKit — with Cl
   <a href="https://inveil.net">inveil.net</a>
 </p>
 
-Bundle ID: `net.inveil.oriel` · Marketing site source: [`site/`](site/) · Latest: **1.0.0 (70)**
+Bundle ID: `net.inveil.oriel` · Marketing site source: [`site/`](site/) · Latest: **1.0.0 (71)**
 
 ---
 

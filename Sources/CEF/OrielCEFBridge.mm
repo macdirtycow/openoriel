@@ -173,7 +173,7 @@ public:
         can_forward_ = canGoForward;
         Notify();
     }
-    void OnBeforeDownload(CefRefPtr<CefBrowser> browser,
+    bool OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                           CefRefPtr<CefDownloadItem> item,
                           const CefString &suggested_name,
                           CefRefPtr<CefBeforeDownloadCallback> callback) override {
@@ -188,6 +188,7 @@ public:
             }
         });
         callback->Continue("", false);
+        return true;
     }
 
     CefRefPtr<CefBrowser> browser() const { return browser_; }
