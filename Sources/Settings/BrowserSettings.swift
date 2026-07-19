@@ -91,6 +91,35 @@ final class BrowserSettings {
         didSet { defaults.set(hasCompletedOnboarding, forKey: onboardingKey) }
     }
 
+    /// Classic Oriel vs Oriel Pulse (gaming-inspired edition in the same app).
+    var edition: BrowserEdition {
+        didSet {
+            defaults.set(edition.rawValue, forKey: editionKey)
+            applyEditionDefaultsIfNeeded(previous: nil)
+        }
+    }
+
+    /// Soft cap on live WKWebViews when Pulse performance mode is on.
+    var pulseWebViewLimit: Int {
+        didSet {
+            let clamped = min(16, max(4, pulseWebViewLimit))
+            if clamped != pulseWebViewLimit {
+                pulseWebViewLimit = clamped
+                return
+            }
+            defaults.set(pulseWebViewLimit, forKey: pulseWebViewLimitKey)
+            refreshPulsePoolLimit()
+        }
+    }
+
+    /// When Pulse is active, prefer unloading idle background tabs more aggressively.
+    var pulseAggressiveTabUnload: Bool {
+        didSet {
+            defaults.set(pulseAggressiveTabUnload, forKey: pulseAggressiveUnloadKey)
+            refreshPulsePoolLimit()
+        }
+    }
+
     var homepageURL: URL {
         if let url = URL(string: homepageURLString), url.scheme != nil {
             return url
@@ -146,6 +175,9 @@ final class BrowserSettings {
         if let rgb = customAccentRGB, rgb.count >= 3 {
             return Color(red: rgb[0], green: rgb[1], blue: rgb[2])
         }
+        if edition.isPulse {
+            return EditionBranding.pulseAccent
+        }
         return OrielTheme.brandPrimary(accent: accentTheme)
     }
 
@@ -156,6 +188,34 @@ final class BrowserSettings {
 
     var usesExtensionTheme: Bool {
         activeExtensionThemeID != nil && customAccentRGB != nil
+    }
+
+    /// Apply edition-preferred chrome when the user picks Pulse or Classic.
+    func selectEdition(_ next: BrowserEdition, applySuggestedLook: Bool) {
+        edition = next
+        if applySuggestedLook, !usesExtensionTheme {
+            accentTheme = next.preferredAccent
+            backgroundTheme = next.preferredBackground
+            if let forced = next.preferredBackground.forcedColorScheme {
+                appearance = forced == .dark ? .dark : .light
+            }
+        }
+        refreshPulsePoolLimit()
+    }
+
+    private func applyEditionDefaultsIfNeeded(previous: BrowserEdition?) {
+        _ = previous
+        refreshPulsePoolLimit()
+    }
+
+    private func refreshPulsePoolLimit() {
+        if edition.isPulse {
+            WebViewPool.shared.softLimit = pulseAggressiveTabUnload
+                ? pulseWebViewLimit
+                : max(pulseWebViewLimit, 10)
+        } else {
+            WebViewPool.shared.softLimit = 12
+        }
     }
 
     func applyExtensionTheme(
@@ -196,6 +256,9 @@ final class BrowserSettings {
     private let blockAutoplayKey = "oriel.blockAutoplay"
     private let stripTrackingKey = "oriel.stripTrackingParameters"
     private let onboardingKey = "oriel.hasCompletedOnboarding"
+    private let editionKey = "oriel.browserEdition"
+    private let pulseWebViewLimitKey = "oriel.pulseWebViewLimit"
+    private let pulseAggressiveUnloadKey = "oriel.pulseAggressiveTabUnload"
     private let activeExtensionThemeKey = "oriel.activeExtensionThemeID"
     private let customAccentRGBKey = "oriel.customAccentRGB"
     private let customBackgroundRGBKey = "oriel.customBackgroundRGB"
@@ -256,6 +319,19 @@ final class BrowserSettings {
             self.stripTrackingParameters = defaults.bool(forKey: stripTrackingKey)
         }
         self.hasCompletedOnboarding = defaults.bool(forKey: onboardingKey)
+        if let raw = defaults.string(forKey: editionKey),
+           let value = BrowserEdition(rawValue: raw) {
+            self.edition = value
+        } else {
+            self.edition = .classic
+        }
+        let storedLimit = defaults.object(forKey: pulseWebViewLimitKey) as? Int
+        self.pulseWebViewLimit = min(16, max(4, storedLimit ?? 8))
+        if defaults.object(forKey: pulseAggressiveUnloadKey) == nil {
+            self.pulseAggressiveTabUnload = true
+        } else {
+            self.pulseAggressiveTabUnload = defaults.bool(forKey: pulseAggressiveUnloadKey)
+        }
         self.activeExtensionThemeID = defaults.string(forKey: activeExtensionThemeKey)
         self.customAccentRGB = Self.doubleArray(from: defaults, key: customAccentRGBKey)
         self.customBackgroundRGB = Self.doubleArray(from: defaults, key: customBackgroundRGBKey)
@@ -272,6 +348,7 @@ final class BrowserSettings {
                 appearance = repaired
             }
         }
+        applyEditionDefaultsIfNeeded(previous: nil)
     }
 
     private func persistSearchEngine() {

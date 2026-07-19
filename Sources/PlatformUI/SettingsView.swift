@@ -141,6 +141,9 @@ struct SettingsView: View {
         if environment.settings.usesExtensionTheme {
             return "Extension theme"
         }
+        if environment.settings.edition.isPulse {
+            return "Pulse"
+        }
         return environment.settings.appearance.displayName
     }
 
@@ -265,6 +268,54 @@ private struct AppearanceSettingsPage: View {
     var body: some View {
         @Bindable var settings = environment.settings
         Form {
+            Section {
+                ForEach(BrowserEdition.allCases) { edition in
+                    Button {
+                        environment.extensionThemes.clearActive()
+                        settings.selectEdition(edition, applySuggestedLook: true)
+                        environment.icloudSync.noteLocalChange()
+                    } label: {
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: edition.systemImage)
+                                .font(.title3)
+                                .foregroundStyle(edition.isPulse ? EditionBranding.pulseAccent : settings.brandColor)
+                                .frame(width: 28)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(edition.displayName)
+                                    .foregroundStyle(.primary)
+                                Text(edition.subtitle)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 0)
+                            if settings.edition == edition {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(settings.brandColor)
+                            }
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                }
+            } header: {
+                Text("Browser edition")
+            } footer: {
+                Text("Pulse is a look and performance mode inside Oriel — same privacy model, no separate Opera-style account.")
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if settings.edition.isPulse {
+                Section {
+                    NavigationLink {
+                        PulsePerformanceView(showsDoneButton: false)
+                    } label: {
+                        Label("Pulse performance", systemImage: "bolt.horizontal")
+                    }
+                } footer: {
+                    Text("Live page-engine limits and privacy shortcuts for Pulse.")
+                }
+            }
+
             Section {
                 Picker("Mode", selection: $settings.appearance) {
                     ForEach(AppAppearance.allCases) { mode in
@@ -616,7 +667,7 @@ private struct AboutSettingsPage: View {
             }
 
             Section("About") {
-                LabeledContent("Product", value: BrowserConstants.productName)
+                LabeledContent("Product", value: EditionBranding.productName(for: environment.settings.edition))
                 LabeledContent("Version", value: appVersionLabel)
                 LabeledContent("Website", value: BrowserConstants.productWebsiteHost)
                 LabeledContent("Publisher", value: BrowserConstants.publisherName)

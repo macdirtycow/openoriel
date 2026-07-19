@@ -22,12 +22,16 @@ struct AboutOrielView: View {
                         .padding(.top, 12)
 
                     VStack(spacing: 8) {
-                        Text(BrowserConstants.productName)
-                            .font(.system(size: 36, weight: .semibold, design: .serif))
+                        Text(EditionBranding.productName(for: environment.settings.edition))
+                            .font(
+                                environment.settings.edition.isPulse
+                                    ? .system(size: 34, weight: .bold, design: .rounded)
+                                    : .system(size: 36, weight: .semibold, design: .serif)
+                            )
                             .tracking(-0.6)
                             .foregroundStyle(.primary)
 
-                        Text("A calm view of the web.")
+                        Text(EditionBranding.tagline(for: environment.settings.edition))
                             .font(.title3)
                             .foregroundStyle(.secondary)
 

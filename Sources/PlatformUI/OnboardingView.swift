@@ -1,16 +1,24 @@
 import SwiftUI
 
-/// First-launch tour covering privacy, profiles, extensions, and default browser.
+/// First-launch tour covering edition choice, privacy, profiles, extensions, and default browser.
 struct OnboardingView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var page = 0
 
+    /// Index of the edition picker page inside `pages`.
+    private let editionPageIndex = 1
+
     private let pages: [OnboardingPage] = [
         OnboardingPage(
             symbol: "sparkles",
             title: "Welcome to Oriel",
-            body: "A calm, privacy-minded browser for iPhone, iPad, and Mac. This short tour covers the essentials."
+            body: "A privacy-minded browser for iPhone, iPad, and Mac. Choose Classic calm chrome or Oriel Pulse for a gaming-inspired look."
+        ),
+        OnboardingPage(
+            symbol: "bolt.horizontal.circle.fill",
+            title: "Choose your edition",
+            body: "You can switch anytime in Settings → Appearance. Same app, same privacy — different chrome."
         ),
         OnboardingPage(
             symbol: "shield.lefthalf.filled",
@@ -47,9 +55,15 @@ struct OnboardingView: View {
 
             TabView(selection: $page) {
                 ForEach(Array(pages.enumerated()), id: \.offset) { index, item in
-                    pageContent(item)
-                        .tag(index)
-                        .padding(.horizontal, 28)
+                    Group {
+                        if index == editionPageIndex {
+                            editionPickerPage
+                        } else {
+                            pageContent(item)
+                        }
+                    }
+                    .tag(index)
+                    .padding(.horizontal, 28)
                 }
             }
             #if os(iOS)
@@ -108,10 +122,64 @@ struct OnboardingView: View {
             OrielTheme.startPageBackground(
                 accent: environment.settings.accentTheme,
                 background: environment.settings.backgroundTheme,
-                scheme: .light
+                scheme: environment.settings.edition.isPulse ? .dark : .light,
+                customAccent: environment.settings.edition.isPulse ? EditionBranding.pulseAccent : nil
             )
             .ignoresSafeArea()
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: environment.settings.edition)
         }
+    }
+
+    private var editionPickerPage: some View {
+        VStack(spacing: 18) {
+            Spacer(minLength: 8)
+            OrielMark(size: 64)
+            Text("Choose your edition")
+                .font(.system(size: 28, weight: .semibold, design: .serif))
+                .multilineTextAlignment(.center)
+            Text("Same privacy. Different energy.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            VStack(spacing: 10) {
+                ForEach(BrowserEdition.allCases) { edition in
+                    Button {
+                        environment.settings.selectEdition(edition, applySuggestedLook: true)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: edition.systemImage)
+                                .foregroundStyle(edition.isPulse ? EditionBranding.pulseAccent : environment.settings.brandColor)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(edition.displayName)
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                Text(edition.subtitle)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 0)
+                            if environment.settings.edition == edition {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(environment.settings.brandColor)
+                            }
+                        }
+                        .padding(14)
+                        .background(
+                            OrielTheme.elevatedFill(for: environment.settings.edition.isPulse ? .dark : .light),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.top, 8)
+
+            Spacer(minLength: 8)
+        }
+        .frame(maxWidth: 520)
+        .frame(maxWidth: .infinity)
     }
 
     private func pageContent(_ item: OnboardingPage) -> some View {

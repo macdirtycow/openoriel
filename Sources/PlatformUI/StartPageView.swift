@@ -50,7 +50,17 @@ struct StartPageView: View {
     private var contentSpacing: CGFloat { isWide ? 26 : 22 }
 
     private var suggestedItems: [(String, String)] {
-        [
+        if environment.settings.edition.isPulse {
+            return [
+                ("Twitch", "https://www.twitch.tv"),
+                ("YouTube", "https://www.youtube.com"),
+                ("Discord", "https://discord.com/app"),
+                ("Steam", "https://store.steampowered.com"),
+                ("openoriel.com", BrowserConstants.productWebsiteURL.absoluteString),
+                ("DuckDuckGo", "https://duckduckgo.com")
+            ]
+        }
+        return [
             ("openoriel.com", BrowserConstants.productWebsiteURL.absoluteString),
             ("DuckDuckGo", "https://duckduckgo.com"),
             ("Wikipedia", "https://wikipedia.org"),
@@ -64,7 +74,8 @@ struct StartPageView: View {
                 accent: environment.settings.accentTheme,
                 background: environment.settings.backgroundTheme,
                 scheme: pageScheme,
-                customAccent: environment.settings.usesExtensionTheme ? environment.settings.brandColor : nil,
+                customAccent: (environment.settings.usesExtensionTheme || environment.settings.edition.isPulse)
+                    ? environment.settings.brandColor : nil,
                 customBackground: environment.settings.customBackgroundColor,
                 ntpImageURL: activeExtensionThemeNTPImageURL
             )
@@ -153,6 +164,7 @@ struct StartPageView: View {
         .environment(\.colorScheme, pageScheme)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.28), value: environment.settings.backgroundTheme)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.28), value: environment.settings.accentTheme)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: environment.settings.edition)
         .onAppear {
             if reduceMotion {
                 appeared = true
@@ -213,12 +225,17 @@ struct StartPageView: View {
     }
 
     private func brandCopy(alignment: HorizontalAlignment) -> some View {
-        VStack(alignment: alignment, spacing: 4) {
-            Text(BrowserConstants.productName)
-                .font(.system(size: isWide ? 36 : 34, weight: .semibold, design: .serif))
-                .tracking(-0.8)
+        let edition = environment.settings.edition
+        return VStack(alignment: alignment, spacing: 4) {
+            Text(EditionBranding.productName(for: edition))
+                .font(
+                    edition.isPulse
+                        ? .system(size: isWide ? 34 : 32, weight: .bold, design: .rounded)
+                        : .system(size: isWide ? 36 : 34, weight: .semibold, design: .serif)
+                )
+                .tracking(edition.isPulse ? -0.4 : -0.8)
                 .foregroundStyle(.primary)
-            Text("A calm view of the web.")
+            Text(EditionBranding.tagline(for: edition))
                 .font(.system(.callout, design: .default).weight(.medium))
                 .foregroundStyle(.secondary)
         }
@@ -236,6 +253,11 @@ struct StartPageView: View {
                     }
                     quickChip(systemImage: "hand.raised.fill", title: "Shields") {
                         environment.showPrivacyShield = true
+                    }
+                    if environment.settings.edition.isPulse {
+                        quickChip(systemImage: "bolt.horizontal", title: "Pulse") {
+                            environment.showPulsePerformance = true
+                        }
                     }
                     quickChip(systemImage: "safari", title: "Site") {
                         tab.openProductSite()
@@ -256,8 +278,14 @@ struct StartPageView: View {
                     quickActionCell(systemImage: "hand.raised.fill", title: "Shields") {
                         environment.showPrivacyShield = true
                     }
-                    quickActionCell(systemImage: "safari", title: "Site") {
-                        tab.openProductSite()
+                    if environment.settings.edition.isPulse {
+                        quickActionCell(systemImage: "bolt.horizontal", title: "Pulse") {
+                            environment.showPulsePerformance = true
+                        }
+                    } else {
+                        quickActionCell(systemImage: "safari", title: "Site") {
+                            tab.openProductSite()
+                        }
                     }
                 }
             }

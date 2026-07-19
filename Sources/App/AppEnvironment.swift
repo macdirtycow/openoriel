@@ -53,6 +53,7 @@ final class AppEnvironment {
     var showProfiles = false
     var showWorkspaces = false
     var showPictureInPicturePicker = false
+    var showPulsePerformance = false
     var useVerticalTabs = false
     /// When set, content shows this tab beside the active tab.
     var splitTabID: UUID?
