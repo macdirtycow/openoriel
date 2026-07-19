@@ -1,23 +1,17 @@
 # CI
 
-## Workflows
+| Workflow | Status intent |
+|----------|----------------|
+| Build unsigned IPA | Must be green |
+| Release (tags `v*`) | Must be green (DMG) |
+| CodeQL (advanced workflow) | Build must work; SARIF upload soft-fails if Default setup is on |
 
-| Workflow | Purpose |
-|----------|---------|
-| Build unsigned IPA | macOS 15 + recent Xcode → `build/ipa/*.ipa` on every `main` push that touches Sources |
-| Release | Tag `v*` → macOS DMG attached to the GitHub Release |
-| CodeQL | Manual Swift build + analyze |
+## Fix red CodeQL from GitHub Default setup
 
-## Xcode
+1. Open the repo on GitHub  
+2. **Settings → Code security → Code scanning**  
+3. Under **CodeQL default setup** click **Disable**  
 
-Prefer **Xcode 16.4+** on runners. Older 16.2 SDKs lack `WKWebExtension` APIs that Oriel uses.
+Keep the advanced workflow in `.github/workflows/codeql.yml`.
 
-## CodeQL default setup conflict
-
-If Actions show:
-
-> CodeQL analyses from advanced configurations cannot be processed when the default setup is enabled
-
-disable **Default setup** under GitHub → Settings → Code security and analysis → Code scanning, and keep the advanced `.github/workflows/codeql.yml` workflow.
-
-ZIPFoundation is vendored under `Sources/ThirdParty/ZIPFoundation` (MIT) so builds no longer depend on SwiftPM resolution during CodeQL autobuild.
+ZIPFoundation is vendored in `Sources/ThirdParty/ZIPFoundation` (no SwiftPM).

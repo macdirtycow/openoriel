@@ -1,0 +1,53 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: codeql-advanced-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (swift)
+    runs-on: macos-15
+    timeout-minutes: 45
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          for app in /Applications/Xcode_16.4.app /Applications/Xcode_16.3.app /Applications/Xcode.app; do
+            if [[ -d "$app" ]]; then sudo xcode-select -s "$app/Contents/Developer"; break; fi
+          done
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: swift
+          build-mode: manual
+
+      - name: Build
+        run: |
+          xcodegen generate
+          xcodebuild -scheme Oriel -configuration Debug \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData-codeql" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            ONLY_ACTIVE_ARCH=YES build
+
+      # Soft-fail: GitHub blocks advanced SARIF while Default setup is still on.
+      - uses: github/codeql-action/analyze@v4
+        continue-on-error: true
+        with:
+          category: "/language:swift"
