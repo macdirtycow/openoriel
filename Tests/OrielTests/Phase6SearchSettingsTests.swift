@@ -31,6 +31,17 @@ final class Phase6SearchSettingsTests: XCTestCase {
         XCTAssertEqual(desktop, UserAgentPolicy.safariDesktop)
     }
 
+    func testChromeWebStoreUsesDesktopChromeUserAgent() {
+        let store = URL(string: "https://chromewebstore.google.com/detail/foo/cjpalhdlnbpafiamejdnhcphjbkeiagm")!
+        XCTAssertTrue(UserAgentPolicy.isChromeWebStoreHost(store.host))
+        XCTAssertEqual(
+            UserAgentPolicy.customUserAgent(for: store, requestsDesktopSite: false),
+            UserAgentPolicy.chromeDesktop
+        )
+        // Search stays on Safari — only the store host is overridden.
+        XCTAssertFalse(UserAgentPolicy.isChromeWebStoreHost("www.google.com"))
+    }
+
     func testSettingsPersistSearchEngine() async {
         await MainActor.run {
             let defaults = UserDefaults(suiteName: "oriel.tests.search.\(UUID().uuidString)")!

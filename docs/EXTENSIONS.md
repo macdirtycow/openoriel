@@ -8,7 +8,7 @@ See also: [Extension compatibility (iOS research)](EXTENSION_COMPAT.md).
 
 | Source | Notes |
 |--------|--------|
-| Chrome Web Store | Install controls become **Add to Oriel** |
+| Chrome Web Store | Install controls become **Add to Oriel** (on iPhone/iPad Oriel spoofs desktop Chrome for the store only, so “not compatible with a phone” is suppressed) |
 | Firefox Add-ons (AMO) | On addons.mozilla.org, install / theme buttons become **Add to Oriel** / **Add theme to Oriel** |
 | `.zip` / `.crx` / `.xpi` | Extensions → Install from file… (iOS + macOS) |
 | Unpacked folder | Directory with `manifest.json` |

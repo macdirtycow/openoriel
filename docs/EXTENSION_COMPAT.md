@@ -21,6 +21,17 @@ A full “run Chromium extensions exactly like Chrome” or “run Gecko add-ons
 | Scan `/Applications` for Safari | macOS only | No Applications scan on iOS |
 | Extension themes (`theme` in manifest) | Yes | Colors + optional NTP image |
 
+## Chrome Web Store on iPhone / iPad
+
+The store often shows **“not compatible with a phone”** when it sees a mobile Safari UA. Oriel counters that only on CWS hosts:
+
+1. **Desktop Chrome HTTP UA** for `chromewebstore.google.com` (not for Google Search — avoids bot checks).
+2. **Desktop content mode** (`preferredContentMode = .desktop`) on iOS navigations to CWS.
+3. **JS spoof** of `navigator.userAgent` / `userAgentData` / `platform` / `maxTouchPoints`.
+4. **Hide** phone-incompatibility banners; keep a floating **Add to Oriel** button + short tip.
+
+CRX download already used a desktop Chrome UA; page browsing now matches.
+
 ## Built-in compat (`ManifestCompatNormalizer`)
 
 Runs on every staged package (CRX / XPI / zip / Safari extract):

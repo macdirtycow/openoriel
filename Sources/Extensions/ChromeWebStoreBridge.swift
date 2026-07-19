@@ -89,6 +89,26 @@ enum ChromeWebStoreBridge {
       }
       window.__orielPostInstall = postInstall;
 
+      // Spoof desktop Chrome so CWS does not serve “not compatible with a phone”.
+      var desktopUA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+      try {
+        Object.defineProperty(navigator, 'userAgent', { configurable: true, get: function () { return desktopUA; } });
+      } catch (e) {}
+      try {
+        Object.defineProperty(navigator, 'appVersion', {
+          configurable: true,
+          get: function () { return desktopUA.substring(8); }
+        });
+      } catch (e) {}
+      try {
+        Object.defineProperty(navigator, 'platform', { configurable: true, get: function () { return 'MacIntel'; } });
+      } catch (e) {}
+      try {
+        Object.defineProperty(navigator, 'vendor', { configurable: true, get: function () { return 'Google Inc.'; } });
+      } catch (e) {}
+      try {
+        Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, get: function () { return 0; } });
+      } catch (e) {}
       try {
         Object.defineProperty(navigator, 'userAgentData', {
           configurable: true,
@@ -223,18 +243,52 @@ enum ChromeWebStoreBridge {
         }
       }
 
+      function isPhoneIncompatText(text) {
+        if (!text) return false;
+        if (/Item currently unavailable/i.test(text)) return true;
+        if (/not compatible with (a )?(phone|mobile|device)/i.test(text)) return true;
+        if (/not available (on|for) (your )?(phone|mobile|device|ios|iphone|ipad)/i.test(text)) return true;
+        if (/only (works|available) on (desktop|computer|chrome for (desktop|mac|windows))/i.test(text)) return true;
+        if (/this (item|extension|theme) (is )?unavailable/i.test(text)) return true;
+        if (/can.?t (be )?(install|add).{0,24}(phone|mobile|ios)/i.test(text)) return true;
+        if (/requires? chrome (for )?(desktop|mac|windows)/i.test(text)) return true;
+        return false;
+      }
+
       function hideUnavailable() {
         if (!document.body) return;
-        var candidates = document.querySelectorAll('div, section, span, p');
+        var candidates = document.querySelectorAll('div, section, span, p, h1, h2, h3, li');
         for (var i = 0; i < candidates.length; i++) {
           var el = candidates[i];
           if (el.getAttribute('data-oriel-hidden-unavailable') === '1') continue;
-          if (el.childElementCount > 6) continue;
+          if (el.id === 'oriel-add-to-oriel' || el.id === 'oriel-cws-tip') continue;
+          if (el.childElementCount > 8) continue;
           var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
-          if (text.length < 20 || text.length > 180) continue;
-          if (!/Item currently unavailable/i.test(text)) continue;
+          if (text.length < 12 || text.length > 220) continue;
+          if (!isPhoneIncompatText(text)) continue;
           el.style.setProperty('display', 'none', 'important');
           el.setAttribute('data-oriel-hidden-unavailable', '1');
+        }
+      }
+
+      function ensureTip() {
+        var id = idFromPath();
+        var tip = document.getElementById('oriel-cws-tip');
+        if (!id) { if (tip) tip.remove(); return; }
+        if (!tip) {
+          tip = document.createElement('div');
+          tip.id = 'oriel-cws-tip';
+          tip.setAttribute('role', 'status');
+          Object.assign(tip.style, {
+            position: 'fixed', left: '12px', right: '12px', bottom: '72px', zIndex: '2147483645',
+            padding: '10px 14px', borderRadius: '10px',
+            background: 'rgba(26, 115, 232, 0.94)', color: '#fff',
+            font: '600 13px/1.35 -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.18)', textAlign: 'center',
+            pointerEvents: 'none'
+          });
+          tip.textContent = 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.';
+          (document.body || document.documentElement).appendChild(tip);
         }
       }
 
@@ -299,10 +353,12 @@ enum ChromeWebStoreBridge {
         busy = true;
         try {
           rewriteLabels();
-          if (idFromPath()) { hideUnavailable(); ensureButton(); }
+          if (idFromPath()) { hideUnavailable(); ensureTip(); ensureButton(); }
           else {
             var btn = document.getElementById('oriel-add-to-oriel');
             if (btn) btn.remove();
+            var tip = document.getElementById('oriel-cws-tip');
+            if (tip) tip.remove();
           }
         } finally { busy = false; }
       }

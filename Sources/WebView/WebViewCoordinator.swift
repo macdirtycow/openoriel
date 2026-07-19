@@ -306,6 +306,14 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
 
             tab.syncUserAgentForNavigation(to: url)
 
+            #if os(iOS)
+            // Ask WebKit for the desktop layout of Chrome Web Store on iPhone/iPad.
+            if navigationAction.targetFrame?.isMainFrame != false,
+               UserAgentPolicy.isChromeWebStoreHost(url.host) {
+                preferences.preferredContentMode = .desktop
+            }
+            #endif
+
             #if os(macOS)
             // ⌘-click opens links in a new tab (Safari/Chrome convention).
             if navigationAction.modifierFlags.contains(.command),

@@ -33,4 +33,13 @@ final class ChromeWebStoreAPITests: XCTestCase {
         let bare = URL(string: "oriel-extension://\(id)")!
         XCTAssertEqual(ChromeWebStoreAPI.extensionID(fromInstallURL: bare), id)
     }
+
+    func testBridgeScriptsMentionPhoneCompatWorkaround() {
+        // Regression guard: keep the mobile CWS workaround wired into the injected scripts.
+        XCTAssertTrue(ChromeWebStoreBridge.chromeAPIStubSource.contains("maxTouchPoints"))
+        XCTAssertTrue(ChromeWebStoreBridge.chromeAPIStubSource.contains("MacIntel"))
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("not compatible with"))
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("oriel-cws-tip"))
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("Add to Oriel"))
+    }
 }
