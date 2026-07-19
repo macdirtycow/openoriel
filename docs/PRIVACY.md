@@ -14,6 +14,8 @@ Shields and related features use Apple WebKit APIs.
 | Private browsing | Non-persistent data store; not written to history |
 | Per-site Shields | Local overrides on the web view |
 | Site permissions | Camera, mic, location via WebKit + system prompts |
+| Password Vault (Mac) | Optional AES-GCM vault; key wrapped in Keychain; biometric unlock. Not synced via iCloud |
+| System password autofill | Keychain / AutoFill where the OS provides it |
 
 ## Limits
 

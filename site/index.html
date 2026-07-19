@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Oriel — A calm view of the web</title>
-  <meta name="description" content="Oriel is a native browser for iPhone, iPad, and Mac. Download unsigned IPA and macOS DMG builds from GitHub. Built with Swift, SwiftUI, and WebKit by inveil.net." />
+  <title>Oriel — Native browser for iPhone, iPad, and Mac</title>
+  <meta name="description" content="Oriel is a native Swift browser for iPhone, iPad, and Mac. Classic or Pulse, Shields, extensions, Smart dual engine on Mac, Password Vault, governors. Download IPA and DMG from GitHub." />
   <link rel="canonical" href="https://openoriel.com/" />
   <meta name="theme-color" content="#2E616B" />
-  <meta property="og:title" content="Oriel — A calm view of the web" />
-  <meta property="og:description" content="A native Apple browser by inveil.net. Download for iPhone, iPad, and Mac — open source on GitHub." />
+  <meta property="og:title" content="Oriel — Native browser for Apple platforms" />
+  <meta property="og:description" content="Classic or Pulse. Shields, extensions, Smart Mac engines, Password Vault, governors. Open source by inveil.net." />
   <meta property="og:url" content="https://openoriel.com" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="assets/hero.jpg" />
+  <meta property="og:image" content="https://openoriel.com/assets/hero.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,11 +29,10 @@
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="#download">Download</a>
-      <a href="#pulse">Pulse</a>
+      <a href="#editions">Editions</a>
+      <a href="#features">Features</a>
       <a href="#engines">Engines</a>
-      <a href="#why">Why</a>
-      <a href="#shields">Shields</a>
-      <a href="#platforms">Platforms</a>
+      <a href="#privacy">Privacy</a>
       <a href="https://github.com/macdirtycow/openoriel">GitHub</a>
     </nav>
   </header>
@@ -40,13 +40,13 @@
   <main id="main">
     <section class="hero" id="top" aria-label="Oriel">
       <div class="hero-visual" aria-hidden="true">
-        <img src="assets/hero.jpg" alt="" />
+        <img src="assets/hero.jpg" alt="" width="1536" height="1024" />
         <div class="hero-veil"></div>
       </div>
       <div class="hero-copy">
         <p class="brand">Oriel</p>
         <h1>A calm view of the web.</h1>
-        <p class="lede">A native browser for iPhone, iPad, and Mac — built with Swift, SwiftUI, and WebKit.</p>
+        <p class="lede">Native for iPhone, iPad, and Mac. Classic calm or Oriel Pulse — Shields, extensions, and an honest engine story.</p>
         <div class="cta">
           <a class="btn btn-primary" href="#download">Download</a>
           <a class="btn btn-ghost" href="https://github.com/macdirtycow/openoriel">View on GitHub</a>
@@ -76,41 +76,67 @@
       </div>
     </section>
 
+    <section class="band band-alt" id="editions">
+      <div class="band-inner band-wide reveal">
+        <h2>Two editions, one app</h2>
+        <p>Switch anytime in Settings → Appearance. Same Shields, sync, and page tools — different chrome.</p>
+        <div class="edition-split">
+          <div class="edition-block">
+            <img class="edition-mark" src="assets/oriel-mark.svg" width="40" height="40" alt="" />
+            <h3>Classic</h3>
+            <p>Calm teal chrome, serif titles, and a start page that stays out of the way.</p>
+          </div>
+          <div class="edition-block edition-pulse">
+            <img class="edition-mark" src="assets/oriel-pulse-mark.svg" width="40" height="40" alt="" />
+            <h3>Pulse</h3>
+            <p>Obsidian studio look, Pulse Corner, Data Saver, ambience, and Mac governors — no fake CPU meters.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="band pulse-band" id="pulse">
       <div class="band-inner band-wide reveal">
-        <p class="pulse-kicker">Inside the same app</p>
-        <h2>Oriel Pulse</h2>
-        <p>A gaming-inspired edition you can switch on anytime — neon chrome, Pulse Corner, performance limits, Data Saver, ambience, and Play / Stream / Focus workspace presets. Same privacy model as Classic Oriel. No Opera-style account. No fake CPU meters.</p>
+        <p class="pulse-kicker">Oriel Pulse</p>
+        <h2>Built for play. Still private.</h2>
+        <p>A darker studio edition inside the same binary — Corner controls, performance limits, local ambience, and workspace presets. Same privacy model as Classic. No Opera-style account.</p>
         <ul class="pulse-points">
-          <li>Pulse Corner quick launch (Twitch, YouTube, Discord, Steam) + gaming news</li>
-          <li>Honest engine limits + Data/Network Saver + Lucid Mode + Low Power Mode</li>
-          <li>Local soundscape and start-page wallpapers — nothing streamed or sold</li>
+          <li>Pulse Corner — launch, savers, ambience, mute, hibernate</li>
+          <li>Data / Network Saver, Lucid Mode, Low Power Mode tightening</li>
+          <li>Mac CPU &amp; RAM governors (timer throttle + memory-pressure hibernate)</li>
           <li>Optional Pulse home-screen / Dock icon</li>
-          <li>Same Mac page-engine picker as Classic (WebKit / Chromium Compatible)</li>
-          <li>Mac: auto Chromium Compatible for stubborn sites, per-site overrides, Client Hints</li>
         </ul>
-        <p class="note">Turn it on in Settings → Appearance after install. Switch back to Classic whenever you want. Page engine works in both editions.</p>
+      </div>
+    </section>
+
+    <section class="band" id="features">
+      <div class="band-inner band-wide reveal">
+        <h2>What you get</h2>
+        <p>Everyday browsing tools that work in Classic and Pulse.</p>
+        <ul class="feature-list">
+          <li><strong>Tabs &amp; library</strong> — groups, search, Reading List, bookmarks, history, download history that survives relaunch</li>
+          <li><strong>Page tools</strong> — find with match counts, mute tab, screenshot, Save as PDF, zoom remembered per site, Reader, translate, print</li>
+          <li><strong>Profiles &amp; workspaces</strong> — separate cookie jars; Play / Stream / Focus presets</li>
+          <li><strong>Extensions</strong> — Chrome Web Store, Firefox Add-ons, and Safari package import via Oriel Store (WebExtensions where the OS allows)</li>
+          <li><strong>Password Vault</strong> — optional AES-GCM vault with Keychain-wrapped key and Touch ID unlock; system Keychain autofill still available</li>
+          <li><strong>iCloud sync</strong> — bookmarks, Reading List, open tabs, limited history, appearance (not vault secrets)</li>
+        </ul>
       </div>
     </section>
 
     <section class="band band-alt" id="engines">
-      <div class="band-inner reveal">
+      <div class="band-inner band-wide reveal">
         <h2>Best of both engines</h2>
-        <p>On Mac, the default is <strong>Smart (best per tab)</strong>: each tab picks WebKit or Chromium Compatible from the page (Meet/Teams-style apps get Chrome identity; Apple/captcha-sensitive sites stay on WebKit). You can also lock every tab to WebKit or Compatible. Real Chromium Native arrives when a CEF build ships. iPhone and iPad stay on WebKit — Apple’s rule, stated honestly.</p>
+        <p>On <strong>Mac</strong>, the default is <strong>Smart (best per tab)</strong>: stubborn web apps get <strong>Chromium Compatible</strong> (Chrome UA and Client Hints on WebKit — not Blink); Apple and captcha-sensitive hosts stay on WebKit. Lock every tab, set per-site overrides, or choose <strong>Chromium Native</strong> — embedded CEF when installed, otherwise a managed Chromium app-window (real Blink process).</p>
+        <p><strong>iPhone and iPad</strong> stay on WebKit only. That’s Apple’s rule — stated honestly, not papered over.</p>
       </div>
     </section>
 
-    <section class="band" id="why">
-      <div class="band-inner reveal">
-        <h2>Native on purpose</h2>
-        <p>Oriel is Apple-first: process-shared WebKit, system materials, and chrome that stays out of the way so the page can breathe. Chromium Compatible is an opt-in Mac identity layer — not a fake “we shipped Blink on iPhone” claim.</p>
-      </div>
-    </section>
-
-    <section class="band" id="shields">
-      <div class="band-inner reveal">
+    <section class="band" id="privacy">
+      <div class="band-inner band-wide reveal">
         <h2>Oriel Shields</h2>
-        <p>Bundled content-blocker lists — EasyList, AdGuard-derived filters, DuckDuckGo tracker hosts — plus cosmetics and YouTube help. Honest about WebKit limits: some first-party stacks still slip through.</p>
+        <p>Bundled content-blocker lists — EasyList, AdGuard-derived filters, DuckDuckGo tracker hosts — plus cosmetics, HTTPS upgrades, tracking-parameter strip, and Fire. Honest about WebKit limits: some first-party stacks still slip through.</p>
+        <p class="note">See <a class="text-link" href="https://github.com/macdirtycow/openoriel/blob/main/docs/PRIVACY.md">docs/PRIVACY.md</a> for what stays local vs Keychain vs iCloud.</p>
       </div>
     </section>
 
@@ -122,14 +148,14 @@
           <li>iPad</li>
           <li>Mac</li>
         </ul>
-        <p class="note">Open source under Apache 2.0. Build with Xcode from the repository, or use the installers above.</p>
+        <p class="note">Swift · SwiftUI · WebKit · Apache 2.0. Build with Xcode from the repository, or use the installers above.</p>
       </div>
     </section>
 
     <section class="band" id="open">
       <div class="band-inner reveal">
         <h2>Open source</h2>
-        <p>Source, issues, and releases live on GitHub. Contributions welcome.</p>
+        <p>Source, issues, docs, and releases live on GitHub. Dual-engine notes, extension compat, and architecture are in the repo.</p>
         <p><a class="text-link" href="https://github.com/macdirtycow/openoriel">github.com/macdirtycow/openoriel</a></p>
       </div>
     </section>
@@ -143,6 +169,7 @@
       </div>
       <div class="footer-links">
         <a href="#download">Download</a>
+        <a href="#editions">Editions</a>
         <a href="https://openoriel.com">openoriel.com</a>
         <a href="https://inveil.net">inveil.net</a>
         <a href="https://github.com/macdirtycow/openoriel/releases">Releases</a>

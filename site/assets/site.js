@@ -50,7 +50,13 @@
       }
       if (meta && data.tag_name) {
         meta.hidden = false;
-        meta.textContent = `Latest: ${data.name || data.tag_name}`;
+        const label = data.name || data.tag_name;
+        const bits = [];
+        if (ipaAsset) bits.push("IPA");
+        if (dmgAsset) bits.push("DMG");
+        meta.textContent = bits.length
+          ? `Latest: ${label} · ${bits.join(" + ")} ready`
+          : `Latest: ${label}`;
       }
     })
     .catch(() => {

@@ -7,6 +7,9 @@
   --teal-soft: #85b8c7;
   --teal-deep: #1f454d;
   --hairline: rgba(28, 31, 33, 0.12);
+  --pulse-ink: #0b0c0f;
+  --pulse-signal: #ff4a2b;
+  --pulse-steel: #bac0cc;
   --serif: "Fraunces", "Source Serif 4", Georgia, serif;
   --sans: "Source Sans 3", "Segoe UI", sans-serif;
   --max: 68rem;
@@ -202,7 +205,7 @@ a:hover {
   justify-content: center;
   min-height: 2.85rem;
   padding: 0.65rem 1.25rem;
-  border-radius: 999px;
+  border-radius: 0.55rem;
   font-weight: 600;
   font-size: 0.98rem;
   text-decoration: none;
@@ -237,12 +240,6 @@ a:hover {
   color: #fff;
 }
 
-.nav-brand img,
-.footer-brand img {
-  filter: none;
-  color: var(--teal);
-}
-
 /* Sections */
 .band {
   padding: clamp(4rem, 9vw, 6.5rem) 1.25rem;
@@ -258,7 +255,7 @@ a:hover {
 }
 
 .band-inner.band-wide {
-  width: min(100%, 42rem);
+  width: min(100%, 44rem);
 }
 
 .band h2 {
@@ -270,6 +267,15 @@ a:hover {
   color: var(--teal-deep);
 }
 
+.band h3 {
+  margin: 0 0 0.45rem;
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--teal-deep);
+}
+
 .band p {
   margin: 0;
   color: var(--ink-soft);
@@ -277,6 +283,34 @@ a:hover {
 
 .band p + p {
   margin-top: 1rem;
+}
+
+.edition-split {
+  display: grid;
+  gap: 1.75rem;
+  margin-top: 1.75rem;
+}
+
+@media (min-width: 720px) {
+  .edition-split {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+}
+
+.edition-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  margin-bottom: 0.85rem;
+}
+
+.edition-block p {
+  font-size: 1.02rem;
+}
+
+.edition-pulse h3 {
+  color: var(--pulse-ink);
 }
 
 .release-meta {
@@ -330,6 +364,36 @@ a:hover {
   background: var(--teal-deep);
   color: #fff;
   transform: translateY(-1px);
+}
+
+.feature-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.feature-list li {
+  padding: 0 0 1rem;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+}
+
+.feature-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.feature-list strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--teal-deep);
+  letter-spacing: -0.015em;
 }
 
 .platforms {
@@ -411,6 +475,73 @@ a:hover {
   color: rgba(28, 31, 33, 0.5);
 }
 
+/* Pulse band — obsidian + vermillion (matches in-app Pulse) */
+.pulse-band {
+  background:
+    radial-gradient(900px 420px at 88% 12%, rgba(255, 74, 43, 0.18), transparent 55%),
+    radial-gradient(700px 360px at 8% 85%, rgba(186, 192, 204, 0.08), transparent 50%),
+    linear-gradient(180deg, #0b0c0f 0%, #12141a 100%);
+  color: #e8eef5;
+}
+
+.pulse-band h2 {
+  color: #f4f6fa;
+}
+
+.pulse-band h2::after {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  margin-top: 0.85rem;
+  background: var(--pulse-signal);
+  border-radius: 1px;
+}
+
+.pulse-band p,
+.pulse-band .note,
+.pulse-band .pulse-kicker {
+  color: inherit;
+}
+
+.pulse-band .note {
+  opacity: 0.75;
+}
+
+.pulse-kicker {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--pulse-steel);
+}
+
+.pulse-points {
+  margin: 1.35rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.pulse-points li {
+  padding-left: 1.15rem;
+  position: relative;
+  color: rgba(232, 238, 245, 0.88);
+}
+
+.pulse-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 1px;
+  background: var(--pulse-signal);
+}
+
 /* Motion */
 @keyframes aperture {
   from { transform: scale(1.04) translate3d(0, 0, 0); }
@@ -431,58 +562,6 @@ a:hover {
 .reveal.is-in {
   opacity: 1;
   transform: none;
-}
-
-.pulse-band {
-  background:
-    radial-gradient(900px 420px at 12% 20%, rgba(51, 235, 224, 0.12), transparent 55%),
-    radial-gradient(700px 360px at 90% 80%, rgba(235, 71, 158, 0.10), transparent 50%),
-    linear-gradient(180deg, #10141f 0%, #161b28 100%);
-  color: #e8eef5;
-}
-
-.pulse-band h2,
-.pulse-band p,
-.pulse-band .note,
-.pulse-band .pulse-kicker {
-  color: inherit;
-}
-
-.pulse-band .note {
-  opacity: 0.75;
-}
-
-.pulse-kicker {
-  margin: 0 0 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #33ebe0;
-}
-
-.pulse-points {
-  margin: 1.25rem 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.55rem;
-}
-
-.pulse-points li {
-  padding-left: 1.1rem;
-  position: relative;
-}
-
-.pulse-points li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #33ebe0, #eb479e);
 }
 
 @media (max-width: 720px) {

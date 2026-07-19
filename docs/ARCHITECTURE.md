@@ -15,7 +15,8 @@ Oriel is a single multiplatform app target (XcodeGen). Source folders are module
 | `ContentBlocking` | Rule compile + YouTube skip script |
 | `Extensions` | `WKWebExtension` host, Chrome/Firefox store bridges, Safari `.appex` import, `ManifestCompatNormalizer`, extension themes |
 | `Settings` / `Persistence` | Preferences and storage |
-| `PlatformUI` | Shared chrome (toolbars, start page, sheets) |
+| `Features` | Password Vault, Mac governors, Pulse ambience, zoom, sync, workspaces, PiP helpers |
+| `PlatformUI` | Shared chrome (toolbars, start page, Pulse Corner, settings sheets) |
 
 ## Pattern
 
@@ -42,12 +43,18 @@ See also [`DUAL_ENGINE.md`](DUAL_ENGINE.md). Page-engine preference applies to *
 
 ## Editions
 
-- **Classic** — default Oriel look and behavior.
-- **Pulse** — gaming-inspired chrome, Corner, Data/Network Saver, Lucid Mode, ambience, workspace presets. Same privacy model; same page-engine picker.
+- **Classic** — default Oriel look and behavior (teal / paper).
+- **Pulse** — obsidian + vermillion studio chrome, Corner, Data/Network Saver, Lucid Mode, ambience, workspace presets, optional alternate icon. Same privacy model; same page-engine picker.
+
+## Mac-only power tools
+
+- **Password Vault** — AES-GCM vault, Keychain-wrapped key, biometric unlock (`Features/PasswordVaultStore`).
+- **Performance governors** — timer throttle, WebView pool cap, memory-pressure hibernate (`Features/MacPerformanceGovernor`). Not fake OS CPU% gauges.
+- **Chromium Native host** — CEF when present, else managed Chromium app-windows (`BrowserCore/ChromiumNativeHost`).
 
 ## Trust boundaries
 
 - Page content is untrusted.
 - Native bridges from page JS are allowlisted and narrow (e.g. extension install).
 - Private tabs use a non-persistent `WKWebsiteDataStore`.
-- Secrets belong in the Keychain.
+- Secrets belong in the Keychain (system autofill and optional Password Vault).

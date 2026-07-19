@@ -1,6 +1,6 @@
 # Security
 
-Report security issues privately to **secuirty@inveil.net**.
+Report security issues privately to **security@inveil.net**.
 
 Include OS version, Oriel build or commit, reproduction steps, and impact. Do not file public issues for exploits.
 
