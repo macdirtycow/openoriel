@@ -1,0 +1,9 @@
+// Example — copy to Vendor/CEF.xcconfig via Scripts/enable-cef-macos.sh (gitignored).
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) ORIEL_HAS_CEF
+OTHER_SWIFT_FLAGS = $(inherited) -DORIEL_HAS_CEF
+OTHER_CFLAGS = $(inherited) -DORIEL_HAS_CEF=1
+OTHER_CPLUSPLUSFLAGS = $(inherited) -DORIEL_HAS_CEF=1 -std=c++17
+HEADER_SEARCH_PATHS = $(inherited) $(SRCROOT)/Vendor/CEF
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/Vendor/CEF
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/../Frameworks @loader_path/../Frameworks
+OTHER_LDFLAGS = $(inherited) -framework "Chromium Embedded Framework" -lstdc++

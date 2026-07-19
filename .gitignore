@@ -28,4 +28,5 @@ xcuserdata/
 *.pem
 
 # Local CEF install (Scripts/fetch-cef-macos.sh)
-Vendor/
+Vendor/*
+!Vendor/CEF.xcconfig.example
