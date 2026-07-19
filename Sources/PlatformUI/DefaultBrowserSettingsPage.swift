@@ -48,7 +48,7 @@ struct DefaultBrowserSettingsPage: View {
             }
 
             #if os(iOS)
-            Section("Checklist") {
+            Section {
                 checklistRow(done: true, title: "Register http and https", detail: "Already in the app Info.plist")
                 checklistRow(done: false, title: "Apple Default Browser entitlement", detail: "Request access from Apple Developer")
                 checklistRow(done: false, title: "Ship an entitled build", detail: "Then choose Oriel under Default Browser App")
@@ -56,6 +56,8 @@ struct DefaultBrowserSettingsPage: View {
                     "Request Default Browser access",
                     destination: URL(string: "https://developer.apple.com/contact/request/default-browser/")!
                 )
+            } header: {
+                Text("Checklist")
             }
             #endif
         }

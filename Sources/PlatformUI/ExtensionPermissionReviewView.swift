@@ -26,7 +26,7 @@ struct ExtensionPermissionReviewView: View {
                 }
 
                 if !accentPermissions.isEmpty {
-                    Section("Permissions") {
+                    Section {
                         ForEach(accentPermissions, id: \.self) { permission in
                             Toggle(isOn: Binding(
                                 get: { selected.contains(permission) },
@@ -44,6 +44,8 @@ struct ExtensionPermissionReviewView: View {
                             }
                             .disabled(ExtensionCompatibility.blockedPermissions.contains(permission))
                         }
+                    } header: {
+                        Text("Permissions")
                     } footer: {
                         Text("Blocked WebKit APIs stay off. Limited APIs may still not work fully.")
                     }
@@ -56,7 +58,7 @@ struct ExtensionPermissionReviewView: View {
                 }
 
                 if !hostPatterns.isEmpty {
-                    Section("Sites") {
+                    Section {
                         ForEach(hostPatterns.prefix(12), id: \.self) { pattern in
                             Text(pattern)
                                 .font(.caption.monospaced())
@@ -67,6 +69,8 @@ struct ExtensionPermissionReviewView: View {
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
                         }
+                    } header: {
+                        Text("Sites")
                     }
                 }
             }

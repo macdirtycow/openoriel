@@ -13,7 +13,7 @@ struct DataInventoryView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Section("On this device") {
+            Section {
                 inventoryRow("Bookmarks", detail: "\(environment.bookmarks.bookmarks.filter { !$0.isFolder }.count) items", systemImage: "bookmark.fill")
                 inventoryRow("History", detail: "Recent visits on this device", systemImage: "clock")
                 inventoryRow("Open tabs", detail: "\(environment.tabs.tabs.count) tabs", systemImage: "square.on.square")
@@ -23,9 +23,11 @@ struct DataInventoryView: View {
                 inventoryRow("Extensions", detail: "\(environment.extensions.extensions.count) installed packages", systemImage: "puzzlepiece.extension.fill")
                 inventoryRow("Profiles", detail: "\(environment.profiles.profiles.count) cookie jars", systemImage: "person.crop.circle")
                 inventoryRow("Site permissions", detail: "Camera, mic, and location choices", systemImage: "hand.raised.fill")
+            } header: {
+                Text("On this device")
             }
 
-            Section("iCloud Key Value (optional)") {
+            Section {
                 if environment.icloudSync.isEnabled {
                     Label("Sync is on", systemImage: "checkmark.icloud.fill")
                         .foregroundStyle(environment.settings.brandColor)
@@ -37,26 +39,34 @@ struct DataInventoryView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            } header: {
+                Text("iCloud Key Value (optional)")
             }
 
-            Section("System Keychain") {
+            Section {
                 Text("Passwords and passkeys stay in the system Keychain. Oriel can fill them via the system picker. Oriel does not keep its own password database.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            } header: {
+                Text("System Keychain")
             }
 
-            Section("Private browsing") {
+            Section {
                 Text("Private tabs use a temporary data store. They are not restored after quit and are not synced.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            } header: {
+                Text("Private browsing")
             }
 
-            Section("Clear") {
+            Section {
                 Button("Open Fire…", role: .destructive) {
                     environment.showFireButton = true
                 }
+            } header: {
+                Text("Clear")
             } footer: {
                 Text("Fire clears selected browsing data on this device. Bookmarks are never deleted by Fire.")
             }
