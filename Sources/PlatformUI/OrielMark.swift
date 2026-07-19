@@ -19,11 +19,11 @@ struct OrielMark: View {
     private var hasMarkAsset: Bool {
         guard !isPulse else { return false }
         #if os(iOS)
-        UIImage(named: "OrielMark") != nil
+        return UIImage(named: "OrielMark") != nil
         #elseif os(macOS)
-        NSImage(named: "OrielMark") != nil || NSApplication.shared.applicationIconImage != nil
+        return NSImage(named: "OrielMark") != nil || NSApplication.shared.applicationIconImage != nil
         #else
-        false
+        return false
         #endif
     }
 
