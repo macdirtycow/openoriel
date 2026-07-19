@@ -826,7 +826,7 @@ enum StoreBridgeI18n {
             && /(chrome web store|web store|extens|theme|thema)/i.test(text)) {
           return true;
         }
-        if (/open (this|deze) (page|pagina) in (your |je )?(desktop ?browser|desktopbrowser)|open je deze pagina in je desktopbrowser|open this page in your desktop browser/i.test(text)) return true;
+        if (/open (this |deze )?(page|pagina) in (your |je )?(desktop ?browser|desktopbrowser)|open je deze pagina in je desktopbrowser|open this page in your desktop browser|deze pagina in je desktopbrowser/i.test(text)) return true;
         if (/install( this)? (on|from) (a )?(desktops?|computers?)|installeer.*(desktops?|computers?)|auf (einem )?(desktops?|computers?) installieren/i.test(text)) return true;
         if (/available (for|on) chrome (on )?(desktops?|mac|windows|computers?)|beschikbaar (voor|op) chrome.*(desktops?|computers?|mac|windows)/i.test(text)) return true;
         // Mini info banner: “Gebruik je desktopbrowser om dit thema toe te voegen.”
