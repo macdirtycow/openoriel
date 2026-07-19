@@ -140,6 +140,8 @@ final class BrowserSettings {
         didSet {
             let allowed = BrowserEngineKind.availableOnThisPlatform
             if !allowed.contains(preferredEngine) {
+                // Persist the corrected value — Swift does not re-enter didSet for this assignment.
+                defaults.set(BrowserEngineKind.webkit.rawValue, forKey: preferredEngineKey)
                 preferredEngine = .webkit
                 return
             }

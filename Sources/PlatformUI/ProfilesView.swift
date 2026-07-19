@@ -24,10 +24,12 @@ struct ProfilesView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Section("Your profiles") {
+                Section {
                     ForEach(environment.profiles.profiles) { profile in
                         profileRow(profile)
                     }
+                } header: {
+                    Text("Your profiles")
                 }
             }
             .navigationTitle("Profiles")

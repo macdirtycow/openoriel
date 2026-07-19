@@ -126,11 +126,9 @@ struct BrowserWebView: PlatformViewRepresentable {
         }
         #endif
 
-        #if os(macOS)
-        if preferChromeUserAgent, injectChromiumIdentity {
-            configuration.userContentController.addUserScript(ChromiumIdentityScript.userScript)
-        }
-        #endif
+        // Do not add ChromiumIdentityScript as a permanent user script — Smart mode
+        // reuses the same WKWebView across WebKit ↔ Compatible hosts; a sticky script
+        // would keep spoofing Chrome on Apple/captcha pages. Inject per-navigation instead.
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         // Keep the web view clear so themed start-page washes aren't covered by opaque white/black.
@@ -203,6 +201,9 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.youTubeAdBlockingEnabled = contentBlockingEnabled
         context.coordinator.appliedContentBlockerGeneration = contentBlockerGeneration
         context.coordinator.appliedThirdPartyCookieBlocking = blockThirdPartyCookies
+        #if os(macOS)
+        context.coordinator.injectChromiumIdentity = injectChromiumIdentity
+        #endif
         tab.webView = webView
         tab.refreshNavigationChrome()
         WebViewPool.shared.touch(tab.id)
@@ -287,6 +288,9 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.onPopupCreated = onPopupCreated
         context.coordinator.onPopupClosed = onPopupClosed
         context.coordinator.onPopupTitleChanged = onPopupTitleChanged
+        #if os(macOS)
+        context.coordinator.injectChromiumIdentity = injectChromiumIdentity
+        #endif
         context.coordinator.onOpenURLInNewTab = onOpenURLInNewTab
         context.coordinator.onEnqueueURLForLater = onEnqueueURLForLater
         context.coordinator.shouldStripTracking = shouldStripTracking

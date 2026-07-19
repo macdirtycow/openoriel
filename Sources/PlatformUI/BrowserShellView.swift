@@ -1272,9 +1272,9 @@ struct BrowserShellView: View {
     }
 
     private func webViewPoolConfigKey(environment: AppEnvironment, tab: BrowserTab) -> String {
-        // Pool still keys by concrete engine so a new tab can start with the right identity config.
-        let engine = tab.preferredEngine.rawValue
-        return "\(webViewStructuralID(environment: environment, tab: tab))-e\(engine)"
+        // Must match structural ID: including concrete engine wiped history when Smart
+        // flipped WebKit ↔ Chromium Compatible on the same tab.
+        webViewStructuralID(environment: environment, tab: tab)
     }
 
     private func protectedWebViewTabIDs(environment: AppEnvironment) -> Set<UUID> {

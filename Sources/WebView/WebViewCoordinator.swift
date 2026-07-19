@@ -73,6 +73,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     var youTubeAdBlockingEnabled: Bool = true
     var appliedThirdPartyCookieBlocking = false
     var appliedContentBlockerGeneration: Int = 0
+    /// When true and the tab uses Chromium Compatible UA, inject Client Hints (Mac).
+    var injectChromiumIdentity: Bool = false
 
     private var observations: [NSKeyValueObservation] = []
     private var popupTitleObservation: NSKeyValueObservation?
@@ -311,7 +313,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             if navigationAction.targetFrame?.isMainFrame != false,
                URLParser.isAllowedNavigation(url),
                !URLParser.isStartPage(url),
-               tab.shouldHandOffToSystemChromium?(url) == true {
+               tab.shouldHandOffToSystemChromium?(url) == true,
+               ChromiumEngineBridge.systemChromiumInstalled {
                 tab.onHandOffToSystemChromium?(url)
                 decisionHandler(.cancel, preferences)
                 return
@@ -400,6 +403,9 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         injectYouTubeAdBlockIfNeeded(into: webView)
         injectPageCleanupIfNeeded(into: webView)
+        #if os(macOS)
+        injectChromiumIdentityIfNeeded(into: webView)
+        #endif
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -415,9 +421,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             tab.applyPageEnhancementsAfterLoad()
             tab.applyElementHideRules()
             #if os(macOS)
-            if RenderingEnginePolicy.usesChromeDesktopUserAgent(tab.preferredEngine) {
-                webView.evaluateJavaScript(ChromiumIdentityScript.source, in: nil, in: .page) { _ in }
-            }
+            injectChromiumIdentityIfNeeded(into: webView)
             #endif
             #if os(macOS) || os(iOS)
             injectInstalledExtensionIDs(into: webView)
@@ -429,6 +433,16 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             tab.refreshNavigationChrome()
         }
     }
+
+    #if os(macOS)
+    private func injectChromiumIdentityIfNeeded(into webView: WKWebView) {
+        guard injectChromiumIdentity,
+              RenderingEnginePolicy.usesChromeDesktopUserAgent(tab.preferredEngine) else {
+            return
+        }
+        webView.evaluateJavaScript(ChromiumIdentityScript.source, in: nil, in: .page) { _ in }
+    }
+    #endif
 
     #if os(macOS) || os(iOS)
     /// Pushes installed Chrome IDs / Firefox slugs into store pages so bridges can show

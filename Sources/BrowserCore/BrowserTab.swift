@@ -134,10 +134,9 @@ final class BrowserTab: Identifiable {
             }
         }
 
-        navigation.url = destination
-        navigation.syncAddressBarFromURL()
-
         if URLParser.isStartPage(destination) {
+            navigation.url = destination
+            navigation.syncAddressBarFromURL()
             showStartPagePreservingWebHistory()
             return
         }
@@ -146,6 +145,19 @@ final class BrowserTab: Identifiable {
             navigation.lastErrorMessage = "This address uses an unsupported or blocked scheme."
             return
         }
+
+        // Hand off before mutating local navigation — avoids address-bar/content desync.
+        if shouldHandOffToSystemChromium?(destination) == true {
+            #if os(macOS)
+            if ChromiumEngineBridge.systemChromiumInstalled {
+                onHandOffToSystemChromium?(destination)
+                return
+            }
+            #endif
+        }
+
+        navigation.url = destination
+        navigation.syncAddressBarFromURL()
 
         navigation.isLoading = true
         applyUserAgent(for: destination)

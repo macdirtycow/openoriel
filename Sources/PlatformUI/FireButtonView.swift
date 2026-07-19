@@ -18,18 +18,22 @@ struct FireButtonView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Section("Clear") {
+                Section {
                     Toggle("Browsing history", isOn: $options.history)
                     Toggle("Cookies & website data", isOn: $options.cookiesAndSiteData)
                     Toggle("Downloads list", isOn: $options.downloads)
                     Toggle("Reading List", isOn: $options.openLaterQueue)
                     Toggle("Site permissions", isOn: $options.sitePermissions)
+                } header: {
+                    Text("Clear")
                 }
 
-                Section("Tabs") {
+                Section {
                     Toggle("Close all tabs", isOn: $options.closeTabs)
                     Toggle("Close private tabs only", isOn: $options.closePrivateTabsOnly)
                         .disabled(options.closeTabs)
+                } header: {
+                    Text("Tabs")
                 }
 
                 if let finishedMessage {
