@@ -100,24 +100,19 @@ final class BrowserSettings {
     }
 
     /// Soft cap on live WKWebViews when Pulse performance mode is on.
-    /// Backing store — `@Observable` must not self-assign inside `didSet` (re-entrancy / crash).
-    @ObservationIgnored private var storedPulseWebViewLimit: Int = 8
     var pulseWebViewLimit: Int {
-        get {
-            access(keyPath: \.pulseWebViewLimit)
-            return storedPulseWebViewLimit
-        }
-        set {
-            let clamped = min(16, max(4, newValue))
-            guard clamped != storedPulseWebViewLimit else {
+        didSet {
+            let clamped = min(16, max(4, pulseWebViewLimit))
+            // Never self-assign here — `@Observable` re-enters the setter and can crash.
+            if clamped != pulseWebViewLimit {
                 defaults.set(clamped, forKey: pulseWebViewLimitKey)
-                refreshPulsePoolLimit()
+                Task { @MainActor [weak self] in
+                    guard let self, self.pulseWebViewLimit != clamped else { return }
+                    self.pulseWebViewLimit = clamped
+                }
                 return
             }
-            withMutation(keyPath: \.pulseWebViewLimit) {
-                storedPulseWebViewLimit = clamped
-            }
-            defaults.set(clamped, forKey: pulseWebViewLimitKey)
+            defaults.set(pulseWebViewLimit, forKey: pulseWebViewLimitKey)
             refreshPulsePoolLimit()
         }
     }
@@ -146,30 +141,20 @@ final class BrowserSettings {
     }
 
     /// Preferred rendering engine (WebKit everywhere; Chromium modes on Mac).
-    /// Backing store — avoid `@Observable` self-assignment in `didSet` (can re-enter / crash).
-    @ObservationIgnored private var storedPreferredEngine: BrowserEngineKind = {
-        #if os(macOS)
-        .smart
-        #else
-        .webkit
-        #endif
-    }()
     var preferredEngine: BrowserEngineKind {
-        get {
-            access(keyPath: \.preferredEngine)
-            return storedPreferredEngine
-        }
-        set {
+        didSet {
             let allowed = BrowserEngineKind.availableOnThisPlatform
-            let next = allowed.contains(newValue) ? newValue : .webkit
-            guard next != storedPreferredEngine else {
-                defaults.set(next.rawValue, forKey: preferredEngineKey)
+            // Never self-assign here — `@Observable` re-enters the setter and can crash.
+            if !allowed.contains(preferredEngine) {
+                defaults.set(BrowserEngineKind.webkit.rawValue, forKey: preferredEngineKey)
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          !BrowserEngineKind.availableOnThisPlatform.contains(self.preferredEngine) else { return }
+                    self.preferredEngine = .webkit
+                }
                 return
             }
-            withMutation(keyPath: \.preferredEngine) {
-                storedPreferredEngine = next
-            }
-            defaults.set(next.rawValue, forKey: preferredEngineKey)
+            defaults.set(preferredEngine.rawValue, forKey: preferredEngineKey)
         }
     }
 
