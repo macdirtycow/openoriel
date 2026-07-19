@@ -29,6 +29,7 @@ The Chrome Web Store **desktop catalog** does not reflow well on a phone. Prefer
 - **Firefox:** AMO API v5 `addons/search/`
 - Extensions and themes; install via existing CRX/XPI pipeline
 - Entry: Extensions → Browse Oriel Store, Settings, or overflow menu **Oriel Store**
+- Opening the Chrome Web Store or Firefox Add-ons **website** in a tab shows a one-time tip: **Use Oriel Store?**
 
 ## Chrome Web Store website on iPhone / iPad
 

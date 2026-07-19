@@ -43,6 +43,10 @@ final class AppEnvironment {
     var showExtensions = false
     /// Native phone-readable Chrome/Firefox catalog (avoids broken desktop CWS layout).
     var showOrielStore = false
+    /// Alert when the user opens chromewebstore.google.com or addons.mozilla.org in a tab.
+    var showOrielStoreTip = false
+    /// Hosts already tipped this session (“Keep browsing” / opened Oriel Store).
+    private(set) var orielStoreTipSeenHosts: Set<String> = []
     var showLinkQueue = false
     var showFireButton = false
     var showTranslate = false
@@ -263,6 +267,25 @@ final class AppEnvironment {
     func openURLInNewTab(_ url: URL, isPrivate: Bool = false) {
         tabs.createTab(url: url, isPrivate: isPrivate, select: true)
         wireTabPrivacyHooks()
+        considerOrielStoreTip(for: url)
+    }
+
+    /// Offer Oriel Store when the user lands on Chrome Web Store or Firefox AMO in a tab.
+    func considerOrielStoreTip(for url: URL?) {
+        guard !showOrielStore else { return }
+        guard UserAgentPolicy.isExtensionStoreURL(url),
+              let host = url?.host?.lowercased(), !host.isEmpty else { return }
+        // One tip per store host per app session.
+        guard !orielStoreTipSeenHosts.contains(host) else { return }
+        orielStoreTipSeenHosts.insert(host)
+        showOrielStoreTip = true
+    }
+
+    func dismissOrielStoreTip(openStore: Bool) {
+        showOrielStoreTip = false
+        if openStore {
+            showOrielStore = true
+        }
     }
 
     /// Opens an http/https link handed to Oriel as the system browser (or via Share).

@@ -142,6 +142,32 @@ struct BrowserShellView: View {
         .onChange(of: environment.settings.restorePreviousSession) { _, newValue in
             environment.sessionStore.restorePreviousSession = newValue
         }
+        .onChange(of: environment.activeTab?.navigation.url) { _, newURL in
+            environment.considerOrielStoreTip(for: newURL)
+        }
+        .onChange(of: environment.tabs.activeTabID) { _, _ in
+            environment.considerOrielStoreTip(for: environment.activeTab?.navigation.url)
+        }
+        .alert(
+            "Use Oriel Store?",
+            isPresented: $environment.showOrielStoreTip
+        ) {
+            Button("Open Oriel Store") {
+                environment.dismissOrielStoreTip(openStore: true)
+            }
+            Button("Keep browsing", role: .cancel) {
+                environment.dismissOrielStoreTip(openStore: false)
+            }
+        } message: {
+            Text(orielStoreTipMessage(for: environment.activeTab?.navigation.url))
+        }
+    }
+
+    private func orielStoreTipMessage(for url: URL?) -> String {
+        if UserAgentPolicy.isFirefoxAddonsURL(url) {
+            return "Firefox Add-ons is awkward on iPhone and iPad. You can search and install extensions and themes in Oriel Store instead."
+        }
+        return "Chrome Web Store is awkward on iPhone and iPad. You can search and install extensions and themes in Oriel Store instead."
     }
 
     private func openAppSettings() {
