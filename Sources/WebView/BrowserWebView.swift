@@ -251,8 +251,15 @@ struct BrowserWebView: PlatformViewRepresentable {
             forMainFrameOnly: true,
             in: .page
         )
+        let storeReadable = WKUserScript(
+            source: StoreReadableLayout.userScriptSource,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true,
+            in: .page
+        )
         // i18n catalog first so CWS/AMO bridges can localize CTAs + tips.
         ucc.addUserScript(storeI18n)
+        ucc.addUserScript(storeReadable)
         ucc.addUserScript(apiStub)
         ucc.addUserScript(firefoxSpoof)
         ucc.addUserScript(uiBridge)

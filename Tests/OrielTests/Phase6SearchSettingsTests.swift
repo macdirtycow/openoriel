@@ -31,26 +31,29 @@ final class Phase6SearchSettingsTests: XCTestCase {
         XCTAssertEqual(desktop, UserAgentPolicy.safariDesktop)
     }
 
-    func testChromeWebStoreUsesDesktopChromeUserAgent() {
+    func testStoreBrowsingDoesNotForceDesktopUserAgent() {
         let store = URL(string: "https://chromewebstore.google.com/detail/foo/cjpalhdlnbpafiamejdnhcphjbkeiagm")!
-        XCTAssertTrue(UserAgentPolicy.isChromeWebStoreHost(store.host))
-        XCTAssertEqual(
-            UserAgentPolicy.customUserAgent(for: store, requestsDesktopSite: false),
-            UserAgentPolicy.chromeDesktop
-        )
-        // Search stays on Safari — only the store host is overridden.
-        XCTAssertFalse(UserAgentPolicy.isChromeWebStoreHost("www.google.com"))
+        XCTAssertTrue(UserAgentPolicy.isChromeWebStoreURL(store))
+        // Readable mobile Safari UA — install spoof is JS-side; CRX download still uses chromeDesktop.
+        XCTAssertNil(UserAgentPolicy.customUserAgent(for: store, requestsDesktopSite: false))
+
+        let chromeMarketing = URL(string: "https://chrome.google.com/chrome/")!
+        XCTAssertFalse(UserAgentPolicy.isChromeWebStoreURL(chromeMarketing))
+        XCTAssertNil(UserAgentPolicy.customUserAgent(for: chromeMarketing, requestsDesktopSite: false))
+
+        let amo = URL(string: "https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/")!
+        XCTAssertTrue(UserAgentPolicy.isFirefoxAddonsURL(amo))
+        XCTAssertNil(UserAgentPolicy.customUserAgent(for: amo, requestsDesktopSite: false))
+        XCTAssertFalse(UserAgentPolicy.isFirefoxAddonsHost("www.mozilla.org"))
     }
 
-    func testFirefoxAddonsUsesDesktopFirefoxUserAgent() {
-        let amo = URL(string: "https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/")!
-        XCTAssertTrue(UserAgentPolicy.isFirefoxAddonsHost(amo.host))
-        XCTAssertTrue(UserAgentPolicy.isExtensionStoreHost(amo.host))
+    func testOnlyExplicitDesktopToggleChangesUA() {
+        let example = URL(string: "https://example.com")!
+        XCTAssertNil(UserAgentPolicy.customUserAgent(for: example, requestsDesktopSite: false))
         XCTAssertEqual(
-            UserAgentPolicy.customUserAgent(for: amo, requestsDesktopSite: false),
-            UserAgentPolicy.firefoxDesktop
+            UserAgentPolicy.customUserAgent(for: example, requestsDesktopSite: true),
+            UserAgentPolicy.safariDesktop
         )
-        XCTAssertFalse(UserAgentPolicy.isFirefoxAddonsHost("www.mozilla.org"))
     }
 
     func testSettingsPersistSearchEngine() async {

@@ -23,26 +23,25 @@ A full “run Chromium extensions exactly like Chrome” or “run Gecko add-ons
 
 ## Chrome Web Store on iPhone / iPad
 
-The store often shows **“not compatible with a phone”** when it sees a mobile Safari UA. Oriel counters that only on CWS hosts:
+The store often shows **“not compatible with a phone”** when it sees a mobile Safari UA. Oriel counters that **without** forcing a tiny desktop layout on every site:
 
-1. **Desktop Chrome HTTP UA** for `chromewebstore.google.com` (not for Google Search — avoids bot checks).
-2. **Desktop content mode** (`preferredContentMode = .desktop`) on iOS navigations to CWS.
-3. **JS spoof** of `navigator.userAgent` / `userAgentData` / `platform` / `maxTouchPoints`.
-4. **Hide** phone-incompatibility banners.
-5. **Rewrite** the native store CTA to localized **Add to Oriel** / **Installed in Oriel** / **Remove from Oriel** (e.g. NL *Verwijderen uit Oriel*) — no extra floating FAB.
-6. **Multilingual** (`StoreBridgeI18n`): 60+ locales for CTA detection and Oriel labels.
-7. **Installed state**: Oriel injects Chrome store IDs + Firefox AMO slugs into the page on **macOS, iOS, and iPadOS** — including **theme-only** packages.
-
-CRX download already used a desktop Chrome UA; page browsing now matches.
+1. **Mobile Safari UA** for store **page browsing** (readable). Desktop Chrome UA is used only for **CRX downloads**.
+2. **`preferredContentMode = .mobile`** on iOS unless the user explicitly taps Request Desktop Website — never auto-desktop for normal sites.
+3. **JS spoof** of `navigator.userAgent` / `userAgentData` / `platform` / `maxTouchPoints` so install UI stays available.
+4. **Readable layout** CSS/viewport (`StoreReadableLayout`) on CWS/AMO only.
+5. **Hide** phone-incompatibility banners.
+6. **Rewrite** the native store CTA to localized **Add to Oriel** / **Installed in Oriel** / **Remove from Oriel** — no extra floating FAB.
+7. **Multilingual** (`StoreBridgeI18n`): 60+ locales for CTA detection and Oriel labels.
+8. **Installed state**: inject Chrome store IDs + Firefox AMO slugs on **macOS, iOS, and iPadOS** — including **theme-only** packages.
 
 ## Firefox Add-ons (AMO) on iPhone / iPad
 
-AMO often shows **“You’ll need Firefox…”** / Download Firefox when it does not see desktop Firefox. Same pattern, Firefox-flavored:
+AMO often shows **“You’ll need Firefox…”** / Download Firefox when it does not see desktop Firefox. Same readable-mobile approach:
 
-1. **Desktop Firefox HTTP UA** for `addons.mozilla.org` only.
-2. **Desktop content mode** on iOS navigations to AMO.
+1. **Mobile Safari UA** for AMO browsing; XPI download keeps its own request headers.
+2. **Mobile content mode** unless the user requests desktop.
 3. **JS spoof** + `InstallTrigger` stub at document-start.
-4. **Hide** download-Firefox banners; relabel the native install control to **Add to Oriel** (no floating FAB).
+4. **Hide** download-Firefox banners; relabel the native install control to **Add to Oriel** / **Remove from Oriel**.
 5. Same shared **`StoreBridgeI18n`** catalog for localized Firefox CTAs and Oriel labels.
 
 ## Built-in compat (`ManifestCompatNormalizer`)

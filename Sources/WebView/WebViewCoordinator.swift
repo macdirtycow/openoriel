@@ -310,10 +310,15 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             tab.syncUserAgentForNavigation(to: url)
 
             #if os(iOS)
-            // Desktop layout for Chrome Web Store / Firefox Add-ons on iPhone/iPad.
-            if navigationAction.targetFrame?.isMainFrame != false,
-               UserAgentPolicy.isExtensionStoreHost(url.host) {
-                preferences.preferredContentMode = .desktop
+            // Content mode is decided per navigation — never leave desktop stuck on for every site.
+            if navigationAction.targetFrame?.isMainFrame != false {
+                if tab.requestsDesktopSite {
+                    preferences.preferredContentMode = .desktop
+                } else {
+                    // Mobile/recommended for normal browsing AND store pages (readable on iPhone/iPad).
+                    // Store installability comes from JS spoof + CRX download UA, not desktop layout.
+                    preferences.preferredContentMode = .mobile
+                }
             }
             #endif
 
@@ -418,14 +423,8 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     /// Pushes installed Chrome IDs / Firefox slugs into store pages so bridges can show
     /// localized “Installed in Oriel” on macOS, iOS, and iPadOS.
     func injectInstalledExtensionIDs(into webView: WKWebView) {
-        guard let host = webView.url?.host?.lowercased() else { return }
-        let isCWS = host == "chromewebstore.google.com"
-            || host == "chrome.google.com"
-            || host.hasSuffix(".chrome.google.com")
-        let isAMO = host == "addons.mozilla.org"
-            || host == "addons-dev.allizom.org"
-            || host.hasSuffix(".addons.mozilla.org")
-        guard isCWS || isAMO else { return }
+        guard let url = webView.url else { return }
+        guard UserAgentPolicy.isExtensionStoreURL(url) else { return }
 
         func jsonArray(_ values: [String]) -> String {
             "[" + values.map { value -> String in
