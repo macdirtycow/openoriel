@@ -34,8 +34,16 @@ Navigation chrome ← NavigationState ← WebViewCoordinator (WKNavigationDelega
 | Chrome | Compact toolbar | Adaptive | Native toolbar |
 | Tabs | Overview | Adaptive | Tab strip / overview |
 | Extensions | 18.4+ `WKWebExtension` | 18.4+ `WKWebExtension` | 15.4+ `WKWebExtension` |
+| Page engine | WebKit only | WebKit only | WebKit + Chromium Compatible (+ Native when CEF linked) |
 
 Use `#if os(macOS)` / `#if os(iOS)` only where UIKit/AppKit or API differences require it.
+
+See also [`DUAL_ENGINE.md`](DUAL_ENGINE.md). Page-engine preference applies to **Classic and Pulse**.
+
+## Editions
+
+- **Classic** — default Oriel look and behavior.
+- **Pulse** — gaming-inspired chrome, Corner, Data/Network Saver, Lucid Mode, ambience, workspace presets. Same privacy model; same page-engine picker.
 
 ## Trust boundaries
 

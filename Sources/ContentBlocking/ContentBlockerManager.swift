@@ -84,7 +84,9 @@ final class ContentBlockerManager {
     private let customListFileName = "custom-content-rules.json"
     private(set) var hasCustomFilterList = false
     private(set) var dataSaverList: WKContentRuleList?
+    private(set) var networkSaverList: WKContentRuleList?
     private var dataSaverEnabled = false
+    private var networkSaverEnabled = false
 
     func prepare() async {
         compiledLists = []
@@ -178,6 +180,7 @@ final class ContentBlockerManager {
             lastError = "Using built-in fallback list (main lists failed to load)."
         }
         await compileDataSaverList()
+        await compileNetworkSaverList()
         generation += 1
     }
 
@@ -193,9 +196,29 @@ final class ContentBlockerManager {
         }
     }
 
+    private func compileNetworkSaverList() async {
+        let json = """
+        [
+          {"trigger":{"url-filter":".*","resource-type":["media"]},"action":{"type":"block"}},
+          {"trigger":{"url-filter":".*","resource-type":["font"]},"action":{"type":"block"}}
+        ]
+        """
+        do {
+            networkSaverList = try await compile(json: json, identifier: "\(compileIdentifierPrefix).network-saver")
+        } catch {
+            networkSaverList = nil
+        }
+    }
+
     func setDataSaverEnabled(_ enabled: Bool) {
         guard dataSaverEnabled != enabled else { return }
         dataSaverEnabled = enabled
+        generation += 1
+    }
+
+    func setNetworkSaverEnabled(_ enabled: Bool) {
+        guard networkSaverEnabled != enabled else { return }
+        networkSaverEnabled = enabled
         generation += 1
     }
 
@@ -276,13 +299,19 @@ final class ContentBlockerManager {
         if dataSaverEnabled, let dataSaverList {
             ucc.add(dataSaverList)
         }
+        if networkSaverEnabled, let networkSaverList {
+            ucc.add(networkSaverList)
+        }
     }
 
-    /// Lists currently intended for attachment (bundled + optional data saver).
+    /// Lists currently intended for attachment (bundled + optional data/network saver).
     var activeCompiledLists: [WKContentRuleList] {
         var lists = compiledLists
         if dataSaverEnabled, let dataSaverList {
             lists.append(dataSaverList)
+        }
+        if networkSaverEnabled, let networkSaverList {
+            lists.append(networkSaverList)
         }
         return lists
     }

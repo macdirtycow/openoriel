@@ -36,6 +36,7 @@ final class iCloudSyncService {
     private weak var history: HistoryStore?
     private var sessionProvider: (() -> SessionSnapshot)?
     private var onRemoteSessionNewer: ((SessionSnapshot) -> Void)?
+    private var onSettingsPulled: (() -> Void)?
 
     init() {
         if UserDefaults.standard.object(forKey: enabledKey) == nil {
@@ -61,7 +62,8 @@ final class iCloudSyncService {
         linkQueue: LinkQueueStore,
         history: HistoryStore,
         sessionProvider: @escaping () -> SessionSnapshot,
-        onRemoteSessionNewer: @escaping (SessionSnapshot) -> Void
+        onRemoteSessionNewer: @escaping (SessionSnapshot) -> Void,
+        onSettingsPulled: (() -> Void)? = nil
     ) {
         self.bookmarks = bookmarks
         self.settings = settings
@@ -69,6 +71,7 @@ final class iCloudSyncService {
         self.history = history
         self.sessionProvider = sessionProvider
         self.onRemoteSessionNewer = onRemoteSessionNewer
+        self.onSettingsPulled = onSettingsPulled
         if isEnabled {
             pushAll()
             pullAll()
@@ -105,6 +108,7 @@ final class iCloudSyncService {
                 "accentTheme": settings.accentTheme.rawValue,
                 "backgroundTheme": settings.backgroundTheme.rawValue,
                 "edition": settings.edition.rawValue,
+                "preferredEngine": settings.preferredEngine.rawValue,
                 "updatedAt": String(stamp > 0 ? stamp : Date().timeIntervalSince1970)
             ]
             if let data = try? JSONEncoder().encode(payload) {
@@ -154,7 +158,13 @@ final class iCloudSyncService {
                 if let raw = payload["edition"], let edition = BrowserEdition(rawValue: raw) {
                     settings.edition = edition
                 }
+                if let raw = payload["preferredEngine"],
+                   let engine = BrowserEngineKind(rawValue: raw),
+                   engine.isSelectableOnThisPlatform {
+                    settings.preferredEngine = engine
+                }
                 UserDefaults.standard.set(remoteStamp, forKey: localSettingsStampKey)
+                onSettingsPulled?()
             }
         }
         if let data = defaults.data(forKey: queueKey),

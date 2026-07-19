@@ -196,6 +196,9 @@ final class AppEnvironment {
                     self.wireTabPrivacyHooks()
                     self.persistSessionNow()
                 }
+            },
+            onSettingsPulled: { [weak self] in
+                self?.syncPulseRuntimeFlags()
             }
         )
         self.useVerticalTabs = UserDefaults.standard.bool(forKey: "oriel.verticalTabs")
@@ -219,18 +222,45 @@ final class AppEnvironment {
         Task { await self.appIcon.applyForEdition(resolvedSettings.edition) }
     }
 
-    /// Keep Data Saver / WebView pool / corner visibility aligned with Pulse + battery state.
+    /// Keep Data Saver / WebView pool / engine identity / Pulse flags aligned.
+    /// Page-engine preference applies to **Classic and Pulse** (Mac Chromium modes; iOS always WebKit).
     func syncPulseRuntimeFlags() {
         settings.refreshPulsePoolLimitPublic()
         contentBlocker.setDataSaverEnabled(settings.effectiveDataSaver)
+        contentBlocker.setNetworkSaverEnabled(settings.edition.isPulse && settings.pulseNetworkSaver)
+        applyPreferredEngineToAllTabs()
+        for tab in tabs.tabs {
+            if settings.edition.isPulse {
+                tab.setLucidMode(settings.pulseLucidMode)
+            } else if tab.lucidModeEnabled {
+                tab.setLucidMode(false)
+            }
+        }
         if settings.edition.isPulse, settings.pulseCornerEnabled {
-            // Don't auto-open over sheets; only ensure flag can be used.
+            // Corner visibility is user-toggled; keep enabled flag only.
         } else {
             showPulseCorner = false
             if !settings.edition.isPulse {
                 pulseAmbience.stop()
             }
         }
+    }
+
+    /// Push Settings → preferred engine onto every tab (Classic + Pulse).
+    func applyPreferredEngineToAllTabs() {
+        let engine = RenderingEnginePolicy.resolved(settings.preferredEngine)
+        for tab in tabs.tabs {
+            tab.applyPreferredEngine(engine)
+        }
+    }
+
+    /// Hibernate background tabs by releasing pooled WKWebViews (active + split kept).
+    func hibernateBackgroundTabs() {
+        let protected = Set([tabs.activeTabID, splitTabID].compactMap { $0 })
+        WebViewPool.shared.releaseAll(where: { id in
+            !protected.contains(id)
+        })
+        settings.refreshPulsePoolLimitPublic()
     }
 
     func selectBrowserEdition(_ edition: BrowserEdition, applySuggestedLook: Bool) {
@@ -455,7 +485,9 @@ final class AppEnvironment {
 
     func wireTabPrivacyHooks(for tab: BrowserTab? = nil) {
         let targets = tab.map { [$0] } ?? tabs.tabs
+        let engine = RenderingEnginePolicy.resolved(settings.preferredEngine)
         for item in targets {
+            item.applyPreferredEngine(engine)
             item.shouldUpgradeHTTPS = { [weak self] url in
                 guard let self else { return true }
                 return self.privacy.effectiveHTTPSUpgrade(forHost: url.host)

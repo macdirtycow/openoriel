@@ -32,7 +32,10 @@ final class BrowserTab: Identifiable {
     var zoomFactor: Double = 1.0
 
     var forceDarkEnabled = false
+    var lucidModeEnabled = false
     var isReaderMode = false
+    /// Mirrors Settings preferred engine for UA (WebKit vs Chromium Compatible).
+    var preferredEngine: BrowserEngineKind = .webkit
 
     /// Quiet browsing: mute media, pause playback, hide noisy sticky UI.
     var isFocusMode = false
@@ -340,6 +343,9 @@ final class BrowserTab: Identifiable {
         if forceDarkEnabled {
             webView?.evaluateJavaScript(PageEnhancementScripts.enableForceDark, completionHandler: nil)
         }
+        if lucidModeEnabled {
+            webView?.evaluateJavaScript(PageEnhancementScripts.enableLucidMode, completionHandler: nil)
+        }
     }
 
     func toggleFocusMode() {
@@ -361,6 +367,20 @@ final class BrowserTab: Identifiable {
             ? PageEnhancementScripts.enableForceDark
             : PageEnhancementScripts.disableForceDark
         webView?.evaluateJavaScript(script, completionHandler: nil)
+    }
+
+    func setLucidMode(_ enabled: Bool) {
+        lucidModeEnabled = enabled
+        let script = enabled
+            ? PageEnhancementScripts.enableLucidMode
+            : PageEnhancementScripts.disableLucidMode
+        webView?.evaluateJavaScript(script, completionHandler: nil)
+    }
+
+    /// Apply Settings engine preference (Classic and Pulse) and refresh the live UA.
+    func applyPreferredEngine(_ engine: BrowserEngineKind) {
+        preferredEngine = engine
+        applyUserAgent()
     }
 
     func toggleReaderMode() {
@@ -438,7 +458,8 @@ final class BrowserTab: Identifiable {
         guard let webView else { return }
         let desired = UserAgentPolicy.customUserAgent(
             for: url ?? navigation.url,
-            requestsDesktopSite: requestsDesktopSite
+            requestsDesktopSite: requestsDesktopSite,
+            preferredEngine: preferredEngine
         )
         if webView.customUserAgent != desired {
             webView.customUserAgent = desired

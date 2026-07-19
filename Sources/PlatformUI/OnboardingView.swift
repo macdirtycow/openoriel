@@ -137,7 +137,7 @@ struct OnboardingView: View {
             Text("Choose your edition")
                 .font(.system(size: 28, weight: .semibold, design: .serif))
                 .multilineTextAlignment(.center)
-            Text("Same privacy. Different energy.")
+            Text("Same privacy. Different energy. Page engine (WebKit / Chromium on Mac) works in both.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

@@ -1083,6 +1083,28 @@ struct BrowserShellView: View {
             tab.toggleDesktopSite()
         }
         .disabled(tab.isShowingStartPage)
+        #if os(macOS)
+        if let url = tab.navigation.url, !URLParser.isStartPage(url) {
+            Button("Open in System Chrome…") {
+                _ = ChromiumEngineBridge.openInSystemChromium(url)
+            }
+            .disabled(!ChromiumEngineBridge.systemChromiumInstalled)
+        }
+        Button("Use Chromium Compatible UA") {
+            environment.settings.preferredEngine = .chromiumCompatibility
+            environment.syncPulseRuntimeFlags()
+            environment.icloudSync.noteLocalChange()
+            tab.reload()
+        }
+        .disabled(RenderingEnginePolicy.resolved(environment.settings.preferredEngine) == .chromiumCompatibility)
+        Button("Use WebKit UA") {
+            environment.settings.preferredEngine = .webkit
+            environment.syncPulseRuntimeFlags()
+            environment.icloudSync.noteLocalChange()
+            tab.reload()
+        }
+        .disabled(RenderingEnginePolicy.resolved(environment.settings.preferredEngine) == .webkit)
+        #endif
         Button(tab.javaScriptEnabled ? "Disable JavaScript" : "Enable JavaScript") {
             tab.toggleJavaScript()
         }
@@ -1197,7 +1219,8 @@ struct BrowserShellView: View {
     }
 
     private func webViewPoolConfigKey(environment: AppEnvironment) -> String {
-        "fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)-p\(environment.profiles.activeProfileID.uuidString)"
+        let engine = RenderingEnginePolicy.resolved(environment.settings.preferredEngine).rawValue
+        return "fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)-p\(environment.profiles.activeProfileID.uuidString)-e\(engine)"
     }
 
     private func protectedWebViewTabIDs(environment: AppEnvironment) -> Set<UUID> {
@@ -1325,6 +1348,7 @@ struct BrowserShellView: View {
                 },
                 contentBlockerGeneration: environment.contentBlocker.generation,
                 websiteDataStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate),
+                preferChromeUserAgent: RenderingEnginePolicy.usesChromeDesktopUserAgent(environment.settings.preferredEngine),
                 poolConfigKey: webViewPoolConfigKey(environment: environment),
                 protectedTabIDs: protectedWebViewTabIDs(environment: environment)
             )

@@ -39,6 +39,8 @@ struct BrowserWebView: PlatformViewRepresentable {
     var contentBlockerGeneration: Int = 0
     /// Isolated cookie/storage jar for the active browser profile.
     var websiteDataStore: WKWebsiteDataStore?
+    /// When true, force Chrome desktop UA (Chromium Compatible / Native preference on Mac).
+    var preferChromeUserAgent: Bool = false
     /// Configuration fingerprint used by `WebViewPool` (profile / fingerprinting / autoplay).
     var poolConfigKey: String = "default"
     /// Tab IDs that must not be evicted while this view is alive (active + split).
@@ -313,7 +315,8 @@ struct BrowserWebView: PlatformViewRepresentable {
 
         let desiredUA = UserAgentPolicy.customUserAgent(
             for: tab.navigation.url,
-            requestsDesktopSite: tab.requestsDesktopSite
+            requestsDesktopSite: tab.requestsDesktopSite,
+            preferredEngine: preferChromeUserAgent ? .chromiumCompatibility : .webkit
         )
         if webView.customUserAgent != desiredUA {
             webView.customUserAgent = desiredUA

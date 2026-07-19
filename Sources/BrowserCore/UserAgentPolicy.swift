@@ -76,7 +76,14 @@ enum UserAgentPolicy {
     /// `nil` means “use WebKit’s default Safari UA”.
     /// Never auto-desktop store websites — Oriel Store is the catalog UI.
     /// Only an explicit Request Desktop Website changes the UA.
-    static func customUserAgent(for url: URL?, requestsDesktopSite: Bool) -> String? {
+    static func customUserAgent(
+        for url: URL?,
+        requestsDesktopSite: Bool,
+        preferredEngine: BrowserEngineKind = .webkit
+    ) -> String? {
+        if RenderingEnginePolicy.usesChromeDesktopUserAgent(preferredEngine) {
+            return chromeDesktop
+        }
         if requestsDesktopSite {
             return safariDesktop
         }

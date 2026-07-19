@@ -81,6 +81,14 @@ struct StartPageView: View {
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
+            if environment.settings.edition.isPulse,
+               let wallpaper = PulseWallpaper(rawValue: environment.settings.pulseWallpaperID),
+               wallpaper != .off {
+                wallpaper.background(accent: accent)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .allowsHitTesting(false)
+            }
+
             ScrollView {
                 VStack(alignment: .leading, spacing: contentSpacing) {
                     topBand
