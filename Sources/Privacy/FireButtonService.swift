@@ -35,6 +35,8 @@ enum FireButtonService {
                 includingCache: true,
                 includingLocalStorage: true
             )
+            // CEF / Blink Native keeps a separate cookie jar.
+            ChromiumNativeHost.clearEmbeddedBrowsingData()
         }
         if options.downloads {
             environment.downloads.clearAll()

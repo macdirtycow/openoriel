@@ -26,3 +26,6 @@ xcuserdata/
 *.mobileprovision
 .env
 *.pem
+
+# Local CEF install (Scripts/fetch-cef-macos.sh)
+Vendor/

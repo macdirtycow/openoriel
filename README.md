@@ -89,11 +89,15 @@ bash Scripts/make-unsigned-ipa.sh
 # → build/ipa/Oriel-<version>-<build>-unsigned.ipa
 ```
 
-Optional Mac CEF (Chromium Native embedded):
+Optional Mac CEF (in-tab Blink for Chromium Native):
 
 ```bash
 bash Scripts/fetch-cef-macos.sh
+bash Scripts/enable-cef-macos.sh
+# Apply Vendor/CEF.xcconfig in Xcode (Mac), embed the framework, clean build.
 ```
+
+See [`docs/CEF_NATIVE.md`](docs/CEF_NATIVE.md).
 
 CI builds the unsigned IPA on pushes to `main` (Actions → Build unsigned IPA).
 
@@ -136,6 +140,7 @@ docs/               # Architecture, privacy, dual engine, …
 |-----|--------|
 | [Architecture](docs/ARCHITECTURE.md) | Modules and data flow |
 | [Dual engine](docs/DUAL_ENGINE.md) | Compatible vs Native honesty |
+| [CEF / Blink Native (Mac)](docs/CEF_NATIVE.md) | Fetch, enable, sandbox, updates |
 | [Privacy](docs/PRIVACY.md) | Shields and WebKit limits |
 | [Product priorities](docs/PRODUCT_PRIORITIES.md) | What ships next |
 | [Extensions](docs/EXTENSIONS.md) | WebExtensions |

@@ -1413,101 +1413,27 @@ struct BrowserShellView: View {
         let showError = tab.navigation.lastErrorMessage != nil
 
         ZStack {
-            BrowserWebView(
-                tab: tab,
-                contentRuleLists: environment.contentBlocker.activeCompiledLists,
-                blockThirdPartyCookies: environment.privacy.blockThirdPartyCookies,
-                fingerprintingProtection: environment.privacy.fingerprintingProtection,
-                contentBlockingEnabled: environment.contentBlockingEnabled(for: tab),
-                trackerProbeHosts: environment.contentBlocker.trackerProbeHosts(),
-                matchesBlockedHint: { url in
-                    environment.contentBlocker.matchesBlockedHostHint(url)
-                },
-                onBlockedNavigation: { blockedURL in
-                    let cookieRelated = PrivacyStats.looksCookieRelated(blockedURL)
-                        || environment.privacy.blockThirdPartyCookies
-                    environment.privacyStats.recordBlockedRequest(url: blockedURL, cookieRelated: cookieRelated)
-                },
-                onDownload: { url, name in
+            #if os(macOS)
+            if environment.resolvedEngine(for: tab) == .chromiumNative,
+               ChromiumNativeHost.isEmbeddedHostingReady {
+                CefWebHostView(tab: tab) { url, name in
                     environment.downloads.enqueue(
                         url: url,
                         suggestedFileName: name,
-                        cookieStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate).httpCookieStore
+                        cookieStore: nil
                     )
                     environment.showDownloads = true
-                },
-                permissionManager: environment.permissions,
-                onPopupCreated: { webView in
-                    environment.presentAuthPopup(webView)
-                },
-                onPopupClosed: { _ in
-                    environment.dismissAuthPopup()
-                },
-                onPopupTitleChanged: { title in
-                    environment.updateAuthPopupTitle(title)
-                },
-                onOpenURLInNewTab: { url in
-                    environment.openURLInNewTab(url, isPrivate: tab.isPrivate)
-                },
-                onEnqueueURLForLater: { url in
-                    environment.enqueueLinkForLater(url: url)
-                },
-                shouldStripTracking: {
-                    environment.settings.stripTrackingParameters
-                },
-                onElementHidden: { host, selector in
-                    environment.elementHide.add(host: host, cssSelector: selector)
-                },
-                onInstallChromeExtension: { extensionID in
-                    Task { @MainActor in
-                        await environment.extensions.installFromChromeWebStore(extensionID: extensionID)
-                        environment.showExtensions = true
-                    }
-                },
-                onInstallFirefoxAddon: { slug in
-                    Task { @MainActor in
-                        await environment.extensions.installFromFirefoxAMO(slugOrID: slug)
-                        environment.showExtensions = true
-                    }
-                },
-                onManageChromeExtensions: {
-                    environment.showExtensions = true
-                },
-                webExtensionController: environment.extensions.webExtensionControllerForConfiguration,
-                blockAutoplay: environment.settings.blockAutoplay,
-                chromeWebStoreInstallEnabled: environment.extensions.isSupported,
-                // Union extensions + themes so CWS/AMO show “Installed” for theme-only packages too.
-                installedChromeStoreIDs: Array(
-                    Set(
-                        environment.extensions.installedChromeStoreIDs
-                            + environment.extensionThemes.installedChromeStoreIDs
-                    )
-                ).sorted(),
-                installedFirefoxSlugs: Array(
-                    Set(
-                        environment.extensions.installedFirefoxSlugs
-                            + environment.extensionThemes.installedFirefoxSlugs
-                    )
-                ).sorted(),
-                applyContentBlocking: { webView, enabled in
-                    environment.contentBlocker.apply(to: webView, enabled: enabled)
-                },
-                contentBlockerGeneration: environment.contentBlocker.generation,
-                websiteDataStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate),
-                preferChromeUserAgent: RenderingEnginePolicy.usesChromeDesktopUserAgent(tab.preferredEngine),
-                injectChromiumIdentity: environment.chromiumPolicy.injectChromeIdentity
-                    && RenderingEnginePolicy.usesChromeDesktopUserAgent(tab.preferredEngine),
-                poolConfigKey: webViewPoolConfigKey(environment: environment, tab: tab),
-                protectedTabIDs: protectedWebViewTabIDs(environment: environment)
-            )
-            // Remount only when the WKWebView configuration must change.
-            // Do NOT key on contentBlocker.generation — that wiped back/forward history
-            // whenever filter lists finished compiling (rules re-attach in updateWebView).
-            // Tab switches keep history via WebViewPool even when this view leaves the hierarchy.
-            .id(webViewStructuralID(environment: environment, tab: tab))
-            .opacity(showStart || showError ? 0 : 1)
-            .allowsHitTesting(!(showStart || showError))
-            .accessibilityHidden(showStart || showError)
+                }
+                .id("cef-\(tab.id.uuidString)")
+                .opacity(showStart || showError ? 0 : 1)
+                .allowsHitTesting(!(showStart || showError))
+                .accessibilityHidden(showStart || showError)
+            } else {
+                webKitBrowserSurface(tab: tab, environment: environment, showStart: showStart, showError: showError)
+            }
+            #else
+            webKitBrowserSurface(tab: tab, environment: environment, showStart: showStart, showError: showError)
+            #endif
 
             if showStart {
                 StartPageView(tab: tab)
@@ -1522,6 +1448,105 @@ struct BrowserShellView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: showStart)
+    }
+
+    @ViewBuilder
+    private func webKitBrowserSurface(
+        tab: BrowserTab,
+        environment: AppEnvironment,
+        showStart: Bool,
+        showError: Bool
+    ) -> some View {
+        BrowserWebView(
+            tab: tab,
+            contentRuleLists: environment.contentBlocker.activeCompiledLists,
+            blockThirdPartyCookies: environment.privacy.blockThirdPartyCookies,
+            fingerprintingProtection: environment.privacy.fingerprintingProtection,
+            contentBlockingEnabled: environment.contentBlockingEnabled(for: tab),
+            trackerProbeHosts: environment.contentBlocker.trackerProbeHosts(),
+            matchesBlockedHint: { url in
+                environment.contentBlocker.matchesBlockedHostHint(url)
+            },
+            onBlockedNavigation: { blockedURL in
+                let cookieRelated = PrivacyStats.looksCookieRelated(blockedURL)
+                    || environment.privacy.blockThirdPartyCookies
+                environment.privacyStats.recordBlockedRequest(url: blockedURL, cookieRelated: cookieRelated)
+            },
+            onDownload: { url, name in
+                environment.downloads.enqueue(
+                    url: url,
+                    suggestedFileName: name,
+                    cookieStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate).httpCookieStore
+                )
+                environment.showDownloads = true
+            },
+            permissionManager: environment.permissions,
+            onPopupCreated: { webView in
+                environment.presentAuthPopup(webView)
+            },
+            onPopupClosed: { _ in
+                environment.dismissAuthPopup()
+            },
+            onPopupTitleChanged: { title in
+                environment.updateAuthPopupTitle(title)
+            },
+            onOpenURLInNewTab: { url in
+                environment.openURLInNewTab(url, isPrivate: tab.isPrivate)
+            },
+            onEnqueueURLForLater: { url in
+                environment.enqueueLinkForLater(url: url)
+            },
+            shouldStripTracking: {
+                environment.settings.stripTrackingParameters
+            },
+            onElementHidden: { host, selector in
+                environment.elementHide.add(host: host, cssSelector: selector)
+            },
+            onInstallChromeExtension: { extensionID in
+                Task { @MainActor in
+                    await environment.extensions.installFromChromeWebStore(extensionID: extensionID)
+                    environment.showExtensions = true
+                }
+            },
+            onInstallFirefoxAddon: { slug in
+                Task { @MainActor in
+                    await environment.extensions.installFromFirefoxAMO(slugOrID: slug)
+                    environment.showExtensions = true
+                }
+            },
+            onManageChromeExtensions: {
+                environment.showExtensions = true
+            },
+            webExtensionController: environment.extensions.webExtensionControllerForConfiguration,
+            blockAutoplay: environment.settings.blockAutoplay,
+            chromeWebStoreInstallEnabled: environment.extensions.isSupported,
+            installedChromeStoreIDs: Array(
+                Set(
+                    environment.extensions.installedChromeStoreIDs
+                        + environment.extensionThemes.installedChromeStoreIDs
+                )
+            ).sorted(),
+            installedFirefoxSlugs: Array(
+                Set(
+                    environment.extensions.installedFirefoxSlugs
+                        + environment.extensionThemes.installedFirefoxSlugs
+                )
+            ).sorted(),
+            applyContentBlocking: { webView, enabled in
+                environment.contentBlocker.apply(to: webView, enabled: enabled)
+            },
+            contentBlockerGeneration: environment.contentBlocker.generation,
+            websiteDataStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate),
+            preferChromeUserAgent: RenderingEnginePolicy.usesChromeDesktopUserAgent(tab.preferredEngine),
+            injectChromiumIdentity: environment.chromiumPolicy.injectChromeIdentity
+                && RenderingEnginePolicy.usesChromeDesktopUserAgent(tab.preferredEngine),
+            poolConfigKey: webViewPoolConfigKey(environment: environment, tab: tab),
+            protectedTabIDs: protectedWebViewTabIDs(environment: environment)
+        )
+        .id(webViewStructuralID(environment: environment, tab: tab))
+        .opacity(showStart || showError ? 0 : 1)
+        .allowsHitTesting(!(showStart || showError))
+        .accessibilityHidden(showStart || showError)
     }
 
     @ViewBuilder

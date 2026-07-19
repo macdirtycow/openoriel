@@ -49,6 +49,12 @@ final class BrowserTab: Identifiable {
 
     /// Weak reference so the SwiftUI `BrowserWebView` can drive load/back/forward.
     weak var webView: WKWebView?
+    /// Optional CEF (Blink) navigation hooks when Chromium Native embeds in-tab.
+    var cefGoBack: (() -> Void)?
+    var cefGoForward: (() -> Void)?
+    var cefReload: (() -> Void)?
+    var cefStop: (() -> Void)?
+    var usesEmbeddedCEF: Bool = false
 
     /// Optional callback when a page finishes loading (used for history).
     var onNavigationFinished: ((BrowserTab) -> Void)?
@@ -247,6 +253,12 @@ final class BrowserTab: Identifiable {
             }
         }
 
+        if usesEmbeddedCEF {
+            cefGoBack?()
+            refreshNavigationChrome()
+            return
+        }
+
         guard let webView, webView.canGoBack else {
             refreshNavigationChrome()
             return
@@ -257,6 +269,11 @@ final class BrowserTab: Identifiable {
     }
 
     func goForward() {
+        if usesEmbeddedCEF {
+            cefGoForward?()
+            refreshNavigationChrome()
+            return
+        }
         guard let webView, webView.canGoForward else {
             refreshNavigationChrome()
             return
@@ -274,6 +291,10 @@ final class BrowserTab: Identifiable {
 
     func reload() {
         if isShowingStartPage { return }
+        if usesEmbeddedCEF {
+            cefReload?()
+            return
+        }
         if navigation.lastErrorMessage != nil, let url = navigation.url {
             load(url)
             return
@@ -282,6 +303,11 @@ final class BrowserTab: Identifiable {
     }
 
     func stopLoading() {
+        if usesEmbeddedCEF {
+            cefStop?()
+            navigation.isLoading = false
+            return
+        }
         webView?.stopLoading()
         navigation.isLoading = false
     }

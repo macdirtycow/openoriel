@@ -72,7 +72,13 @@ struct MacGovernorsView: View {
 
             Section {
                 LabeledContent("Native status") {
-                    Text(RenderingEnginePolicy.chromiumNativeStatus == .available ? "Embedded CEF" : "Managed Chromium")
+                    Text(
+                        ChromiumNativeHost.isEmbeddedHostingReady
+                            ? "Embedded CEF (in-tab Blink)"
+                            : (ChromiumNativeHost.isEmbeddedFrameworkAvailable
+                                ? "CEF on disk — rebuild with ORIEL_HAS_CEF"
+                                : "Managed Chromium")
+                    )
                 }
                 Text(ChromiumNativeHost.statusSummary)
                     .font(.caption)
@@ -89,7 +95,7 @@ struct MacGovernorsView: View {
             } header: {
                 Text("Chromium Native")
             } footer: {
-                Text("Embedded Blink needs CEF (`Scripts/fetch-cef-macos.sh`). Until then, Native uses a real Chromium app-window.")
+                Text("In-tab Blink: fetch-cef-macos.sh + enable-cef-macos.sh + rebuild. Until ORIEL_HAS_CEF, Native uses a real Chromium app-window. See docs/CEF_NATIVE.md.")
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

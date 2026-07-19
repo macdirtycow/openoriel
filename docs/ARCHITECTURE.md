@@ -50,7 +50,7 @@ See also [`DUAL_ENGINE.md`](DUAL_ENGINE.md). Page-engine preference applies to *
 
 - **Password Vault** — AES-GCM vault, Keychain-wrapped key, biometric unlock (`Features/PasswordVaultStore`).
 - **Performance governors** — timer throttle, WebView pool cap, memory-pressure hibernate (`Features/MacPerformanceGovernor`). Not fake OS CPU% gauges.
-- **Chromium Native host** — CEF when present, else managed Chromium app-windows (`BrowserCore/ChromiumNativeHost`).
+- **Chromium Native host** — CEF when present + `ORIEL_HAS_CEF` build (in-tab Blink), else managed Chromium app-windows (`BrowserCore/ChromiumNativeHost`, `Sources/CEF/`). See [`CEF_NATIVE.md`](CEF_NATIVE.md).
 
 ## Trust boundaries
 

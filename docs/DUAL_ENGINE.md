@@ -26,8 +26,10 @@ Two tabs can differ at the same time: Tab A on `meet.google.com` → Chromium Co
 
 | Mode | When | What runs |
 |------|------|-----------|
-| **Embedded CEF** | `Chromium Embedded Framework` found in the app or `~/Library/Application Support/Oriel/CEF/` | In-app Blink hosting (install via `Scripts/fetch-cef-macos.sh`) |
-| **Managed Chromium** | No CEF yet, but Chrome/Brave/Edge/Arc installed | Real Chromium process in an app-mode window |
+| **Embedded CEF** | Framework on disk **and** app built with `ORIEL_HAS_CEF` | In-tab Blink (`CefWebHostView`) |
+| **Managed Chromium** | No ready CEF host, but Chrome/Brave/Edge/Arc installed | Real Chromium process in an app-mode window |
+
+Setup: `Scripts/fetch-cef-macos.sh` → `Scripts/enable-cef-macos.sh` → rebuild Mac. Details: [`CEF_NATIVE.md`](CEF_NATIVE.md).
 
 “Chromium Compatible” remains **WebKit paint + Chrome UA/Client Hints**.
 

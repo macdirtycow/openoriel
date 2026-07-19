@@ -76,9 +76,9 @@ enum ChromiumNativeStatus: Sendable {
         case .unavailableOnIOS:
             return "Apple requires all iPhone and iPad browsers to use WebKit. Chromium cannot render pages here."
         case .frameworkNotLinked:
-            return "Embedded CEF is not installed yet. On Mac, Native mode opens a managed Chromium app-window (real Blink). Run Scripts/fetch-cef-macos.sh to add CEF for in-app Native, or use Chromium Compatible for WebKit + Chrome identity."
+            return "Embedded CEF is not linked in this binary yet. On Mac: run Scripts/fetch-cef-macos.sh and Scripts/enable-cef-macos.sh, then rebuild. Until then, Native mode opens a managed Chromium app-window (real Blink). Or use Chromium Compatible for WebKit + Chrome identity."
         case .available:
-            return "Chromium Native framework is available for embedded Blink tabs."
+            return "Chromium Native framework is available — rebuild with ORIEL_HAS_CEF for in-tab Blink, or use managed windows."
         }
     }
 }
