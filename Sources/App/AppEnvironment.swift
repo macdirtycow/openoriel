@@ -205,7 +205,7 @@ final class AppEnvironment {
             syncPulseRuntimeFlags()
         }
         NotificationCenter.default.addObserver(
-            forName: ProcessInfo.powerStateDidChangeNotification,
+            forName: .NSProcessInfoPowerStateDidChange,
             object: nil,
             queue: .main
         ) { [weak self] _ in
