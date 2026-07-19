@@ -26,11 +26,25 @@ final class PulseAmbiencePlayer {
 
     private(set) var track: Track = .off
     private(set) var isPlaying = false
-    var volume: Float = 0.22 {
-        didSet {
-            volume = min(1, max(0, volume))
-            engine.mainMixerNode.outputVolume = volume
-            UserDefaults.standard.set(volume, forKey: volumeKey)
+    /// Backing store — `@Observable` `didSet` must not assign `volume` again (stack overflow).
+    @ObservationIgnored private var storedVolume: Float = 0.22
+    /// 0…1
+    var volume: Float {
+        get {
+            access(keyPath: \.volume)
+            return storedVolume
+        }
+        set {
+            let clamped = min(1, max(0, newValue))
+            guard abs(clamped - storedVolume) > 0.000_1 else {
+                engine.mainMixerNode.outputVolume = storedVolume
+                return
+            }
+            withMutation(keyPath: \.volume) {
+                storedVolume = clamped
+            }
+            engine.mainMixerNode.outputVolume = clamped
+            UserDefaults.standard.set(clamped, forKey: volumeKey)
         }
     }
 
@@ -108,7 +122,9 @@ final class PulseAmbiencePlayer {
             return noErr
         }
 
-        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
+        guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1) else {
+            return
+        }
         engine.attach(node)
         engine.connect(node, to: engine.mainMixerNode, format: format)
         source = node

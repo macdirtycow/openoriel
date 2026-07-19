@@ -103,8 +103,13 @@ final class BrowserSettings {
     var pulseWebViewLimit: Int {
         didSet {
             let clamped = min(16, max(4, pulseWebViewLimit))
+            // Never self-assign here — `@Observable` re-enters the setter and can crash.
             if clamped != pulseWebViewLimit {
-                pulseWebViewLimit = clamped
+                defaults.set(clamped, forKey: pulseWebViewLimitKey)
+                Task { @MainActor [weak self] in
+                    guard let self, self.pulseWebViewLimit != clamped else { return }
+                    self.pulseWebViewLimit = clamped
+                }
                 return
             }
             defaults.set(pulseWebViewLimit, forKey: pulseWebViewLimitKey)
@@ -139,10 +144,14 @@ final class BrowserSettings {
     var preferredEngine: BrowserEngineKind {
         didSet {
             let allowed = BrowserEngineKind.availableOnThisPlatform
+            // Never self-assign here — `@Observable` re-enters the setter and can crash.
             if !allowed.contains(preferredEngine) {
-                // Persist the corrected value — Swift does not re-enter didSet for this assignment.
                 defaults.set(BrowserEngineKind.webkit.rawValue, forKey: preferredEngineKey)
-                preferredEngine = .webkit
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          !BrowserEngineKind.availableOnThisPlatform.contains(self.preferredEngine) else { return }
+                    self.preferredEngine = .webkit
+                }
                 return
             }
             defaults.set(preferredEngine.rawValue, forKey: preferredEngineKey)

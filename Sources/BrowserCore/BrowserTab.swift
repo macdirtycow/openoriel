@@ -399,6 +399,11 @@ final class BrowserTab: Identifiable {
 
     /// Apply Settings engine preference (Classic and Pulse) and refresh the live UA.
     func applyPreferredEngine(_ engine: BrowserEngineKind) {
+        // Skip no-op writes — repeated `@Observable` publishes during navigation can crash SwiftUI.
+        guard preferredEngine != engine else {
+            applyUserAgent()
+            return
+        }
         preferredEngine = engine
         applyUserAgent()
     }
