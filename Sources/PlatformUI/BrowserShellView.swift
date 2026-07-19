@@ -38,7 +38,8 @@ struct BrowserShellView: View {
                 accent: environment.settings.accentTheme,
                 background: environment.settings.backgroundTheme,
                 scheme: colorScheme,
-                customAccent: environment.settings.usesExtensionTheme ? environment.settings.brandColor : nil,
+                customAccent: (environment.settings.usesExtensionTheme || environment.settings.edition.isPulse)
+                    ? environment.settings.brandColor : nil,
                 customBackground: environment.settings.customBackgroundColor
             )
             .ignoresSafeArea()
@@ -109,6 +110,11 @@ struct BrowserShellView: View {
         }
         .sheet(isPresented: $environment.showFireButton) {
             FireButtonView()
+                .orielSheetChrome()
+                .orielTheming(settings: environment.settings)
+        }
+        .sheet(isPresented: $environment.showPulsePerformance) {
+            PulsePerformanceView()
                 .orielSheetChrome()
                 .orielTheming(settings: environment.settings)
         }
@@ -901,6 +907,11 @@ struct BrowserShellView: View {
             environment.showProfiles = true
         }
         Button("Settings", systemImage: "gearshape") { openAppSettings() }
+        if environment.settings.edition.isPulse {
+            Button("Pulse", systemImage: "bolt.horizontal") {
+                environment.showPulsePerformance = true
+            }
+        }
         Button("Fire…", systemImage: "flame", role: .destructive) {
             environment.showFireButton = true
         }
@@ -981,6 +992,11 @@ struct BrowserShellView: View {
         Button("Shields", systemImage: "shield.lefthalf.filled") {
             environment.showPrivacyShield = true
         }
+        if environment.settings.edition.isPulse {
+            Button("Pulse", systemImage: "bolt.horizontal") {
+                environment.showPulsePerformance = true
+            }
+        }
         Button("Fire…", systemImage: "flame", role: .destructive) {
             environment.showFireButton = true
         }
@@ -992,7 +1008,9 @@ struct BrowserShellView: View {
         Divider()
 
         Button("Visit \(BrowserConstants.productWebsiteHost)") { tab.openProductSite() }
-        Button("About Oriel") { environment.showAbout = true }
+        Button(environment.settings.edition.isPulse ? "About Oriel Pulse" : "About Oriel") {
+            environment.showAbout = true
+        }
     }
 
     @ViewBuilder

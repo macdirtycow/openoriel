@@ -16,7 +16,17 @@ final class WebViewPool {
 
     private var entries: [UUID: Entry] = [:]
     /// Soft cap on live web views to limit memory; protected IDs are never evicted.
-    private let softLimit = 12
+    /// Pulse edition can lower this via Settings → Appearance → Pulse performance.
+    var softLimit = 12 {
+        didSet {
+            let clamped = min(24, max(4, softLimit))
+            if clamped != softLimit {
+                softLimit = clamped
+                return
+            }
+            trim(protecting: [])
+        }
+    }
 
     func existing(for tabID: UUID, configKey: String) -> WKWebView? {
         guard var entry = entries[tabID] else { return nil }

@@ -104,6 +104,7 @@ final class iCloudSyncService {
                 "appearance": settings.appearance.rawValue,
                 "accentTheme": settings.accentTheme.rawValue,
                 "backgroundTheme": settings.backgroundTheme.rawValue,
+                "edition": settings.edition.rawValue,
                 "updatedAt": String(stamp > 0 ? stamp : Date().timeIntervalSince1970)
             ]
             if let data = try? JSONEncoder().encode(payload) {
@@ -149,6 +150,9 @@ final class iCloudSyncService {
                 }
                 if let raw = payload["backgroundTheme"], let theme = BrowserBackgroundTheme(rawValue: raw) {
                     settings.backgroundTheme = theme
+                }
+                if let raw = payload["edition"], let edition = BrowserEdition(rawValue: raw) {
+                    settings.edition = edition
                 }
                 UserDefaults.standard.set(remoteStamp, forKey: localSettingsStampKey)
             }

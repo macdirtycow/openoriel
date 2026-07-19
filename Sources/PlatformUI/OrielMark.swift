@@ -7,21 +7,31 @@ import UIKit
 
 /// Toolbar / chrome Oriel mark — branded asset (AppIcon cannot be loaded by name on iOS).
 struct OrielMark: View {
+    @Environment(AppEnvironment.self) private var environment
     var size: CGFloat = 22
+    /// When set, overrides the active edition (previews / onboarding).
+    var forcePulse: Bool? = nil
+
+    private var isPulse: Bool {
+        forcePulse ?? environment.settings.edition.isPulse
+    }
 
     private var hasMarkAsset: Bool {
+        guard !isPulse else { return false }
         #if os(iOS)
-        UIImage(named: "OrielMark") != nil
+        return UIImage(named: "OrielMark") != nil
         #elseif os(macOS)
-        NSImage(named: "OrielMark") != nil || NSApplication.shared.applicationIconImage != nil
+        return NSImage(named: "OrielMark") != nil || NSApplication.shared.applicationIconImage != nil
         #else
-        false
+        return false
         #endif
     }
 
     var body: some View {
         Group {
-            if hasMarkAsset {
+            if isPulse {
+                drawnPulseMark
+            } else if hasMarkAsset {
                 #if os(macOS)
                 if NSImage(named: "OrielMark") != nil {
                     Image("OrielMark")
@@ -77,6 +87,42 @@ struct OrielMark: View {
         }
     }
 
+    /// Pulse mark — same window panes, cyan / magenta energy on deep navy.
+    private var drawnPulseMark: some View {
+        let navy = EditionBranding.pulseNavy
+        let cyan = EditionBranding.pulseAccent
+        let magenta = EditionBranding.pulseMagenta
+        let pane = Color(red: 0.12, green: 0.18, blue: 0.28)
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [navy, Color(red: 0.10, green: 0.12, blue: 0.22)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            RoundedRectangle(cornerRadius: size * 0.18, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(colors: [cyan, magenta], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    lineWidth: max(1.2, size * 0.05)
+                )
+                .padding(size * 0.08)
+            RoundedRectangle(cornerRadius: size * 0.10, style: .continuous)
+                .fill(pane)
+                .padding(size * 0.28)
+            Rectangle()
+                .fill(cyan.opacity(0.85))
+                .frame(width: max(1.5, size * 0.06))
+                .padding(.vertical, size * 0.28)
+            Rectangle()
+                .fill(magenta.opacity(0.75))
+                .frame(height: max(1.5, size * 0.06))
+                .padding(.horizontal, size * 0.28)
+        }
+    }
+
     #if os(macOS)
     private static func macToolbarIcon(pointSize: CGFloat) -> NSImage? {
         guard let source = NSApplication.shared.applicationIconImage else { return nil }
@@ -108,6 +154,10 @@ struct OrielShieldButton: View {
         environment.privacy.contentBlockingEnabled
     }
 
+    private var productLabel: String {
+        EditionBranding.productName(for: environment.settings.edition)
+    }
+
     var body: some View {
         Button {
             toggleShields()
@@ -125,8 +175,8 @@ struct OrielShieldButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
-        .help(shieldsOn ? "Oriel Shields on. Click to turn off." : "Oriel Shields off. Click to turn on.")
-        .accessibilityLabel("Oriel Shields")
+        .help(shieldsOn ? "\(productLabel) Shields on. Click to turn off." : "\(productLabel) Shields off. Click to turn on.")
+        .accessibilityLabel("\(productLabel) Shields")
         .accessibilityValue(shieldsOn ? "On" : "Off")
         .accessibilityHint("Toggles tracker blocking and HTTPS upgrades")
         .contextMenu {
@@ -135,6 +185,11 @@ struct OrielShieldButton: View {
             }
             Button("Shield settings…") {
                 environment.showPrivacyShield = true
+            }
+            if environment.settings.edition.isPulse {
+                Button("Pulse performance…") {
+                    environment.showPulsePerformance = true
+                }
             }
         }
     }
