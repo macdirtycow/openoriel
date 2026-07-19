@@ -342,65 +342,6 @@ enum ChromeWebStoreBridge {
         }
       }
 
-      function ensureTip() {
-        var id = idFromPath();
-        var tip = document.getElementById('oriel-cws-tip');
-        if (!id || isInstalled(id)) { if (tip) tip.remove(); return; }
-        if (!tip) {
-          tip = document.createElement('div');
-          tip.id = 'oriel-cws-tip';
-          tip.setAttribute('role', 'status');
-          Object.assign(tip.style, {
-            position: 'fixed', left: '12px', right: '12px', bottom: '72px', zIndex: '2147483645',
-            padding: '10px 14px', borderRadius: '10px',
-            background: 'rgba(26, 115, 232, 0.94)', color: '#fff',
-            font: '600 13px/1.35 -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.18)', textAlign: 'center',
-            pointerEvents: 'none'
-          });
-          (document.body || document.documentElement).appendChild(tip);
-        }
-        tip.textContent = L('tipChrome');
-      }
-
-      function ensureButton() {
-        var id = idFromPath();
-        var btn = document.getElementById('oriel-add-to-oriel');
-        if (!id) { if (btn) btn.remove(); return; }
-        var installed = isInstalled(id);
-        if (!btn) {
-          btn = document.createElement('button');
-          btn.id = 'oriel-add-to-oriel';
-          btn.type = 'button';
-          Object.assign(btn.style, {
-            position: 'fixed', right: '20px', bottom: '20px', zIndex: '2147483646',
-            padding: '12px 18px', border: '0', borderRadius: '10px',
-            color: '#fff', cursor: 'pointer',
-            font: '600 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.22)'
-          });
-          btn.addEventListener('click', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            var current = idFromPath();
-            if (!current) return;
-            if (isInstalled(current)) { openManage(); return; }
-            btn.disabled = true;
-            btn.textContent = L('installing');
-            postInstall(current);
-            setTimeout(function () {
-              btn.disabled = false;
-              var done = isInstalled(current);
-              btn.textContent = done ? L('installed') : L('add');
-              btn.style.background = done ? '#5f6368' : '#1a73e8';
-            }, 4500);
-          }, true);
-          (document.body || document.documentElement).appendChild(btn);
-        }
-        btn.textContent = installed ? L('installed') : L('add');
-        btn.style.background = installed ? '#5f6368' : '#1a73e8';
-      }
-
       function onClick(event) {
         var t = event.target;
         if (!t || !t.closest) return;
@@ -430,13 +371,12 @@ enum ChromeWebStoreBridge {
         busy = true;
         try {
           rewriteLabels();
-          if (idFromPath()) { hideUnavailable(); ensureTip(); ensureButton(); }
-          else {
-            var btn = document.getElementById('oriel-add-to-oriel');
-            if (btn) btn.remove();
-            var tip = document.getElementById('oriel-cws-tip');
-            if (tip) tip.remove();
-          }
+          if (idFromPath()) hideUnavailable();
+          // Remove legacy floating FAB/tip if an older build left them behind.
+          var legacyBtn = document.getElementById('oriel-add-to-oriel');
+          if (legacyBtn) legacyBtn.remove();
+          var legacyTip = document.getElementById('oriel-cws-tip');
+          if (legacyTip) legacyTip.remove();
         } finally { busy = false; }
       }
       function schedule() {

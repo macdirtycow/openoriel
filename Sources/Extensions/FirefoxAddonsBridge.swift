@@ -195,75 +195,6 @@ enum FirefoxAddonsBridge {
         }
       }
 
-      function ensureTip() {
-        var slug = slugFromPath();
-        var tip = document.getElementById('oriel-amo-tip');
-        if (!slug || isFirefoxInstalled(slug)) { if (tip) tip.remove(); return; }
-        if (!tip) {
-          tip = document.createElement('div');
-          tip.id = 'oriel-amo-tip';
-          tip.setAttribute('role', 'status');
-          Object.assign(tip.style, {
-            position: 'fixed', left: '12px', right: '12px', bottom: '72px', zIndex: '2147483645',
-            padding: '10px 14px', borderRadius: '10px',
-            background: 'rgba(255, 113, 57, 0.95)', color: '#fff',
-            font: '600 13px/1.35 -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.18)', textAlign: 'center',
-            pointerEvents: 'none'
-          });
-          (document.body || document.documentElement).appendChild(tip);
-        }
-        tip.textContent = L('tipFirefox');
-      }
-
-      function ensureButton() {
-        var slug = slugFromPath();
-        var btn = document.getElementById('oriel-add-firefox-to-oriel');
-        if (!slug) { if (btn) btn.remove(); return; }
-        var installed = isFirefoxInstalled(slug);
-        if (!btn) {
-          btn = document.createElement('button');
-          btn.id = 'oriel-add-firefox-to-oriel';
-          btn.type = 'button';
-          Object.assign(btn.style, {
-            position: 'fixed', right: '20px', bottom: '20px', zIndex: '2147483646',
-            padding: '12px 18px', border: '0', borderRadius: '10px',
-            color: '#fff', cursor: 'pointer',
-            font: '600 14px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.22)'
-          });
-          btn.addEventListener('click', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            var current = slugFromPath();
-            if (!current) return;
-            if (isFirefoxInstalled(current)) {
-              try {
-                var a = document.createElement('a');
-                a.href = 'oriel-firefox-addon://manage';
-                a.style.display = 'none';
-                document.documentElement.appendChild(a);
-                a.click();
-                a.remove();
-              } catch (e) {}
-              return;
-            }
-            btn.disabled = true;
-            btn.textContent = L('installing');
-            postInstall(current);
-            setTimeout(function () {
-              btn.disabled = false;
-              var done = isFirefoxInstalled(current);
-              btn.textContent = done ? L('installed') : L('add');
-              btn.style.background = done ? '#5f6368' : '#ff7139';
-            }, 4500);
-          }, true);
-          (document.body || document.documentElement).appendChild(btn);
-        }
-        btn.textContent = installed ? L('installed') : L('add');
-        btn.style.background = installed ? '#5f6368' : '#ff7139';
-      }
-
       function relabel() {
         var slug = slugFromPath();
         if (!slug) return;
@@ -314,13 +245,11 @@ enum FirefoxAddonsBridge {
         busy = true;
         try {
           relabel();
-          if (slugFromPath()) { hideBanners(); ensureTip(); ensureButton(); }
-          else {
-            var btn = document.getElementById('oriel-add-firefox-to-oriel');
-            if (btn) btn.remove();
-            var tip = document.getElementById('oriel-amo-tip');
-            if (tip) tip.remove();
-          }
+          if (slugFromPath()) hideBanners();
+          var legacyBtn = document.getElementById('oriel-add-firefox-to-oriel');
+          if (legacyBtn) legacyBtn.remove();
+          var legacyTip = document.getElementById('oriel-amo-tip');
+          if (legacyTip) legacyTip.remove();
         } finally { busy = false; }
       }
       function schedule() {

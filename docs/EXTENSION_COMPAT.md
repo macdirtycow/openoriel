@@ -28,9 +28,10 @@ The store often shows **“not compatible with a phone”** when it sees a mobil
 1. **Desktop Chrome HTTP UA** for `chromewebstore.google.com` (not for Google Search — avoids bot checks).
 2. **Desktop content mode** (`preferredContentMode = .desktop`) on iOS navigations to CWS.
 3. **JS spoof** of `navigator.userAgent` / `userAgentData` / `platform` / `maxTouchPoints`.
-4. **Hide** phone-incompatibility banners; keep a floating **Add to Oriel** button + short tip.
-5. **Multilingual** (`StoreBridgeI18n`): 60+ locales for CTA detection and Oriel labels/tips.
-6. **Installed state**: Oriel injects Chrome store IDs + Firefox AMO slugs into the page on **macOS, iOS, and iPadOS**, so the store shows localized **Installed in Oriel** (and the floating button updates) after install — including **theme-only** packages (they live in `ExtensionThemeStore`, not the WebExtension catalog).
+4. **Hide** phone-incompatibility banners.
+5. **Rewrite** the native store CTA to localized **Add to Oriel** / **Installed in Oriel** (no extra floating FAB).
+6. **Multilingual** (`StoreBridgeI18n`): 60+ locales for CTA detection and Oriel labels.
+7. **Installed state**: Oriel injects Chrome store IDs + Firefox AMO slugs into the page on **macOS, iOS, and iPadOS** — including **theme-only** packages.
 
 CRX download already used a desktop Chrome UA; page browsing now matches.
 

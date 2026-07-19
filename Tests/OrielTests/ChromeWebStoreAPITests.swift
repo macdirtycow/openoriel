@@ -38,10 +38,11 @@ final class ChromeWebStoreAPITests: XCTestCase {
         // Regression guard: keep the mobile CWS workaround wired into the injected scripts.
         XCTAssertTrue(ChromeWebStoreBridge.chromeAPIStubSource.contains("maxTouchPoints"))
         XCTAssertTrue(ChromeWebStoreBridge.chromeAPIStubSource.contains("MacIntel"))
-        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("not compatible with"))
-        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("oriel-cws-tip"))
-        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("Add to Oriel"))
-        // Shared multilingual catalog drives localized CTA rewrites.
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("not compatible with")
+            || StoreBridgeI18n.catalogSource.contains("isPhoneIncompatText"))
+        // No floating FAB — only rewrite the native store CTA.
+        XCTAssertFalse(ChromeWebStoreBridge.userScriptSource.contains("function ensureButton"))
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("legacyBtn"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("__orielStoreI18n"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("oriel-installed-changed"))
         XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("Toevoegen aan Oriel"))
