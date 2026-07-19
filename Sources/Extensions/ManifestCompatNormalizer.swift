@@ -8,7 +8,8 @@ import Foundation
 /// shape. APIs that WebKit does not implement still will not run.
 enum ManifestCompatNormalizer {
     /// Permissions that commonly break WebKit load or are meaningless outside Chrome/Firefox.
-    private static let stripPermissions: Set<String> = [
+    /// Kept in sync with ``ExtensionCompatibility/blockedPermissions`` where overlapping.
+    static let stripPermissions: Set<String> = [
         "debugger",
         "proxy",
         "privacy",

@@ -41,6 +41,30 @@ struct ExtensionStoreItem: Identifiable, Hashable, Sendable {
     let iconURL: URL?
     let rating: Double?
     let storeURL: URL?
+    /// Declared permissions when known (AMO search/detail). Used for WebKit compat badges.
+    let permissions: [String]
+
+    init(
+        source: Source,
+        kind: Kind,
+        storeIdentifier: String,
+        name: String,
+        summary: String,
+        iconURL: URL?,
+        rating: Double?,
+        storeURL: URL?,
+        permissions: [String] = []
+    ) {
+        self.source = source
+        self.kind = kind
+        self.storeIdentifier = storeIdentifier
+        self.name = name
+        self.summary = summary
+        self.iconURL = iconURL
+        self.rating = rating
+        self.storeURL = storeURL
+        self.permissions = permissions
+    }
 }
 
 /// One universal Oriel Store row — same extension may be available from several sources.
@@ -382,6 +406,15 @@ enum ExtensionStoreCatalog {
                 if let type = row["type"] as? String, type == "statictheme" { return .theme }
                 return kind
             }()
+            let permissions: [String] = {
+                guard let version = row["current_version"] as? [String: Any],
+                      let file = version["file"] as? [String: Any] else { return [] }
+                var perms: [String] = []
+                if let p = file["permissions"] as? [String] { perms.append(contentsOf: p) }
+                if let p = file["optional_permissions"] as? [String] { perms.append(contentsOf: p) }
+                if let p = file["host_permissions"] as? [String] { perms.append(contentsOf: p) }
+                return perms
+            }()
             return ExtensionStoreItem(
                 source: .firefox,
                 kind: resolvedKind,
@@ -390,7 +423,8 @@ enum ExtensionStoreCatalog {
                 summary: summary,
                 iconURL: icon,
                 rating: rating,
-                storeURL: storeURL
+                storeURL: storeURL,
+                permissions: permissions
             )
         }
     }

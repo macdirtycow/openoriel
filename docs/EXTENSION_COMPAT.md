@@ -32,6 +32,9 @@ Prefer the native **Oriel Store** over the Chrome / Firefox websites:
 - **Safari:** local `.appex` discovery on Mac + known multi-store seeds
 - **Add** auto-picks the best available source (prefer installed → Firefox → Chrome → Safari)
 - Installed rows show *Installed from Chrome Web Store* / *Firefox Add-ons* / *Safari*
+- **Compatibility badge** per row: Fully supported / Partial support / Not supported (WebKit API fit)
+- **Pre-install warning** when APIs are unavailable on WebKit
+- **Oriel compatibility** score (estimated community installs + local install counter; seeded until live telemetry)
 - Entry: Extensions → Browse Oriel Store, Settings, or overflow menu **Oriel Store**
 - Opening the Chrome Web Store or Firefox Add-ons **website** in a tab shows a tip: **Use Oriel Store?**
 

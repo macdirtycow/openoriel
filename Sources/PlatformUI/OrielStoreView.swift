@@ -14,6 +14,8 @@ struct OrielStoreView: View {
     @State private var installingID: String?
     @State private var searchTask: Task<Void, Never>?
     @State private var installHint: String?
+    @State private var pendingCompatInstall: UnifiedStoreListing?
+    @State private var compatWarningMessage = ""
 
     /// When true (sheet presentation), show a Done button. Hidden inside Extensions navigation.
     var showsDoneButton: Bool = true
@@ -58,6 +60,25 @@ struct OrielStoreView: View {
             Button("OK", role: .cancel) { installHint = nil }
         } message: {
             Text(installHint ?? "")
+        }
+        .alert(
+            "Limited WebKit support",
+            isPresented: Binding(
+                get: { pendingCompatInstall != nil },
+                set: { if !$0 { pendingCompatInstall = nil } }
+            )
+        ) {
+            Button("Install anyway") {
+                if let listing = pendingCompatInstall {
+                    pendingCompatInstall = nil
+                    Task { await performInstall(listing) }
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                pendingCompatInstall = nil
+            }
+        } message: {
+            Text(compatWarningMessage)
         }
     }
 
@@ -152,13 +173,14 @@ struct OrielStoreView: View {
     }
 
     private var footerBlurb: String {
-        "One catalog for Chrome, Firefox, and Safari. Oriel picks the best available source when you tap Add — same install pipeline on Mac, iPhone, and iPad."
+        "One catalog for Chrome, Firefox, and Safari. Compatibility badges reflect WebKit limits — Oriel picks the best source when you tap Add."
     }
 
     private func storeRow(_ listing: UnifiedStoreListing) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        let report = ExtensionCompatibility.assess(listing)
+        return HStack(alignment: .top, spacing: 12) {
             iconView(for: listing)
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 Text(listing.name)
                     .font(.subheadline.weight(.semibold))
                     .lineLimit(2)
@@ -168,20 +190,22 @@ struct OrielStoreView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
+                compatBadge(report.level)
                 sourceChips(for: listing)
+                orielRatingRow(report.score)
                 if let installed = installedSource(for: listing) {
                     Text(installed.installedFromLabel)
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(.green)
                 } else if let rating = listing.rating {
-                    Label(String(format: "%.1f", rating), systemImage: "star.fill")
+                    Label(String(format: "Store %.1f", rating), systemImage: "star.fill")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
             }
             Spacer(minLength: 0)
             Button {
-                Task { await install(listing) }
+                requestInstall(listing)
             } label: {
                 if installingID == listing.id || environment.extensions.isInstallingFromStore {
                     ProgressView()
@@ -196,6 +220,68 @@ struct OrielStoreView: View {
             .disabled(installingID != nil || environment.extensions.isInstallingFromStore)
         }
         .padding(.vertical, 4)
+    }
+
+    private func compatBadge(_ level: ExtensionCompatLevel) -> some View {
+        let color: Color = {
+            switch level {
+            case .full: return .green
+            case .partial: return .orange
+            case .unsupported: return .red
+            }
+        }()
+        return HStack(spacing: 5) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            Text(level.title)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(color)
+        }
+        .accessibilityLabel(level.accessibilityLabel)
+    }
+
+    private func orielRatingRow(_ score: OrielCompatScore) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 6) {
+                Text("Oriel compatibility")
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(.secondary)
+                Text(starString(for: score.stars))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text("\(score.percent)%")
+                    .font(.caption2.weight(.semibold))
+            }
+            HStack(spacing: 8) {
+                Text("\(formattedCount(score.communityInstalls)) users installed")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                if let works = score.worksAsExpectedPercent {
+                    Text("\(works)% works as expected")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            if score.localInstalls > 0 {
+                Text("\(score.localInstalls) install\(score.localInstalls == 1 ? "" : "s") on this device")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func starString(for stars: Double) -> String {
+        let count = min(5, max(0, Int(stars.rounded())))
+        return String(repeating: "★", count: count) + String(repeating: "☆", count: 5 - count)
+    }
+
+    private func formattedCount(_ n: Int) -> String {
+        if n >= 1000 {
+            return String(format: "%.1fk", Double(n) / 1000.0)
+        }
+        return "\(n)"
     }
 
     private func sourceChips(for listing: UnifiedStoreListing) -> some View {
@@ -264,7 +350,6 @@ struct OrielStoreView: View {
                 }
             }
         }
-        // Name match against installed extensions (file/zip installs without store ids).
         let key = ExtensionStoreCatalog.normalizationKey(forName: listing.name)
         if environment.extensions.extensions.contains(where: {
             ExtensionStoreCatalog.normalizationKey(forName: $0.displayName) == key
@@ -276,13 +361,11 @@ struct OrielStoreView: View {
         return nil
     }
 
-    /// Prefer an already-installed source; otherwise the catalog’s ranked preferred offer.
     private func offerToInstall(for listing: UnifiedStoreListing) -> ExtensionStoreItem? {
         if let installed = installedSource(for: listing),
            let offer = listing.offers.first(where: { $0.source == installed }) {
             return offer
         }
-        // Skip Safari “known:” placeholders that aren’t a real local .appex.
         if let preferred = listing.preferredOffer {
             if preferred.source == .safari, preferred.storeIdentifier.hasPrefix("known:") {
                 return listing.offers.first(where: { $0.source != .safari })
@@ -290,6 +373,21 @@ struct OrielStoreView: View {
             return preferred
         }
         return listing.offers.first
+    }
+
+    private func requestInstall(_ listing: UnifiedStoreListing) {
+        if installedSource(for: listing) != nil {
+            dismiss()
+            environment.showExtensions = true
+            return
+        }
+        let report = ExtensionCompatibility.assess(listing)
+        if report.shouldWarnBeforeInstall {
+            compatWarningMessage = report.installWarning
+            pendingCompatInstall = listing
+            return
+        }
+        Task { await performInstall(listing) }
     }
 
     @MainActor
@@ -310,7 +408,6 @@ struct OrielStoreView: View {
         guard !Task.isCancelled else { return }
         guard requestedKind == kind, requestedQuery == query else { return }
         listings = result
-        // Empty search results are fine; only show an error when the popular list is blank.
         if result.isEmpty && requestedQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             errorMessage = "Couldn’t load the catalog. Check your connection and try again."
         } else {
@@ -320,12 +417,7 @@ struct OrielStoreView: View {
     }
 
     @MainActor
-    private func install(_ listing: UnifiedStoreListing) async {
-        if installedSource(for: listing) != nil {
-            dismiss()
-            environment.showExtensions = true
-            return
-        }
+    private func performInstall(_ listing: UnifiedStoreListing) async {
         guard let offer = offerToInstall(for: listing) else { return }
         installingID = listing.id
         defer { installingID = nil }
@@ -347,6 +439,9 @@ struct OrielStoreView: View {
             } else {
                 installHint = "That Safari extension isn’t available to import on this device yet."
             }
+        }
+        if environment.extensions.lastError == nil, installHint == nil {
+            ExtensionCompatibility.recordLocalInstall(listingID: listing.id)
         }
         listings = listings
     }
