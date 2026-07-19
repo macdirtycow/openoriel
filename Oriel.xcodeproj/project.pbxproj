@@ -8,14 +8,17 @@
 
 /* Begin PBXBuildFile section */
 		031CD0495C873598AF6F38C4 /* NavigationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C223CB51AB8532708D4195C6 /* NavigationPolicy.swift */; };
+		03655CFDC6FBB813A10A6133 /* MacGovernorsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D0D8BA0D305603082109C3 /* MacGovernorsView.swift */; };
 		03A58F71719329648F6B3590 /* Phase4FeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80B0019A1802BBCD08249E2 /* Phase4FeatureTests.swift */; };
 		062CFFBE06CF8D1B9D60EAAD /* StartPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137A3D8074BF71FCA60476D1 /* StartPageView.swift */; };
+		074B4CC3C2670D865A3103CE /* ChromiumNativeHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FFE6CABAB9AAC5A228C396 /* ChromiumNativeHost.swift */; };
 		08347FFA0F20DF4B5C438EA3 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BEFD3827F6D61B94816542 /* AppEnvironment.swift */; };
 		09F8040CD43137215655C1F9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2217E60267513166ABDC37AF /* SettingsView.swift */; };
 		0B37DDC67D87E467B4FBF91E /* OrielLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 964B007F398281F78B5719E7 /* OrielLayout.swift */; };
 		14BAE8C60E1E2EF817A43F55 /* Entry.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C47F098B13BD4124F906CE /* Entry.swift */; };
 		15CB54AA9856322493F3599A /* TranslatePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECEFAAFB04395F85200EE906 /* TranslatePageView.swift */; };
 		1925A2386083E6C357B7C082 /* PasswordAutofillService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C44B3ABD7BD041D7C982BBB /* PasswordAutofillService.swift */; };
+		19974925BF137D06A608E1DF /* BrowserEdition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFB4EF635654D155B106264 /* BrowserEdition.swift */; };
 		1ADCF553BB2449889BF1E2A5 /* BrowserShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9596246F720EF499196A3B2 /* BrowserShellView.swift */; };
 		1BC1A3148619DB43543EC179 /* Entry+Serialization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0240197CC09026BB9771451 /* Entry+Serialization.swift */; };
 		1D1FE1CB23854CA116937A27 /* URLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE1527CE617BF10774B6D67 /* URLParser.swift */; };
@@ -26,6 +29,7 @@
 		205A4D626C5F22ED2221F141 /* FileManager+ZIPDeprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49D4AABA8B37F511E8EE07C8 /* FileManager+ZIPDeprecated.swift */; };
 		24661EE7DF1F76D44B03023D /* BrowserConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77C0F612CCA391C44840B85 /* BrowserConstants.swift */; };
 		26759CC73B147E486F86A151 /* DownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E22D99CFADC7A4D062B595BC /* DownloadsView.swift */; };
+		2A465103C4A44371D5794A56 /* OrielStoreDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D9825FE6D43DC207B3A162 /* OrielStoreDetailView.swift */; };
 		2BF1D951C177553684C2D402 /* oriel-ads-1.json in Resources */ = {isa = PBXBuildFile; fileRef = D5C228FA37F9581D9D78386C /* oriel-ads-1.json */; };
 		2C0E20E54EE965E21ADC785D /* ExtensionCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98CF1A71983841ECD2940342 /* ExtensionCompatibility.swift */; };
 		2C8EE9DBDF524FF12870288C /* oriel-youtube-ads.json in Resources */ = {isa = PBXBuildFile; fileRef = B06D1B6676704EE54E899EA0 /* oriel-youtube-ads.json */; };
@@ -37,13 +41,18 @@
 		342E480162CDCDB5601713DD /* Archive+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DDB29151D43E324DC85C8FB /* Archive+Deprecated.swift */; };
 		349DFBD51AABBBF5967555B1 /* AuthAndJavaScriptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011CB4F0CA40D216F227077B /* AuthAndJavaScriptTests.swift */; };
 		3670B7A4EA2E38DCDD535CA6 /* WebViewPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = F012A881ACA5DE114CA0867C /* WebViewPool.swift */; };
+		36D169C55FB63D0F5C3E03DC /* AppIconPulse83.5x83.5@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = C7637C4D22D55E6545643A98 /* AppIconPulse83.5x83.5@2x~ipad.png */; };
 		37E28B3C4A8C6AD3C9BE197E /* Archive+BackingConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D349DAD9D01457D3EFFB78 /* Archive+BackingConfiguration.swift */; };
 		3932192408C35FE5FC9FEC9F /* SharedWebViewConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2DD7DD24BDE86B71C879ECF /* SharedWebViewConfiguration.swift */; };
 		39FF830E8F300B288AF6D452 /* Archive+Reading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE6AB9CAC5BB2D68218D742 /* Archive+Reading.swift */; };
 		3A4D58773971EF38479684AC /* Archive+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5E285FA9B77F0F3D6461A69 /* Archive+Helpers.swift */; };
 		3A55EA487550436D85E02076 /* OrielStoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6D6C537C9E139DE01E0C46 /* OrielStoreView.swift */; };
 		3B45CC4A127F572749DF4649 /* TabGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E266B36BB2550AC4E626EEB /* TabGroup.swift */; };
+		3C1C77E94266F3E92849C047 /* ChromiumSitePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABF8B946CEDE56FD93A82B92 /* ChromiumSitePolicy.swift */; };
 		3CB98D1329B33D3775F37732 /* Data+Compression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6847BA9B56DCE747B24EE2 /* Data+Compression.swift */; };
+		3DE00736F3790A47D3DA9965 /* AppIconPulse76x76@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 644476DADEBE03406031D1DB /* AppIconPulse76x76@2x~ipad.png */; };
+		3FD45CFF32D2FFBD587CDC0E /* PulseAmbiencePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 426BEC1A40E7E566F4EE308D /* PulseAmbiencePlayer.swift */; };
+		46BFE9446C753D4B4C0FDFC3 /* WorkspacePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55A48A017442C336F14A94B2 /* WorkspacePreset.swift */; };
 		476195A2EF3A386EAAB3750A /* ThirdPartyCookieBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01381C90C042AFCE3C1AC613 /* ThirdPartyCookieBlocker.swift */; };
 		4B01D56A338761078917825C /* ExtensionStoreCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3DCEC09B581A87C0C7D51E /* ExtensionStoreCatalogTests.swift */; };
 		4DBA4F9AF3E7A1D14A5BE719 /* TabOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E57EB5D6608140050A9EF32F /* TabOverviewView.swift */; };
@@ -52,14 +61,19 @@
 		51F92CF8E35B68BD2D6F142E /* HTTPSUpgrade.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91FADAFD7D5FF406A6D6E367 /* HTTPSUpgrade.swift */; };
 		5435FDB81F50EB04C50F8A42 /* LinkQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE95EFA41B2F3C82255E31F /* LinkQueueView.swift */; };
 		547D4B3A43C6DDB8A1592D3B /* Date+ZIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 268B72BE5E382393CEE9E5D6 /* Date+ZIP.swift */; };
+		591AA13681F3F9E77F737E6B /* AppIconPulse@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = BFEFA002014513DAA760CED6 /* AppIconPulse@3x.png */; };
 		5ABA265CC73AE1C8E0579C80 /* oriel-ads-3.json in Resources */ = {isa = PBXBuildFile; fileRef = 1944001F22998F20E1E78D55 /* oriel-ads-3.json */; };
 		5ED519D072255305339E095E /* WebsiteDataCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97E61F7FDECBF3B3242760C /* WebsiteDataCleaner.swift */; };
 		5F67D0BEEC58A8E2E158A7FE /* Phase6SearchSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B4D781F01B4230D02642A54 /* Phase6SearchSettingsTests.swift */; };
+		61D8F2CE58064CEA8D9407F9 /* PulsePerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C214503B2A56B0F0ED48CF0 /* PulsePerformanceView.swift */; };
 		61E62EEAAD1E4E6DAC332A44 /* Archive+ZIP64.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA980FA2A78B7608B67FDA8 /* Archive+ZIP64.swift */; };
 		6224D04B29955F0788EA7752 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FF4D181DFA1DDA6883D30DC /* DownloadManager.swift */; };
+		628B81388EE6CEC70AFE29EF /* StoreBrowseCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98825EE7E3187A84155A0185 /* StoreBrowseCategory.swift */; };
+		63A68E7663B8F090CFF316BC /* BrowserEngineKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98702F402C16AFAE3496D0A1 /* BrowserEngineKind.swift */; };
 		641CED28F49BA66A56E85672 /* StabilityHelpersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16F07DFA3C3BA97AD6BDF4E /* StabilityHelpersTests.swift */; };
 		648B259C94473F2E287A7936 /* ElementHideStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30F0796D1D125A4D22EF63A /* ElementHideStore.swift */; };
 		64CD74DA1E3F121404C0DA82 /* Phase2StoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80CF124D5D1BB84658AB30EF /* Phase2StoreTests.swift */; };
+		66316C7AEA86E94A3F477CB9 /* PageEngineSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D19B9E0FFE1E0521CA922E0 /* PageEngineSettingsSection.swift */; };
 		67A05230EC9345F371F9C6B1 /* ProfileSwitcherControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E71E92ED9AC72D87C237EB /* ProfileSwitcherControl.swift */; };
 		68C0D3A56B2B78146A91293E /* AddressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 161F0A55C73E58B7E28FEF17 /* AddressBarView.swift */; };
 		69037969A87CFB02AC73F00F /* BrowserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F59F3AD82F32EA43EF0D179 /* BrowserSettings.swift */; };
@@ -67,9 +81,11 @@
 		69B41FC7A2BD0CF80337C338 /* URLParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CAA503AA1BB5B6FE0606DF0 /* URLParserTests.swift */; };
 		6BCC9DD388B445302C2D67B6 /* oriel-ads-2.json in Resources */ = {isa = PBXBuildFile; fileRef = 092239664755EDC7A6047129 /* oriel-ads-2.json */; };
 		72D9552640F72E6ACFB43826 /* oriel-privacy-4.json in Resources */ = {isa = PBXBuildFile; fileRef = F6B791AA352BE979887D4528 /* oriel-privacy-4.json */; };
+		7309424B2927606380482BD7 /* AppIconService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E944077C28D6F16BF3D913CA /* AppIconService.swift */; };
 		735F2A3D2988BD4E17EDCCF4 /* ManifestCompatNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE2B859521B995C118C67C2 /* ManifestCompatNormalizer.swift */; };
 		73BA7D3AF4D5029086A017C3 /* BookmarkHTMLExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2553D75FD8C1384E8F39357 /* BookmarkHTMLExporter.swift */; };
 		782C2C4F7354EA78F9239794 /* BrowserTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A34690536302270522B7B4 /* BrowserTab.swift */; };
+		7853913791C00B032E34F943 /* PulseCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA81569640A119DC85A7FE6 /* PulseCornerView.swift */; };
 		7C3D1EAF614FCB9DBE1BE8D6 /* AdvancedPageCleanupScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = A92670373EE166F330803553 /* AdvancedPageCleanupScript.swift */; };
 		7C93B0B1A9EA03185AA143E4 /* OrielMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C336481A6174DB573E8F7BE /* OrielMark.swift */; };
 		7D63DB298B0A9D2C153B99DE /* ChromeWebStoreBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AAE52BC150A766491FA089 /* ChromeWebStoreBridge.swift */; };
@@ -80,12 +96,14 @@
 		83CFBD04319298707EE73D52 /* TrackerHitProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D643FE00B8D3D516973322D /* TrackerHitProbe.swift */; };
 		8478FAD9E834F047E2DFA09E /* example-blocklist.json in Resources */ = {isa = PBXBuildFile; fileRef = DEE85969692DAE7045805E57 /* example-blocklist.json */; };
 		86B2B9BA95CC3CA8153B1203 /* Archive+WritingDeprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 357F5944FFB51ED39E4F5039 /* Archive+WritingDeprecated.swift */; };
+		86D02D51C183256FAD60EC8E /* PasswordVaultStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A86FA51B1F7A267D360BDEC /* PasswordVaultStore.swift */; };
 		86F277DDB86FD2CAC07B8036 /* BookmarkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3EA3422E88A2E42E32F212 /* BookmarkStore.swift */; };
 		8CF19FF9F2E956D29CFF2978 /* BookmarkHTMLImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67C6528D7C0651576B6819D4 /* BookmarkHTMLImporter.swift */; };
 		8E8A6FDFAD6F1304987AAEC0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7AA6FA08B917C0F4A81D7E1C /* Assets.xcassets */; };
 		8F6A8D23F0520A8186022633 /* StoreBridgeI18nTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 393229A75452FA85E59E8A26 /* StoreBridgeI18nTests.swift */; };
 		94815792778A372D451887CF /* WebsitePermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1060ADCB8E8D21A1D5CBC2 /* WebsitePermissionManager.swift */; };
 		95A9EC4E34689A7B91D39AB7 /* ContentBlockerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A58A41442546BAFBEF499F /* ContentBlockerManager.swift */; };
+		96A916131DB65E85EF7D5804 /* ChromiumMacFeaturesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3AB40D9530AFE2BCDDC1B4F /* ChromiumMacFeaturesTests.swift */; };
 		96B0467E7356AC6C487004C8 /* WorkspaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC26E9B7FE4C4ADAC0885B7 /* WorkspaceStore.swift */; };
 		96B6BC4B7E61B59656BCFED2 /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DEC41377429AF5865F7209 /* BookmarksView.swift */; };
 		99B62DF12201A849BC74D6A2 /* ExtensionThemeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FE8D9A03851157D589E88F9 /* ExtensionThemeParser.swift */; };
@@ -98,14 +116,19 @@
 		AC30E92C2EF5916B7B7FD08B /* PrivacyStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27573BAEF1DEFB9720D8056 /* PrivacyStats.swift */; };
 		AD31FEF3286361591C0DE9AB /* Phase2AndBeyondTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6034EF2391B5BFCA022A9D2 /* Phase2AndBeyondTests.swift */; };
 		AEF2D7FC4B6EBB552C00DE96 /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB844D2E7927A3D1756C8A6 /* ProfileStore.swift */; };
+		B11B46FBE05176148887EFF6 /* ChromiumFeaturesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521C318ACAD6A56CA263A705 /* ChromiumFeaturesView.swift */; };
+		B2B9684C2756C3B2AF445B5C /* DataInventoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E987C1414D2A4F879DD450F1 /* DataInventoryView.swift */; };
 		B3F82F73100905AEFFD03844 /* PrivacySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEAD19F44096849D14681327 /* PrivacySettings.swift */; };
 		B6A458C5A9AA3C43ED86CE1A /* FaviconResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569DD3AFE40E29611E281BAB /* FaviconResolver.swift */; };
 		B6F31BBEFE3A71309253DE09 /* LinkQueueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEFB633876B868B2EB68C3B /* LinkQueueStore.swift */; };
 		B79D77E5C1A22C09B7CBBF8C /* DefaultBrowserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E13F77A632C915C0734948 /* DefaultBrowserService.swift */; };
 		B7F16BCF50A5CC9DC8DDC973 /* ThemeAndPrivacyStatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195A21D08CFBBD324635C4BE /* ThemeAndPrivacyStatsTests.swift */; };
 		B9999F8E79680D0FE7E77327 /* URL+ZIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A906F43071771A98203EA1 /* URL+ZIP.swift */; };
+		BD8EBC3B4AE8F159573567F8 /* BookmarkTombstoneStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C65AF64EBD7FFD8702655A28 /* BookmarkTombstoneStore.swift */; };
+		BED642CDD7C8D421DADB51DE /* SiteZoomStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5CD32206577C6911C96956 /* SiteZoomStore.swift */; };
 		C0BD3793ED8CC1D2AA182A05 /* UserAgentPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 184E467146BEAAB9C3005FC9 /* UserAgentPolicy.swift */; };
 		C0D710DE823E78C7F52F7F02 /* OrielTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */; };
+		C2937CB6C9F073FC0D4E6980 /* DualEnginePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40AAD3F5F0AA9235D38FE5C /* DualEnginePolicyTests.swift */; };
 		C31FCC616D4F853FC4E739D3 /* PictureInPictureScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = A47F6BE27C35E7A575A86DB2 /* PictureInPictureScript.swift */; };
 		C4E8456A0BDC242B2C556C78 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AC3BB6323513845985F125 /* HistoryView.swift */; };
 		C50D5EC090483ECB3316A214 /* ExtensionThemeAndFirefoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0330C287A18DE4D1B8F58E /* ExtensionThemeAndFirefoxTests.swift */; };
@@ -118,6 +141,8 @@
 		CC525986B895AB6FC374C2FE /* oriel-base.json in Resources */ = {isa = PBXBuildFile; fileRef = E383ACD4A541394CCEFF790C /* oriel-base.json */; };
 		CDB4BFAC36A893279A9DDB4B /* ExtensionCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F415F3E26F1E5B02615464A7 /* ExtensionCompatibilityTests.swift */; };
 		CDFE84BBED32A20145836CBC /* ProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835E9DA3F43215CF038F6A1B /* ProfilesView.swift */; };
+		D15531B46DEDBA6D9177F624 /* AppIconPulse.png in Resources */ = {isa = PBXBuildFile; fileRef = 408B26B5766573D4FAB793E5 /* AppIconPulse.png */; };
+		D23CE02C2D6404D69257A78E /* DefaultBrowserSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8679C669CDF57E26ADF202D5 /* DefaultBrowserSettingsPage.swift */; };
 		D2F3BB2E16F00732CAA6CEBC /* oriel-annoyances.json in Resources */ = {isa = PBXBuildFile; fileRef = 44254BF36616C1587B3CD259 /* oriel-annoyances.json */; };
 		D33BCB8E8AB4DA9EA0928E33 /* Archive+Writing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B023131603D14AC459BF49DB /* Archive+Writing.swift */; };
 		D474FA419C43BB337A404141 /* Phase3PrivacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45097DEF5699530F969BE06 /* Phase3PrivacyTests.swift */; };
@@ -125,26 +150,33 @@
 		D7D040784E146ECF5FA07C8F /* PictureInPicturePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33220F0F6C92AD80A700CA66 /* PictureInPicturePickerView.swift */; };
 		D7E704953945FC2B3CE55422 /* NavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1808B252AD7CA5B9316D569 /* NavigationState.swift */; };
 		D83722AB43008F76F50B6290 /* Data+CompressionDeprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23BBAA951C36335748DF0968 /* Data+CompressionDeprecated.swift */; };
+		DAAC769888111D33FDF9002E /* PasswordVaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21ABD0F76E102B04F9932DE3 /* PasswordVaultView.swift */; };
 		DAD5750CDB2C660E380856CB /* Entry+ZIP64.swift in Sources */ = {isa = PBXBuildFile; fileRef = D76EF883733A96857A84FD3B /* Entry+ZIP64.swift */; };
 		DC20D1A5690DA59B33B6A001 /* PageEnhancementScripts.swift in Sources */ = {isa = PBXBuildFile; fileRef = E93AAEDA2723236E7CE98DF6 /* PageEnhancementScripts.swift */; };
 		DDD96AA64FA9AA34C2F3AA0E /* oriel-privacy-2.json in Resources */ = {isa = PBXBuildFile; fileRef = 1FD44E208EC0D437878BD22A /* oriel-privacy-2.json */; };
+		DE832FD6C310054F99EDE36F /* ChromiumEngineBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 611DB6E53FE53B65ADBBEFF2 /* ChromiumEngineBridge.swift */; };
 		E00A44C7D028437506905744 /* Phase1FeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBB16CAA330574A9803BBD9 /* Phase1FeatureTests.swift */; };
 		E12F7737AA2359BA4CCF2CA8 /* SafariWebExtensionImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5577A89A1C3D14A50A1708 /* SafariWebExtensionImporter.swift */; };
 		E189672EE40C8DA4B2750CFA /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A52F5546410287192EEE0A /* HistoryStore.swift */; };
+		E1CE158E5876953362B30FA1 /* MacPerformanceGovernor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A2B09CA2672F5416615E0F /* MacPerformanceGovernor.swift */; };
 		E3D3EB1F2FE8C46B503557E1 /* PrivacyShieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB95E162E556859616C2DA9 /* PrivacyShieldView.swift */; };
 		E49A2BE360E2D0BD8C75CB80 /* Archive+Progress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C6805D9851628E967211B07 /* Archive+Progress.swift */; };
 		E5EB1A0B4E5FDD540720A749 /* ErrorPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02CBC7705D9621792C8BF524 /* ErrorPageView.swift */; };
+		E9A66FAC2933037FB4855319 /* ExtensionPermissionReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED4BEBDC6A06A7347BA784F5 /* ExtensionPermissionReviewView.swift */; };
 		EA61CA2644CE7FEE170C6664 /* BrowserWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1809F1262455BCB12BC805A /* BrowserWebView.swift */; };
 		EA8342244336627EE154A27D /* SearchEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F54728DFA5496279551E4EA /* SearchEngine.swift */; };
 		EAB762098BAAAED12EC613FF /* FingerprintingProtectionScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFC6720D42DE67395DF9AF4 /* FingerprintingProtectionScript.swift */; };
+		EACDF9E7F92B2F9CF0D2AE7C /* AppIconPulse@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B25DD5BF144035AC80AC5E1 /* AppIconPulse@2x.png */; };
 		EB20D1337FE6B694D5DE59CA /* ProgressiveWebApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6D893E42AAA107F2D6435B8 /* ProgressiveWebApp.swift */; };
 		ED8E7A0D6AD7F408093EA3F3 /* oriel-privacy-3.json in Resources */ = {isa = PBXBuildFile; fileRef = 14A36065787C74CB565BDC63 /* oriel-privacy-3.json */; };
 		EDB25EBF3DBAC9BFB6796CD1 /* FireButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2667FA8649141F4D44987B08 /* FireButtonView.swift */; };
+		EF1BF8438360462ED4510284 /* PulseWallpaper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCC1CD26C6F58FAE58425BF /* PulseWallpaper.swift */; };
 		EF2FF8C6FB1DC6C617AEDFAA /* AboutOrielView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8DE8EFCF1E30C51C131D42F /* AboutOrielView.swift */; };
 		F09C4CCF9F8740153950C52F /* Archive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26CAF999F4B608DCBB9D0259 /* Archive.swift */; };
 		F558CAE805483749923959BA /* Archive+MemoryFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA13F331E094503FDB6C7A63 /* Archive+MemoryFile.swift */; };
 		F59E1028751BCD303F6F7DC7 /* Phase7BrowserParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A55FB10CC23A4D76D1BD50 /* Phase7BrowserParityTests.swift */; };
 		F65077EB32B9828050571EBE /* OrielUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58FEB09C6E8430F39C280882 /* OrielUITests.swift */; };
+		F65DCF381D26C51D538A3E8E /* ChromiumIdentityScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31660C0090AE856B7FB7FFB5 /* ChromiumIdentityScript.swift */; };
 		F7FBA9A6ABD4E4C9B31644B5 /* oriel-privacy-1.json in Resources */ = {isa = PBXBuildFile; fileRef = B9E3F2594B561A0F47C75E88 /* oriel-privacy-1.json */; };
 		F81321072E214A6BFD7217E2 /* WebExtensionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA7212A964CD575F5A4A3A1 /* WebExtensionManager.swift */; };
 		F9EF7AB1336235C8C94A4098 /* ChromeWebStoreAPITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F7E101025B2FC9C929E5D07 /* ChromeWebStoreAPITests.swift */; };
@@ -177,8 +209,10 @@
 		03AAE52BC150A766491FA089 /* ChromeWebStoreBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeWebStoreBridge.swift; sourceTree = "<group>"; };
 		03C2BA1CA17C36F4696A6FFA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		04E71E92ED9AC72D87C237EB /* ProfileSwitcherControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSwitcherControl.swift; sourceTree = "<group>"; };
+		05D0D8BA0D305603082109C3 /* MacGovernorsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacGovernorsView.swift; sourceTree = "<group>"; };
 		092239664755EDC7A6047129 /* oriel-ads-2.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-ads-2.json"; sourceTree = "<group>"; };
 		0AA43A2E565A0824FEA3EFC5 /* Data+Serialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Serialization.swift"; sourceTree = "<group>"; };
+		0C214503B2A56B0F0ED48CF0 /* PulsePerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulsePerformanceView.swift; sourceTree = "<group>"; };
 		0C336481A6174DB573E8F7BE /* OrielMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielMark.swift; sourceTree = "<group>"; };
 		0CE6AB9CAC5BB2D68218D742 /* Archive+Reading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+Reading.swift"; sourceTree = "<group>"; };
 		0F64E5EADB8EC24B65AAD5FC /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
@@ -197,35 +231,49 @@
 		1D556585A2E605A1B130EF8E /* ManifestCompatNormalizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManifestCompatNormalizerTests.swift; sourceTree = "<group>"; };
 		1FD44E208EC0D437878BD22A /* oriel-privacy-2.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-privacy-2.json"; sourceTree = "<group>"; };
 		2165EC01E581EC629E0F0551 /* Archive+ReadingDeprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+ReadingDeprecated.swift"; sourceTree = "<group>"; };
+		21ABD0F76E102B04F9932DE3 /* PasswordVaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordVaultView.swift; sourceTree = "<group>"; };
 		2217E60267513166ABDC37AF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		23BBAA951C36335748DF0968 /* Data+CompressionDeprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+CompressionDeprecated.swift"; sourceTree = "<group>"; };
 		2667FA8649141F4D44987B08 /* FireButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireButtonView.swift; sourceTree = "<group>"; };
 		268B72BE5E382393CEE9E5D6 /* Date+ZIP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+ZIP.swift"; sourceTree = "<group>"; };
 		26CAF999F4B608DCBB9D0259 /* Archive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Archive.swift; sourceTree = "<group>"; };
 		2CAA503AA1BB5B6FE0606DF0 /* URLParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLParserTests.swift; sourceTree = "<group>"; };
+		2D19B9E0FFE1E0521CA922E0 /* PageEngineSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageEngineSettingsSection.swift; sourceTree = "<group>"; };
+		2FCC1CD26C6F58FAE58425BF /* PulseWallpaper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseWallpaper.swift; sourceTree = "<group>"; };
+		31660C0090AE856B7FB7FFB5 /* ChromiumIdentityScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromiumIdentityScript.swift; sourceTree = "<group>"; };
 		33220F0F6C92AD80A700CA66 /* PictureInPicturePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureInPicturePickerView.swift; sourceTree = "<group>"; };
 		357F5944FFB51ED39E4F5039 /* Archive+WritingDeprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+WritingDeprecated.swift"; sourceTree = "<group>"; };
+		37A2B09CA2672F5416615E0F /* MacPerformanceGovernor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacPerformanceGovernor.swift; sourceTree = "<group>"; };
 		3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielTheme.swift; sourceTree = "<group>"; };
 		391D5296FD71B5C67F7B845F /* oriel-site-fixes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-site-fixes.json"; sourceTree = "<group>"; };
 		393229A75452FA85E59E8A26 /* StoreBridgeI18nTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreBridgeI18nTests.swift; sourceTree = "<group>"; };
 		398DC203CC37DDED04A6F530 /* WorkspacesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspacesView.swift; sourceTree = "<group>"; };
 		39A58A41442546BAFBEF499F /* ContentBlockerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentBlockerManager.swift; sourceTree = "<group>"; };
+		3A86FA51B1F7A267D360BDEC /* PasswordVaultStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordVaultStore.swift; sourceTree = "<group>"; };
+		3AA81569640A119DC85A7FE6 /* PulseCornerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseCornerView.swift; sourceTree = "<group>"; };
 		3FE54710A619EF58CFCB2E6E /* FindInPageBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindInPageBar.swift; sourceTree = "<group>"; };
+		408B26B5766573D4FAB793E5 /* AppIconPulse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = AppIconPulse.png; sourceTree = "<group>"; };
+		426BEC1A40E7E566F4EE308D /* PulseAmbiencePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseAmbiencePlayer.swift; sourceTree = "<group>"; };
 		42A52F5546410287192EEE0A /* HistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
 		44254BF36616C1587B3CD259 /* oriel-annoyances.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-annoyances.json"; sourceTree = "<group>"; };
 		49D4AABA8B37F511E8EE07C8 /* FileManager+ZIPDeprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+ZIPDeprecated.swift"; sourceTree = "<group>"; };
 		4AEFB633876B868B2EB68C3B /* LinkQueueStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkQueueStore.swift; sourceTree = "<group>"; };
+		4B25DD5BF144035AC80AC5E1 /* AppIconPulse@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIconPulse@2x.png"; sourceTree = "<group>"; };
 		4B4D781F01B4230D02642A54 /* Phase6SearchSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase6SearchSettingsTests.swift; sourceTree = "<group>"; };
 		4DA7212A964CD575F5A4A3A1 /* WebExtensionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebExtensionManager.swift; sourceTree = "<group>"; };
 		4DD17FFF022753DBC14A2CC2 /* FaviconImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaviconImage.swift; sourceTree = "<group>"; };
 		4EFC6720D42DE67395DF9AF4 /* FingerprintingProtectionScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FingerprintingProtectionScript.swift; sourceTree = "<group>"; };
+		521C318ACAD6A56CA263A705 /* ChromiumFeaturesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromiumFeaturesView.swift; sourceTree = "<group>"; };
 		5350D0B8D051011A875581CF /* ExtensionThemeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionThemeStore.swift; sourceTree = "<group>"; };
+		55A48A017442C336F14A94B2 /* WorkspacePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspacePreset.swift; sourceTree = "<group>"; };
 		569DD3AFE40E29611E281BAB /* FaviconResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaviconResolver.swift; sourceTree = "<group>"; };
 		57A55FB10CC23A4D76D1BD50 /* Phase7BrowserParityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase7BrowserParityTests.swift; sourceTree = "<group>"; };
 		58FEB09C6E8430F39C280882 /* OrielUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielUITests.swift; sourceTree = "<group>"; };
 		5C3EA3422E88A2E42E32F212 /* BookmarkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkStore.swift; sourceTree = "<group>"; };
 		5D643FE00B8D3D516973322D /* TrackerHitProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerHitProbe.swift; sourceTree = "<group>"; };
 		5FF4D181DFA1DDA6883D30DC /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
+		611DB6E53FE53B65ADBBEFF2 /* ChromiumEngineBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromiumEngineBridge.swift; sourceTree = "<group>"; };
+		644476DADEBE03406031D1DB /* AppIconPulse76x76@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIconPulse76x76@2x~ipad.png"; sourceTree = "<group>"; };
 		65D00C9F2A3D4A4A02E0002D /* StoreBridgeI18n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreBridgeI18n.swift; sourceTree = "<group>"; };
 		67C6528D7C0651576B6819D4 /* BookmarkHTMLImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkHTMLImporter.swift; sourceTree = "<group>"; };
 		67E7572E8423A86AB009847E /* ExtensionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionsView.swift; sourceTree = "<group>"; };
@@ -233,7 +281,9 @@
 		6C94752846BA7E952CD7DC6E /* TrackingParameterStripper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingParameterStripper.swift; sourceTree = "<group>"; };
 		6F54728DFA5496279551E4EA /* SearchEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchEngine.swift; sourceTree = "<group>"; };
 		6FE8D9A03851157D589E88F9 /* ExtensionThemeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionThemeParser.swift; sourceTree = "<group>"; };
+		6FFB4EF635654D155B106264 /* BrowserEdition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserEdition.swift; sourceTree = "<group>"; };
 		70753291C03D19791E7D6661 /* FileManager+ZIP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+ZIP.swift"; sourceTree = "<group>"; };
+		76FFE6CABAB9AAC5A228C396 /* ChromiumNativeHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromiumNativeHost.swift; sourceTree = "<group>"; };
 		7AA6FA08B917C0F4A81D7E1C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7ABA8781AB579187B7E33D8C /* HistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryEntry.swift; sourceTree = "<group>"; };
 		7C44B3ABD7BD041D7C982BBB /* PasswordAutofillService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordAutofillService.swift; sourceTree = "<group>"; };
@@ -244,6 +294,7 @@
 		81A28F5ED304EC4EC5C0E73E /* iCloudSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCloudSyncService.swift; sourceTree = "<group>"; };
 		835E9DA3F43215CF038F6A1B /* ProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilesView.swift; sourceTree = "<group>"; };
 		83AC3BB6323513845985F125 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		8679C669CDF57E26ADF202D5 /* DefaultBrowserSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultBrowserSettingsPage.swift; sourceTree = "<group>"; };
 		88D349DAD9D01457D3EFFB78 /* Archive+BackingConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+BackingConfiguration.swift"; sourceTree = "<group>"; };
 		899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationControlsView.swift; sourceTree = "<group>"; };
 		8F7E101025B2FC9C929E5D07 /* ChromeWebStoreAPITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeWebStoreAPITests.swift; sourceTree = "<group>"; };
@@ -251,6 +302,8 @@
 		92DEC41377429AF5865F7209 /* BookmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksView.swift; sourceTree = "<group>"; };
 		964B007F398281F78B5719E7 /* OrielLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielLayout.swift; sourceTree = "<group>"; };
 		96E13F77A632C915C0734948 /* DefaultBrowserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultBrowserService.swift; sourceTree = "<group>"; };
+		98702F402C16AFAE3496D0A1 /* BrowserEngineKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserEngineKind.swift; sourceTree = "<group>"; };
+		98825EE7E3187A84155A0185 /* StoreBrowseCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreBrowseCategory.swift; sourceTree = "<group>"; };
 		98CF1A71983841ECD2940342 /* ExtensionCompatibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionCompatibility.swift; sourceTree = "<group>"; };
 		99E8BB3AC2188B2EE45BDF32 /* PageTranslator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTranslator.swift; sourceTree = "<group>"; };
 		9AE1527CE617BF10774B6D67 /* URLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLParser.swift; sourceTree = "<group>"; };
@@ -264,6 +317,7 @@
 		A45097DEF5699530F969BE06 /* Phase3PrivacyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase3PrivacyTests.swift; sourceTree = "<group>"; };
 		A47F6BE27C35E7A575A86DB2 /* PictureInPictureScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PictureInPictureScript.swift; sourceTree = "<group>"; };
 		A92670373EE166F330803553 /* AdvancedPageCleanupScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedPageCleanupScript.swift; sourceTree = "<group>"; };
+		ABF8B946CEDE56FD93A82B92 /* ChromiumSitePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromiumSitePolicy.swift; sourceTree = "<group>"; };
 		AC6D6C537C9E139DE01E0C46 /* OrielStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielStoreView.swift; sourceTree = "<group>"; };
 		ADE2B859521B995C118C67C2 /* ManifestCompatNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManifestCompatNormalizer.swift; sourceTree = "<group>"; };
 		B023131603D14AC459BF49DB /* Archive+Writing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Archive+Writing.swift"; sourceTree = "<group>"; };
@@ -272,18 +326,24 @@
 		B20E8BFC7B1FAF07ABA70E22 /* SearchSuggestionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSuggestionProvider.swift; sourceTree = "<group>"; };
 		B2A906F43071771A98203EA1 /* URL+ZIP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+ZIP.swift"; sourceTree = "<group>"; };
 		B30F0796D1D125A4D22EF63A /* ElementHideStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElementHideStore.swift; sourceTree = "<group>"; };
+		B40AAD3F5F0AA9235D38FE5C /* DualEnginePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualEnginePolicyTests.swift; sourceTree = "<group>"; };
 		B809DD2283CD4045BA7442C0 /* OrielTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OrielTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8DE8EFCF1E30C51C131D42F /* AboutOrielView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutOrielView.swift; sourceTree = "<group>"; };
 		B9E3F2594B561A0F47C75E88 /* oriel-privacy-1.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-privacy-1.json"; sourceTree = "<group>"; };
 		BEDB4889A8C4E62AD9FED133 /* AuthPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthPopupView.swift; sourceTree = "<group>"; };
+		BFEFA002014513DAA760CED6 /* AppIconPulse@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIconPulse@3x.png"; sourceTree = "<group>"; };
 		C1808B252AD7CA5B9316D569 /* NavigationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationState.swift; sourceTree = "<group>"; };
 		C223CB51AB8532708D4195C6 /* NavigationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicy.swift; sourceTree = "<group>"; };
 		C2DD7DD24BDE86B71C879ECF /* SharedWebViewConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedWebViewConfiguration.swift; sourceTree = "<group>"; };
+		C3AB40D9530AFE2BCDDC1B4F /* ChromiumMacFeaturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromiumMacFeaturesTests.swift; sourceTree = "<group>"; };
 		C3BEFD3827F6D61B94816542 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		C65AF64EBD7FFD8702655A28 /* BookmarkTombstoneStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkTombstoneStore.swift; sourceTree = "<group>"; };
 		C6A822F31A4AE4EE6022DEB5 /* Bookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bookmark.swift; sourceTree = "<group>"; };
+		C7637C4D22D55E6545643A98 /* AppIconPulse83.5x83.5@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AppIconPulse83.5x83.5@2x~ipad.png"; sourceTree = "<group>"; };
 		C9596246F720EF499196A3B2 /* BrowserShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserShellView.swift; sourceTree = "<group>"; };
 		C97E61F7FDECBF3B3242760C /* WebsiteDataCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsiteDataCleaner.swift; sourceTree = "<group>"; };
 		CB3DCEC09B581A87C0C7D51E /* ExtensionStoreCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionStoreCatalogTests.swift; sourceTree = "<group>"; };
+		CC5CD32206577C6911C96956 /* SiteZoomStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteZoomStore.swift; sourceTree = "<group>"; };
 		CDC26E9B7FE4C4ADAC0885B7 /* WorkspaceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceStore.swift; sourceTree = "<group>"; };
 		D16F07DFA3C3BA97AD6BDF4E /* StabilityHelpersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StabilityHelpersTests.swift; sourceTree = "<group>"; };
 		D1A34690536302270522B7B4 /* BrowserTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTab.swift; sourceTree = "<group>"; };
@@ -294,6 +354,7 @@
 		D80B0019A1802BBCD08249E2 /* Phase4FeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase4FeatureTests.swift; sourceTree = "<group>"; };
 		DAB969C9258A7150A1F20633 /* OrielApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielApp.swift; sourceTree = "<group>"; };
 		DEE85969692DAE7045805E57 /* example-blocklist.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "example-blocklist.json"; sourceTree = "<group>"; };
+		E1D9825FE6D43DC207B3A162 /* OrielStoreDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrielStoreDetailView.swift; sourceTree = "<group>"; };
 		E22D99CFADC7A4D062B595BC /* DownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
 		E2553D75FD8C1384E8F39357 /* BookmarkHTMLExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkHTMLExporter.swift; sourceTree = "<group>"; };
 		E383ACD4A541394CCEFF790C /* oriel-base.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-base.json"; sourceTree = "<group>"; };
@@ -303,8 +364,11 @@
 		E6C47F098B13BD4124F906CE /* Entry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entry.swift; sourceTree = "<group>"; };
 		E6D893E42AAA107F2D6435B8 /* ProgressiveWebApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressiveWebApp.swift; sourceTree = "<group>"; };
 		E93AAEDA2723236E7CE98DF6 /* PageEnhancementScripts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageEnhancementScripts.swift; sourceTree = "<group>"; };
+		E944077C28D6F16BF3D913CA /* AppIconService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconService.swift; sourceTree = "<group>"; };
+		E987C1414D2A4F879DD450F1 /* DataInventoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataInventoryView.swift; sourceTree = "<group>"; };
 		ECD387DE816D2B801EC559E8 /* TabManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabManager.swift; sourceTree = "<group>"; };
 		ECEFAAFB04395F85200EE906 /* TranslatePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatePageView.swift; sourceTree = "<group>"; };
+		ED4BEBDC6A06A7347BA784F5 /* ExtensionPermissionReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPermissionReviewView.swift; sourceTree = "<group>"; };
 		EEAD19F44096849D14681327 /* PrivacySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacySettings.swift; sourceTree = "<group>"; };
 		EEB844D2E7927A3D1756C8A6 /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
 		EF712E1CE661D9AC39D29643 /* FireButtonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireButtonService.swift; sourceTree = "<group>"; };
@@ -361,15 +425,21 @@
 		20C66DDE210659818844158C /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				E944077C28D6F16BF3D913CA /* AppIconService.swift */,
 				96E13F77A632C915C0734948 /* DefaultBrowserService.swift */,
 				B30F0796D1D125A4D22EF63A /* ElementHideStore.swift */,
 				81A28F5ED304EC4EC5C0E73E /* iCloudSyncService.swift */,
 				4AEFB633876B868B2EB68C3B /* LinkQueueStore.swift */,
+				37A2B09CA2672F5416615E0F /* MacPerformanceGovernor.swift */,
 				99E8BB3AC2188B2EE45BDF32 /* PageTranslator.swift */,
 				7C44B3ABD7BD041D7C982BBB /* PasswordAutofillService.swift */,
+				3A86FA51B1F7A267D360BDEC /* PasswordVaultStore.swift */,
 				A47F6BE27C35E7A575A86DB2 /* PictureInPictureScript.swift */,
 				EEB844D2E7927A3D1756C8A6 /* ProfileStore.swift */,
 				E6D893E42AAA107F2D6435B8 /* ProgressiveWebApp.swift */,
+				426BEC1A40E7E566F4EE308D /* PulseAmbiencePlayer.swift */,
+				CC5CD32206577C6911C96956 /* SiteZoomStore.swift */,
+				55A48A017442C336F14A94B2 /* WorkspacePreset.swift */,
 				CDC26E9B7FE4C4ADAC0885B7 /* WorkspaceStore.swift */,
 			);
 			path = Features;
@@ -408,6 +478,18 @@
 			path = ThirdParty;
 			sourceTree = "<group>";
 		};
+		5B5A45EC5D1071EB54F857B2 /* AlternateIcons */ = {
+			isa = PBXGroup;
+			children = (
+				408B26B5766573D4FAB793E5 /* AppIconPulse.png */,
+				4B25DD5BF144035AC80AC5E1 /* AppIconPulse@2x.png */,
+				BFEFA002014513DAA760CED6 /* AppIconPulse@3x.png */,
+				644476DADEBE03406031D1DB /* AppIconPulse76x76@2x~ipad.png */,
+				C7637C4D22D55E6545643A98 /* AppIconPulse83.5x83.5@2x~ipad.png */,
+			);
+			path = AlternateIcons;
+			sourceTree = "<group>";
+		};
 		5F72E825968263DF2F4CF39D /* ContentBlocker */ = {
 			isa = PBXGroup;
 			children = (
@@ -430,6 +512,7 @@
 		6A91AE6ED2C3208FA9FB9703 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				5B5A45EC5D1071EB54F857B2 /* AlternateIcons */,
 				5F72E825968263DF2F4CF39D /* ContentBlocker */,
 				7AA6FA08B917C0F4A81D7E1C /* Assets.xcassets */,
 			);
@@ -457,6 +540,7 @@
 				ADE2B859521B995C118C67C2 /* ManifestCompatNormalizer.swift */,
 				FD5577A89A1C3D14A50A1708 /* SafariWebExtensionImporter.swift */,
 				65D00C9F2A3D4A4A02E0002D /* StoreBridgeI18n.swift */,
+				98825EE7E3187A84155A0185 /* StoreBrowseCategory.swift */,
 				4DA7212A964CD575F5A4A3A1 /* WebExtensionManager.swift */,
 			);
 			path = Extensions;
@@ -477,6 +561,8 @@
 			children = (
 				011CB4F0CA40D216F227077B /* AuthAndJavaScriptTests.swift */,
 				8F7E101025B2FC9C929E5D07 /* ChromeWebStoreAPITests.swift */,
+				C3AB40D9530AFE2BCDDC1B4F /* ChromiumMacFeaturesTests.swift */,
+				B40AAD3F5F0AA9235D38FE5C /* DualEnginePolicyTests.swift */,
 				F415F3E26F1E5B02615464A7 /* ExtensionCompatibilityTests.swift */,
 				CB3DCEC09B581A87C0C7D51E /* ExtensionStoreCatalogTests.swift */,
 				FD0330C287A18DE4D1B8F58E /* ExtensionThemeAndFirefoxTests.swift */,
@@ -501,6 +587,7 @@
 		ABB153C6CB5DAED4DE0C2790 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				6FFB4EF635654D155B106264 /* BrowserEdition.swift */,
 				7F59F3AD82F32EA43EF0D179 /* BrowserSettings.swift */,
 			);
 			path = Settings;
@@ -568,7 +655,12 @@
 			isa = PBXGroup;
 			children = (
 				F77C0F612CCA391C44840B85 /* BrowserConstants.swift */,
+				98702F402C16AFAE3496D0A1 /* BrowserEngineKind.swift */,
 				D1A34690536302270522B7B4 /* BrowserTab.swift */,
+				611DB6E53FE53B65ADBBEFF2 /* ChromiumEngineBridge.swift */,
+				31660C0090AE856B7FB7FFB5 /* ChromiumIdentityScript.swift */,
+				76FFE6CABAB9AAC5A228C396 /* ChromiumNativeHost.swift */,
+				ABF8B946CEDE56FD93A82B92 /* ChromiumSitePolicy.swift */,
 				569DD3AFE40E29611E281BAB /* FaviconResolver.swift */,
 				C1808B252AD7CA5B9316D569 /* NavigationState.swift */,
 				E93AAEDA2723236E7CE98DF6 /* PageEnhancementScripts.swift */,
@@ -597,6 +689,7 @@
 				E2553D75FD8C1384E8F39357 /* BookmarkHTMLExporter.swift */,
 				67C6528D7C0651576B6819D4 /* BookmarkHTMLImporter.swift */,
 				5C3EA3422E88A2E42E32F212 /* BookmarkStore.swift */,
+				C65AF64EBD7FFD8702655A28 /* BookmarkTombstoneStore.swift */,
 			);
 			path = Bookmarks;
 			sourceTree = "<group>";
@@ -631,24 +724,35 @@
 				BEDB4889A8C4E62AD9FED133 /* AuthPopupView.swift */,
 				92DEC41377429AF5865F7209 /* BookmarksView.swift */,
 				C9596246F720EF499196A3B2 /* BrowserShellView.swift */,
+				521C318ACAD6A56CA263A705 /* ChromiumFeaturesView.swift */,
+				E987C1414D2A4F879DD450F1 /* DataInventoryView.swift */,
+				8679C669CDF57E26ADF202D5 /* DefaultBrowserSettingsPage.swift */,
 				E22D99CFADC7A4D062B595BC /* DownloadsView.swift */,
 				02CBC7705D9621792C8BF524 /* ErrorPageView.swift */,
+				ED4BEBDC6A06A7347BA784F5 /* ExtensionPermissionReviewView.swift */,
 				67E7572E8423A86AB009847E /* ExtensionsView.swift */,
 				4DD17FFF022753DBC14A2CC2 /* FaviconImage.swift */,
 				3FE54710A619EF58CFCB2E6E /* FindInPageBar.swift */,
 				2667FA8649141F4D44987B08 /* FireButtonView.swift */,
 				83AC3BB6323513845985F125 /* HistoryView.swift */,
 				6BE95EFA41B2F3C82255E31F /* LinkQueueView.swift */,
+				05D0D8BA0D305603082109C3 /* MacGovernorsView.swift */,
 				899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */,
 				03C2BA1CA17C36F4696A6FFA /* OnboardingView.swift */,
 				964B007F398281F78B5719E7 /* OrielLayout.swift */,
 				0C336481A6174DB573E8F7BE /* OrielMark.swift */,
+				E1D9825FE6D43DC207B3A162 /* OrielStoreDetailView.swift */,
 				AC6D6C537C9E139DE01E0C46 /* OrielStoreView.swift */,
 				3836F6EAEB7B99DF994A4A21 /* OrielTheme.swift */,
+				2D19B9E0FFE1E0521CA922E0 /* PageEngineSettingsSection.swift */,
+				21ABD0F76E102B04F9932DE3 /* PasswordVaultView.swift */,
 				33220F0F6C92AD80A700CA66 /* PictureInPicturePickerView.swift */,
 				FEB95E162E556859616C2DA9 /* PrivacyShieldView.swift */,
 				835E9DA3F43215CF038F6A1B /* ProfilesView.swift */,
 				04E71E92ED9AC72D87C237EB /* ProfileSwitcherControl.swift */,
+				3AA81569640A119DC85A7FE6 /* PulseCornerView.swift */,
+				0C214503B2A56B0F0ED48CF0 /* PulsePerformanceView.swift */,
+				2FCC1CD26C6F58FAE58425BF /* PulseWallpaper.swift */,
 				2217E60267513166ABDC37AF /* SettingsView.swift */,
 				137A3D8074BF71FCA60476D1 /* StartPageView.swift */,
 				E57EB5D6608140050A9EF32F /* TabOverviewView.swift */,
@@ -765,6 +869,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D15531B46DEDBA6D9177F624 /* AppIconPulse.png in Resources */,
+				3DE00736F3790A47D3DA9965 /* AppIconPulse76x76@2x~ipad.png in Resources */,
+				36D169C55FB63D0F5C3E03DC /* AppIconPulse83.5x83.5@2x~ipad.png in Resources */,
+				EACDF9E7F92B2F9CF0D2AE7C /* AppIconPulse@2x.png in Resources */,
+				591AA13681F3F9E77F737E6B /* AppIconPulse@3x.png in Resources */,
 				8E8A6FDFAD6F1304987AAEC0 /* Assets.xcassets in Resources */,
 				8478FAD9E834F047E2DFA09E /* example-blocklist.json in Resources */,
 				2BF1D951C177553684C2D402 /* oriel-ads-1.json in Resources */,
@@ -792,6 +901,7 @@
 				68C0D3A56B2B78146A91293E /* AddressBarView.swift in Sources */,
 				7C3D1EAF614FCB9DBE1BE8D6 /* AdvancedPageCleanupScript.swift in Sources */,
 				08347FFA0F20DF4B5C438EA3 /* AppEnvironment.swift in Sources */,
+				7309424B2927606380482BD7 /* AppIconService.swift in Sources */,
 				37E28B3C4A8C6AD3C9BE197E /* Archive+BackingConfiguration.swift in Sources */,
 				342E480162CDCDB5601713DD /* Archive+Deprecated.swift in Sources */,
 				3A4D58773971EF38479684AC /* Archive+Helpers.swift in Sources */,
@@ -809,19 +919,29 @@
 				73BA7D3AF4D5029086A017C3 /* BookmarkHTMLExporter.swift in Sources */,
 				8CF19FF9F2E956D29CFF2978 /* BookmarkHTMLImporter.swift in Sources */,
 				86F277DDB86FD2CAC07B8036 /* BookmarkStore.swift in Sources */,
+				BD8EBC3B4AE8F159573567F8 /* BookmarkTombstoneStore.swift in Sources */,
 				96B6BC4B7E61B59656BCFED2 /* BookmarksView.swift in Sources */,
 				24661EE7DF1F76D44B03023D /* BrowserConstants.swift in Sources */,
+				19974925BF137D06A608E1DF /* BrowserEdition.swift in Sources */,
+				63A68E7663B8F090CFF316BC /* BrowserEngineKind.swift in Sources */,
 				69037969A87CFB02AC73F00F /* BrowserSettings.swift in Sources */,
 				1ADCF553BB2449889BF1E2A5 /* BrowserShellView.swift in Sources */,
 				782C2C4F7354EA78F9239794 /* BrowserTab.swift in Sources */,
 				EA61CA2644CE7FEE170C6664 /* BrowserWebView.swift in Sources */,
 				7D63DB298B0A9D2C153B99DE /* ChromeWebStoreBridge.swift in Sources */,
+				DE832FD6C310054F99EDE36F /* ChromiumEngineBridge.swift in Sources */,
+				B11B46FBE05176148887EFF6 /* ChromiumFeaturesView.swift in Sources */,
+				F65DCF381D26C51D538A3E8E /* ChromiumIdentityScript.swift in Sources */,
+				074B4CC3C2670D865A3103CE /* ChromiumNativeHost.swift in Sources */,
+				3C1C77E94266F3E92849C047 /* ChromiumSitePolicy.swift in Sources */,
 				95A9EC4E34689A7B91D39AB7 /* ContentBlockerManager.swift in Sources */,
 				3CB98D1329B33D3775F37732 /* Data+Compression.swift in Sources */,
 				D83722AB43008F76F50B6290 /* Data+CompressionDeprecated.swift in Sources */,
 				CBF809C4B1B184CA4593FBF9 /* Data+Serialization.swift in Sources */,
+				B2B9684C2756C3B2AF445B5C /* DataInventoryView.swift in Sources */,
 				547D4B3A43C6DDB8A1592D3B /* Date+ZIP.swift in Sources */,
 				B79D77E5C1A22C09B7CBBF8C /* DefaultBrowserService.swift in Sources */,
+				D23CE02C2D6404D69257A78E /* DefaultBrowserSettingsPage.swift in Sources */,
 				6224D04B29955F0788EA7752 /* DownloadManager.swift in Sources */,
 				26759CC73B147E486F86A151 /* DownloadsView.swift in Sources */,
 				648B259C94473F2E287A7936 /* ElementHideStore.swift in Sources */,
@@ -830,6 +950,7 @@
 				14BAE8C60E1E2EF817A43F55 /* Entry.swift in Sources */,
 				E5EB1A0B4E5FDD540720A749 /* ErrorPageView.swift in Sources */,
 				2C0E20E54EE965E21ADC785D /* ExtensionCompatibility.swift in Sources */,
+				E9A66FAC2933037FB4855319 /* ExtensionPermissionReviewView.swift in Sources */,
 				1F274E22F3AADC46F54BDDDF /* ExtensionStoreCatalog.swift in Sources */,
 				99B62DF12201A849BC74D6A2 /* ExtensionThemeParser.swift in Sources */,
 				D672D6179E7FCE830E5E630A /* ExtensionThemeStore.swift in Sources */,
@@ -850,6 +971,8 @@
 				50162F7C67210582B090D16E /* JSONFileStore.swift in Sources */,
 				B6F31BBEFE3A71309253DE09 /* LinkQueueStore.swift in Sources */,
 				5435FDB81F50EB04C50F8A42 /* LinkQueueView.swift in Sources */,
+				03655CFDC6FBB813A10A6133 /* MacGovernorsView.swift in Sources */,
+				E1CE158E5876953362B30FA1 /* MacPerformanceGovernor.swift in Sources */,
 				735F2A3D2988BD4E17EDCCF4 /* ManifestCompatNormalizer.swift in Sources */,
 				31CD8FE1951535233E663D49 /* NavigationControlsView.swift in Sources */,
 				031CD0495C873598AF6F38C4 /* NavigationPolicy.swift in Sources */,
@@ -858,11 +981,15 @@
 				FF5F8E058A1A7C1D9328AC1B /* OrielApp.swift in Sources */,
 				0B37DDC67D87E467B4FBF91E /* OrielLayout.swift in Sources */,
 				7C93B0B1A9EA03185AA143E4 /* OrielMark.swift in Sources */,
+				2A465103C4A44371D5794A56 /* OrielStoreDetailView.swift in Sources */,
 				3A55EA487550436D85E02076 /* OrielStoreView.swift in Sources */,
 				C0D710DE823E78C7F52F7F02 /* OrielTheme.swift in Sources */,
+				66316C7AEA86E94A3F477CB9 /* PageEngineSettingsSection.swift in Sources */,
 				DC20D1A5690DA59B33B6A001 /* PageEnhancementScripts.swift in Sources */,
 				A3FBE32515BD5A100090B7D0 /* PageTranslator.swift in Sources */,
 				1925A2386083E6C357B7C082 /* PasswordAutofillService.swift in Sources */,
+				86D02D51C183256FAD60EC8E /* PasswordVaultStore.swift in Sources */,
+				DAAC769888111D33FDF9002E /* PasswordVaultView.swift in Sources */,
 				D7D040784E146ECF5FA07C8F /* PictureInPicturePickerView.swift in Sources */,
 				C31FCC616D4F853FC4E739D3 /* PictureInPictureScript.swift in Sources */,
 				B3F82F73100905AEFFD03844 /* PrivacySettings.swift in Sources */,
@@ -872,14 +999,20 @@
 				67A05230EC9345F371F9C6B1 /* ProfileSwitcherControl.swift in Sources */,
 				CDFE84BBED32A20145836CBC /* ProfilesView.swift in Sources */,
 				EB20D1337FE6B694D5DE59CA /* ProgressiveWebApp.swift in Sources */,
+				3FD45CFF32D2FFBD587CDC0E /* PulseAmbiencePlayer.swift in Sources */,
+				7853913791C00B032E34F943 /* PulseCornerView.swift in Sources */,
+				61D8F2CE58064CEA8D9407F9 /* PulsePerformanceView.swift in Sources */,
+				EF1BF8438360462ED4510284 /* PulseWallpaper.swift in Sources */,
 				E12F7737AA2359BA4CCF2CA8 /* SafariWebExtensionImporter.swift in Sources */,
 				EA8342244336627EE154A27D /* SearchEngine.swift in Sources */,
 				1E4F31887B084D66AEB14EFE /* SearchSuggestionProvider.swift in Sources */,
 				CA539354A2824DDEFA4B6001 /* SessionStore.swift in Sources */,
 				09F8040CD43137215655C1F9 /* SettingsView.swift in Sources */,
 				3932192408C35FE5FC9FEC9F /* SharedWebViewConfiguration.swift in Sources */,
+				BED642CDD7C8D421DADB51DE /* SiteZoomStore.swift in Sources */,
 				062CFFBE06CF8D1B9D60EAAD /* StartPageView.swift in Sources */,
 				C70047A695F52C13F00AF0B5 /* StoreBridgeI18n.swift in Sources */,
+				628B81388EE6CEC70AFE29EF /* StoreBrowseCategory.swift in Sources */,
 				3B45CC4A127F572749DF4649 /* TabGroup.swift in Sources */,
 				9BF3B06A0A3DC3F2F0355EFB /* TabManager.swift in Sources */,
 				4DBA4F9AF3E7A1D14A5BE719 /* TabOverviewView.swift in Sources */,
@@ -895,6 +1028,7 @@
 				3670B7A4EA2E38DCDD535CA6 /* WebViewPool.swift in Sources */,
 				5ED519D072255305339E095E /* WebsiteDataCleaner.swift in Sources */,
 				94815792778A372D451887CF /* WebsitePermissionManager.swift in Sources */,
+				46BFE9446C753D4B4C0FDFC3 /* WorkspacePreset.swift in Sources */,
 				96B0467E7356AC6C487004C8 /* WorkspaceStore.swift in Sources */,
 				81DC5DBB681B4B2C3535F33E /* WorkspacesView.swift in Sources */,
 				9F6E435D9ADADCF97FEFB548 /* YouTubeAdBlockScript.swift in Sources */,
@@ -916,6 +1050,8 @@
 			files = (
 				349DFBD51AABBBF5967555B1 /* AuthAndJavaScriptTests.swift in Sources */,
 				F9EF7AB1336235C8C94A4098 /* ChromeWebStoreAPITests.swift in Sources */,
+				96A916131DB65E85EF7D5804 /* ChromiumMacFeaturesTests.swift in Sources */,
+				C2937CB6C9F073FC0D4E6980 /* DualEnginePolicyTests.swift in Sources */,
 				CDB4BFAC36A893279A9DDB4B /* ExtensionCompatibilityTests.swift in Sources */,
 				4B01D56A338761078917825C /* ExtensionStoreCatalogTests.swift in Sources */,
 				C50D5EC090483ECB3316A214 /* ExtensionThemeAndFirefoxTests.swift in Sources */,
@@ -987,7 +1123,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 48;
+				CURRENT_PROJECT_VERSION = 63;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1016,10 +1152,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 48;
+				CURRENT_PROJECT_VERSION = 63;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1102,10 +1239,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 48;
+				CURRENT_PROJECT_VERSION = 63;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1173,7 +1311,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 48;
+				CURRENT_PROJECT_VERSION = 63;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;

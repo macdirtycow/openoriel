@@ -2,18 +2,22 @@ import XCTest
 @testable import Oriel
 
 final class DualEnginePolicyTests: XCTestCase {
+    @MainActor
     func testAvailableEnginesIncludeWebKit() {
         XCTAssertTrue(BrowserEngineKind.availableOnThisPlatform.contains(.webkit))
     }
 
+    @MainActor
     func testResolvedWebKitStaysWebKit() {
         XCTAssertEqual(RenderingEnginePolicy.resolved(.webkit), .webkit)
     }
 
+    @MainActor
     func testResolvedSmartFallsBackToWebKitWithoutHost() {
         XCTAssertEqual(RenderingEnginePolicy.resolved(.smart), .webkit)
     }
 
+    @MainActor
     func testChromeDesktopUAWhenCompatible() {
         #if os(macOS)
         XCTAssertTrue(RenderingEnginePolicy.usesChromeDesktopUserAgent(.chromiumCompatibility))
@@ -30,6 +34,7 @@ final class DualEnginePolicyTests: XCTestCase {
         #endif
     }
 
+    @MainActor
     func testNativeFallsBackWhenFrameworkMissing() {
         #if os(macOS)
         if RenderingEnginePolicy.chromiumNativeStatus != .available {

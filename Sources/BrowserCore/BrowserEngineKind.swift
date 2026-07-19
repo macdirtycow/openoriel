@@ -84,6 +84,8 @@ enum ChromiumNativeStatus: Sendable {
 }
 
 /// Policy helpers for dual-engine Oriel (WebKit + optional Chromium path on Mac).
+/// Always evaluated on the main actor — site policy and native host probes are `@MainActor`.
+@MainActor
 enum RenderingEnginePolicy {
     static var chromiumNativeStatus: ChromiumNativeStatus {
         #if os(iOS)
