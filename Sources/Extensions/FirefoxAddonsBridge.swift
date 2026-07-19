@@ -224,24 +224,46 @@ enum FirefoxAddonsBridge {
         btn.textContent = 'Add to Oriel';
       }
 
+      function isFirefoxInstallLabel(text) {
+        var t = (text || '').replace(/\s+/g, ' ').trim();
+        if (!t || t.length > 64) return false;
+        if (/oriel/i.test(t)) return false;
+        return /add to firefox|toevoegen aan firefox|toev\.?\s*aan firefox|download file|install theme|add theme|download firefox|firefox downloaden|zu firefox hinzufügen|ajouter à firefox/i.test(t);
+      }
+      function orielLabelFor(text) {
+        var t = (text || '').replace(/\s+/g, ' ').trim();
+        if (/theme|thema/i.test(t)) return 'Add theme to Oriel';
+        return 'Add to Oriel';
+      }
       function relabel() {
         var slug = slugFromPath();
         if (!slug) return;
         var buttons = document.querySelectorAll(
-          'button, a, .InstallButtonWrapper a, .AMInstallButton-button, [class*="InstallButton"]'
+          'button, a, .InstallButtonWrapper a, .AMInstallButton-button, [class*="InstallButton"], [aria-label]'
         );
         buttons.forEach(function (el) {
-          var text = (el.textContent || '').trim();
-          if (!/add to firefox|download file|install theme|add theme|download firefox/i.test(text)) return;
+          var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+          var aria = (el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim();
+          if (!isFirefoxInstallLabel(text) && !isFirefoxInstallLabel(aria)) return;
+          var label = orielLabelFor(text || aria);
+          if (el.childElementCount === 0) {
+            el.textContent = label;
+          } else {
+            var leaves = el.querySelectorAll('span, div');
+            var rewritten = false;
+            for (var i = 0; i < leaves.length; i++) {
+              var leaf = leaves[i];
+              if (leaf.childElementCount > 0) continue;
+              if (isFirefoxInstallLabel(leaf.textContent)) {
+                leaf.textContent = label;
+                rewritten = true;
+              }
+            }
+            if (!rewritten) el.textContent = label;
+          }
+          if (aria && isFirefoxInstallLabel(aria)) el.setAttribute('aria-label', label);
           if (el.dataset.orielFirefoxBound === '1') return;
           el.dataset.orielFirefoxBound = '1';
-          try {
-            if (/download firefox/i.test(text)) {
-              el.textContent = 'Add to Oriel';
-            } else {
-              el.textContent = /theme/i.test(text) ? 'Add theme to Oriel' : 'Add to Oriel';
-            }
-          } catch (e) {}
           el.addEventListener('click', function (ev) {
             ev.preventDefault();
             ev.stopPropagation();

@@ -41,5 +41,8 @@ final class ChromeWebStoreAPITests: XCTestCase {
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("not compatible with"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("oriel-cws-tip"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("Add to Oriel"))
+        // Localized “Toevoegen aan Chrome” must be rewritten too (common on Dutch iOS).
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("Toevoegen"))
+        XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("isInstallChromeLabel"))
     }
 }

@@ -232,14 +232,89 @@ enum ChromeWebStoreBridge {
       var scheduled = null;
       var busy = false;
 
+      function normalizeLabel(t) {
+        return (t || '').replace(/\s+/g, ' ').trim();
+      }
+      function isInstallChromeLabel(t) {
+        t = normalizeLabel(t);
+        if (!t || t.length > 64) return false;
+        if (/oriel/i.test(t)) return false;
+        if (/remove|verwijder|entfernen|supprimer|quitar/i.test(t)) return false;
+        // EN
+        if (/^(Add to|Get) (Chrome|Brave)$/i.test(t)) return true;
+        // NL (incl. abbreviated “Toev. aan Chrome”)
+        if (/^(Toevoegen|Toev\.?)\s+aan\s+(Chrome|Brave)$/i.test(t)) return true;
+        // DE / FR / ES / IT / PT
+        if (/^Zu (Chrome|Brave) hinzufügen$/i.test(t)) return true;
+        if (/^Ajouter à (Chrome|Brave)$/i.test(t)) return true;
+        if (/^(Añadir|Agregar) a (Chrome|Brave)$/i.test(t)) return true;
+        if (/^Aggiungi a (Chrome|Brave)$/i.test(t)) return true;
+        if (/^Adicionar ao (Chrome|Brave)$/i.test(t)) return true;
+        // Loose fallback for localized install CTAs that still name Chrome/Brave
+        if (/\b(Chrome|Brave)\b/i.test(t)
+            && /(add to|toevoegen|toev\.?|hinzufügen|ajouter|añadir|agregar|aggiungi|adicionar)/i.test(t)) {
+          return true;
+        }
+        return false;
+      }
+      function isInstalledChromeLabel(t) {
+        t = normalizeLabel(t);
+        if (!t || t.length > 64) return false;
+        return /^(Added to|Toegevoegd aan|Zu .+ hinzugefügt) (Chrome|Brave)$/i.test(t)
+          || /^(Added to Chrome|Toegevoegd aan Chrome)$/i.test(t);
+      }
+      function rewriteTextNodeOrLeaf(el, label) {
+        if (!el) return false;
+        if (el.nodeType === 3) {
+          el.nodeValue = label;
+          return true;
+        }
+        if (el.childElementCount === 0) {
+          el.textContent = label;
+          return true;
+        }
+        var kids = el.querySelectorAll('span, div, p, label');
+        for (var i = 0; i < kids.length; i++) {
+          var leaf = kids[i];
+          if (leaf.childElementCount > 0) continue;
+          var t = normalizeLabel(leaf.textContent);
+          if (isInstallChromeLabel(t) || isInstalledChromeLabel(t)) {
+            leaf.textContent = label;
+            return true;
+          }
+        }
+        // Last resort: replace whole control text (may drop icon children).
+        var whole = normalizeLabel(el.textContent);
+        if (isInstallChromeLabel(whole) || isInstalledChromeLabel(whole)) {
+          el.textContent = label;
+          return true;
+        }
+        return false;
+      }
       function rewriteLabels() {
-        var nodes = document.querySelectorAll('button, div[role="button"], span');
+        var nodes = document.querySelectorAll(
+          'button, a, div[role="button"], span[role="button"], [jsname], [data-test-id], [aria-label]'
+        );
         for (var i = 0; i < nodes.length; i++) {
           var el = nodes[i];
-          if (el.id === 'oriel-add-to-oriel') continue;
-          if (el.childElementCount > 0) continue;
-          var t = (el.textContent || '').replace(/\s+/g, ' ').trim();
-          if (/^Add to (Chrome|Brave)$/i.test(t)) el.textContent = 'Add to Oriel';
+          if (el.id === 'oriel-add-to-oriel' || el.id === 'oriel-cws-tip') continue;
+          var aria = normalizeLabel(el.getAttribute('aria-label'));
+          var title = normalizeLabel(el.getAttribute('title'));
+          var text = normalizeLabel(el.textContent);
+          var targetLabel = null;
+          if (isInstallChromeLabel(text) || isInstallChromeLabel(aria) || isInstallChromeLabel(title)) {
+            targetLabel = 'Add to Oriel';
+          } else if (isInstalledChromeLabel(text) || isInstalledChromeLabel(aria) || isInstalledChromeLabel(title)) {
+            targetLabel = 'Installed in Oriel';
+          }
+          if (!targetLabel) continue;
+          if (aria && (isInstallChromeLabel(aria) || isInstalledChromeLabel(aria))) {
+            el.setAttribute('aria-label', targetLabel);
+          }
+          if (title && (isInstallChromeLabel(title) || isInstalledChromeLabel(title))) {
+            el.setAttribute('title', targetLabel);
+          }
+          rewriteTextNodeOrLeaf(el, targetLabel);
         }
       }
 
@@ -333,12 +408,16 @@ enum ChromeWebStoreBridge {
       function onClick(event) {
         var t = event.target;
         if (!t || !t.closest) return;
-        var el = t.closest('button, a, div[role="button"]');
+        var el = t.closest('button, a, div[role="button"], span[role="button"]');
         if (!el || el.id === 'oriel-add-to-oriel') return;
-        var label = (el.textContent || '').replace(/\s+/g, ' ').trim();
-        if (!/Add to (Chrome|Brave|Oriel)/i.test(label)) return;
-        // Ignore huge containers that merely contain the phrase.
-        if (label.length > 40) return;
+        var label = normalizeLabel(el.textContent);
+        var aria = normalizeLabel(el.getAttribute('aria-label'));
+        var title = normalizeLabel(el.getAttribute('title'));
+        var isOriel = /add to oriel|toevoegen aan oriel|installed in oriel/i.test(label)
+          || /add to oriel|toevoegen aan oriel/i.test(aria);
+        var isChromeCTA = isInstallChromeLabel(label) || isInstallChromeLabel(aria) || isInstallChromeLabel(title);
+        if (!isOriel && !isChromeCTA) return;
+        if (Math.max(label.length, aria.length) > 64) return;
         var id = idFromPath();
         if (!id) return;
         event.preventDefault();
