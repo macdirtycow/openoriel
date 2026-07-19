@@ -267,8 +267,19 @@ struct OrielStoreView: View {
         } catch {
             guard !Task.isCancelled else { return }
             guard requestedSource == source, requestedKind == kind, requestedQuery == query else { return }
-            items = []
-            errorMessage = "Couldn’t load the catalog. Check your connection and try again."
+            // Last resort: curated list so the store is never a blank screen.
+            let fallback = ExtensionStoreCatalog.curatedFallback(
+                source: requestedSource,
+                kind: requestedKind,
+                query: requestedQuery
+            )
+            if fallback.isEmpty {
+                items = []
+                errorMessage = "Couldn’t load the catalog. Check your connection and try again."
+            } else {
+                items = fallback
+                errorMessage = nil
+            }
             isLoading = false
         }
     }
