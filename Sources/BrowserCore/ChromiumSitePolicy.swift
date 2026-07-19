@@ -55,7 +55,16 @@ enum ChromiumAutoSiteList {
         "chromewebstore.google.com",
         "classroom.google.com",
         "calendar.google.com",
-        "mail.google.com"
+        "mail.google.com",
+        "netflix.com",
+        "disneyplus.com",
+        "www.disneyplus.com",
+        "twitch.tv",
+        "www.twitch.tv",
+        "xbox.com",
+        "www.xbox.com",
+        "play.geforcenow.com",
+        "stadia.google.com"
     ]
 
     /// Prefer Safari/WebKit identity (captcha, Apple ID, banking-style trust).
@@ -73,12 +82,33 @@ enum ChromiumAutoSiteList {
         "login.microsoftonline.com"
     ]
 
+    /// Stubborn hosts that often need real Blink (Compatible UA alone is not enough).
+    static let realBlinkPreferredHosts: [String] = [
+        "netflix.com",
+        "disneyplus.com",
+        "www.disneyplus.com",
+        "discord.com",
+        "web.whatsapp.com",
+        "meet.google.com",
+        "teams.microsoft.com",
+        "teams.live.com",
+        "play.geforcenow.com",
+        "twitch.tv",
+        "www.twitch.tv",
+        "spotify.com",
+        "open.spotify.com"
+    ]
+
     static func matches(_ host: String?) -> Bool {
         matches(host, in: stubbornDesktopHosts)
     }
 
     static func prefersWebKitIdentity(_ host: String?) -> Bool {
         matches(host, in: webkitPreferredHosts)
+    }
+
+    static func prefersRealBlink(_ host: String?) -> Bool {
+        matches(host, in: realBlinkPreferredHosts)
     }
 
     private static func matches(_ host: String?, in list: [String]) -> Bool {
@@ -96,6 +126,7 @@ private struct ChromiumSitePolicySnapshot: Codable, Equatable, Sendable {
     var autoChromiumForStubbornSites: Bool
     var injectChromeIdentity: Bool
     var suggestSystemChromeForStubbornSites: Bool
+    var smartPrefersNativeBlink: Bool?
     var hostPreferences: [String: String]
 }
 
@@ -103,7 +134,7 @@ private struct ChromiumSitePolicySnapshot: Codable, Equatable, Sendable {
 @MainActor
 @Observable
 final class ChromiumSitePolicy {
-    /// When global engine is WebKit, auto-upgrade stubborn hosts to Chromium Compatible.
+    /// When global engine is WebKit, auto-upgrade stubborn hosts toward Chromium (Native/Compatible).
     var autoChromiumForStubbornSites: Bool {
         didSet { persist() }
     }
@@ -118,6 +149,11 @@ final class ChromiumSitePolicy {
         didSet { persist() }
     }
 
+    /// Smart mode: prefer real Blink (Native) for stubborn hosts when CEF or system Chromium exists.
+    var smartPrefersNativeBlink: Bool {
+        didSet { persist() }
+    }
+
     private(set) var hostPreferences: [String: ChromiumHostPreference]
     private let fileName = "chromium-site-policy.json"
 
@@ -127,6 +163,7 @@ final class ChromiumSitePolicy {
             autoChromiumForStubbornSites = loaded.autoChromiumForStubbornSites
             injectChromeIdentity = loaded.injectChromeIdentity
             suggestSystemChromeForStubbornSites = loaded.suggestSystemChromeForStubbornSites
+            smartPrefersNativeBlink = loaded.smartPrefersNativeBlink ?? true
             var map: [String: ChromiumHostPreference] = [:]
             for (host, raw) in loaded.hostPreferences {
                 if let pref = ChromiumHostPreference(rawValue: raw) {
@@ -138,6 +175,7 @@ final class ChromiumSitePolicy {
             autoChromiumForStubbornSites = true
             injectChromeIdentity = true
             suggestSystemChromeForStubbornSites = true
+            smartPrefersNativeBlink = true
             hostPreferences = [:]
             persist()
         }
@@ -145,6 +183,7 @@ final class ChromiumSitePolicy {
         autoChromiumForStubbornSites = false
         injectChromeIdentity = false
         suggestSystemChromeForStubbornSites = false
+        smartPrefersNativeBlink = false
         hostPreferences = [:]
         #endif
     }
@@ -187,6 +226,7 @@ final class ChromiumSitePolicy {
             autoChromiumForStubbornSites: autoChromiumForStubbornSites,
             injectChromeIdentity: injectChromeIdentity,
             suggestSystemChromeForStubbornSites: suggestSystemChromeForStubbornSites,
+            smartPrefersNativeBlink: smartPrefersNativeBlink,
             hostPreferences: encoded
         )
         try? JSONFileStore.save(snap, to: fileName)

@@ -8,12 +8,18 @@ The page-engine preference is **edition-agnostic**: it works in **Classic Oriel*
 
 Each tab resolves its own concrete engine from the **destination host** of that tab’s navigation:
 
-1. Per-tab override (Page → Page Engine), if set
-2. Per-site preference (Shields / Chromium features)
-3. **Smart pick:** Chromium Compatible for stubborn web apps (Meet, Teams, Discord, Docs, …); WebKit for everything else — especially Apple ID / captcha-sensitive hosts
+1. Per-tab override (Page → Page Engine), if set  
+2. Per-site preference (Shields / Chromium features)  
+3. **Smart pick:**
+   - **WebKit** — Apple ID / captcha / banking-style hosts  
+   - **Chromium Native (Blink)** — stubborn web apps when in-tab CEF **or** system Chrome/Brave/Edge/Arc is available (Netflix, Discord, Meet, … prefer real Blink)  
+   - **Chromium Compatible** — stubborn apps when Native/Blink is not available (WebKit paint + Chrome UA/Client Hints — **not Blink**)  
+   - **WebKit** — everything else  
 4. Otherwise the fixed global mode (WebKit / Compatible / Native)
 
-Two tabs can differ at the same time: Tab A on `meet.google.com` → Chromium Compatible; Tab B on `apple.com` → WebKit.
+Toggle **Smart prefers Native / Blink for stubborn sites** in Chromium on Mac settings (on by default).
+
+Two tabs can differ at the same time: Tab A on `meet.google.com` → Native/Blink (or Compatible); Tab B on `apple.com` → WebKit.
 
 ## Platform rules
 

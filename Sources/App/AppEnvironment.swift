@@ -279,6 +279,18 @@ final class AppEnvironment {
         )
     }
 
+    func engineReason(for tab: BrowserTab?, host: String? = nil) -> String {
+        let resolvedHost = host ?? tab?.navigation.url?.host
+        let concrete = resolvedEngine(for: tab, host: resolvedHost)
+        return RenderingEnginePolicy.resolveReason(
+            global: settings.preferredEngine,
+            tabOverride: tab?.engineOverride,
+            host: resolvedHost,
+            policy: chromiumPolicy,
+            concrete: concrete
+        )
+    }
+
     func applyResolvedEngine(to tab: BrowserTab?, host: String? = nil) {
         guard let tab else { return }
         tab.applyPreferredEngine(resolvedEngine(for: tab, host: host))

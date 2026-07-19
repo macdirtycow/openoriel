@@ -29,7 +29,7 @@ struct ChromiumFeaturesView: View {
         @Bindable var policy = environment.chromiumPolicy
         return Form {
             Section {
-                Text("Oriel paints with WebKit by default. Smart picks WebKit or Chromium Compatible per tab. Chromium Compatible = Chrome identity on WebKit. Chromium Native = embedded CEF when installed, otherwise a managed system Chromium app-window (real Blink process). Classic and Pulse share these controls.")
+                Text("Smart (default) picks per tab: WebKit for Apple/captcha hosts; Chromium Native (real Blink) for stubborn apps when CEF or system Chrome is available; Chromium Compatible (WebKit + Chrome identity) as fallback. Classic and Pulse share these controls.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -59,13 +59,14 @@ struct ChromiumFeaturesView: View {
             }
 
             Section {
-                Toggle("Auto Chromium Compatible for stubborn sites", isOn: $policy.autoChromiumForStubbornSites)
+                Toggle("Smart prefers Native / Blink for stubborn sites", isOn: $policy.smartPrefersNativeBlink)
+                Toggle("Auto-upgrade stubborn sites when default is WebKit", isOn: $policy.autoChromiumForStubbornSites)
                 Toggle("Inject Chrome Client Hints (userAgentData)", isOn: $policy.injectChromeIdentity)
                 Toggle("Suggest Open in system Chrome for stubborn sites", isOn: $policy.suggestSystemChromeForStubbornSites)
             } header: {
-                Text("Chromium Compatible extras")
+                Text("Smart & Chromium extras")
             } footer: {
-                Text("Auto mode only upgrades hosts on the built-in list (Meet, Teams, Discord, Docs, …) when your default is WebKit. Client Hints help sites that ignore UA alone.")
+                Text("Smart uses Native/Blink when possible (in-tab CEF or managed Chrome). Netflix/Discord/Meet prefer real Blink; other stubborn hosts follow the Smart Native toggle. Compatible remains WebKit + Chrome identity — not Blink.")
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -121,7 +122,7 @@ struct ChromiumFeaturesView: View {
             }
 
             Section {
-                Text("Built-in auto list includes \(ChromiumAutoSiteList.stubbornDesktopHosts.count) hosts (Google Meet, Microsoft Teams, Discord, Notion, Figma, Office web apps, …).")
+                Text("Built-in auto list includes \(ChromiumAutoSiteList.stubbornDesktopHosts.count) hosts (Meet, Teams, Discord, Netflix, Docs, …). \(ChromiumAutoSiteList.realBlinkPreferredHosts.count) of those prefer real Blink when Native is available.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
