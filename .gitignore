@@ -27,6 +27,8 @@ xcuserdata/
 .env
 *.pem
 
-# Local CEF install (Scripts/fetch-cef-macos.sh)
+# CEF: extracted local tree stays out of git; the pinned tarball is vendored via Git LFS.
 Vendor/*
 !Vendor/CEF.xcconfig.example
+!Vendor/CEF-dist/
+!Vendor/CEF-dist/**

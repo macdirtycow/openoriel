@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Download Chromium Embedded Framework (CEF) Standard Distribution for Mac Oriel Engine.
-# Installs under ~/Library/Application Support/Oriel/CEF/ (not vendored into git).
+# Prefers the vendored Git LFS archive under Vendor/CEF-dist/ (in-repo), then Spotify CDN.
+# Installs under ~/Library/Application Support/Oriel/CEF/ and symlinks Vendor/CEF.
 #
 # Usage:
 #   bash Scripts/fetch-cef-macos.sh
-#   ORIEL_CEF_ARCH=macosx64 bash Scripts/fetch-cef-macos.sh   # Intel override
+#   ORIEL_CEF_ARCH=macosx64 bash Scripts/fetch-cef-macos.sh   # Intel override (CDN)
 #   ORIEL_CEF_URL=https://...tar.bz2 bash Scripts/fetch-cef-macos.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEST="${ORIEL_CEF_DIR:-$HOME/Library/Application Support/Oriel/CEF}"
 VENDOR_LINK="$ROOT/Vendor/CEF"
+VENDOR_DIST="$ROOT/Vendor/CEF-dist"
 CDN="https://cef-builds.spotifycdn.com"
 
 # Pinned Standard builds (Chromium 144). Override with ORIEL_CEF_URL.
@@ -42,20 +44,26 @@ ARCHIVE_NAME="cef_binary_${PIN_VERSION}_${ARCH}.tar.bz2"
 ENCODED_NAME="${ARCHIVE_NAME//+/%2B}"
 DEFAULT_URL="${CDN}/${ENCODED_NAME}"
 CEF_URL="${ORIEL_CEF_URL:-$DEFAULT_URL}"
+VENDORED_ARCHIVE="$VENDOR_DIST/$ARCHIVE_NAME"
 
 echo "Oriel Engine CEF fetch"
 echo "  arch: $ARCH"
 echo "  ver:  $PIN_VERSION"
 echo "  dest: $DEST"
-echo "  url:  $CEF_URL"
 
 mkdir -p "$DEST"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 ARCHIVE="$TMP/cef.tar.bz2"
 
-echo "Downloading…"
-curl -L --fail --progress-bar "$CEF_URL" -o "$ARCHIVE"
+if [[ -z "${ORIEL_CEF_URL:-}" && -f "$VENDORED_ARCHIVE" ]]; then
+  echo "  source: Vendor/CEF-dist (Git LFS / in-repo)"
+  cp -f "$VENDORED_ARCHIVE" "$ARCHIVE"
+else
+  echo "  url:  $CEF_URL"
+  echo "Downloading…"
+  curl -L --fail --progress-bar "$CEF_URL" -o "$ARCHIVE"
+fi
 
 if [[ -z "${ORIEL_CEF_URL:-}" ]]; then
   echo "Verifying SHA1…"

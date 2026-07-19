@@ -10,7 +10,8 @@ On **Mac only**, **Oriel Engine** paints with **real Blink** inside Oriel tabs v
 
 | Piece | Path |
 |--------|------|
-| Fetch / pin CEF | `Scripts/fetch-cef-macos.sh` — pinned Standard Chromium 144, SHA1, installs under `~/Library/Application Support/Oriel/CEF/` (Release + headers + wrapper sources; no Debug/tests). Pin metadata lives in `oriel-meta/` (never a root `VERSION` file — that breaks C++ `<version>` on macOS). |
+| Fetch / pin CEF | `Scripts/fetch-cef-macos.sh` — prefers `Vendor/CEF-dist/` (Git LFS), else Spotify CDN. Unpacks to `~/Library/Application Support/Oriel/CEF/`. Pin metadata in `oriel-meta/` (never a root `VERSION` file — that breaks C++ `<version>` on macOS). |
+| CEF binary in git | `Vendor/CEF-dist/*.tar.bz2` via **Git LFS** (Mac arm64 Standard, Chromium 144) |
 | Build Engine | `Scripts/build-oriel-engine-macos.sh` — `libcef_dll_wrapper.a` + `Oriel Helper*.app` + `Vendor/CEF.xcconfig` |
 | Embed into .app | `Scripts/embed-oriel-engine-macos.sh` — versioned framework layout + helpers under `Contents/Frameworks/` |
 | Installers | `Scripts/make-macos-dmg.sh` — fetch → build → compile with `ORIEL_HAS_CEF` → embed → **DMG + .pkg** (Engine bundled; end users need no Terminal) |

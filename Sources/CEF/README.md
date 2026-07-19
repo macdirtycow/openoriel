@@ -2,27 +2,32 @@
 
 This folder is **open source** (Apache 2.0, same as the rest of Oriel). It is the Mac-only bridge that hosts real Blink inside Oriel tabs via the Chromium Embedded Framework (CEF).
 
-## What lives here (in git)
+## What lives in git
 
-| File | Role |
+| Piece | Path | Notes |
+|-------|------|--------|
+| Oriel bridge + Helper | this folder | Apache 2.0 — **our** Engine code |
+| CEF Standard binary (arm64) | [`Vendor/CEF-dist/`](../../Vendor/CEF-dist/) | Git LFS — upstream Chromium/CEF (~253 MB compressed) |
+| Fetch / build / embed scripts | `Scripts/*cef*`, `Scripts/*oriel-engine*` | Unpack LFS archive + build wrapper |
+
+| File here | Role |
 |------|------|
-| `OrielCEFBridge.h` / `.mm` | ObjC++ bridge: create/load CEF browser, wire cookies / navigation |
+| `OrielCEFBridge.h` / `.mm` | ObjC++ bridge |
 | `OrielCEFSupport.swift` | Swift helpers / availability |
-| `CefWebHostView.swift` | SwiftUI / AppKit host view for in-tab Engine |
+| `CefWebHostView.swift` | In-tab Engine host |
 | `Oriel-Bridging-Header.h` | Bridging header |
-| `Helper/process_helper_mac.cc` | CEF helper process entry (GPU / Renderer / Plugin / Alerts) |
+| `Helper/process_helper_mac.cc` | CEF helper process entry |
 
-## What does **not** live in git
-
-The Chromium / CEF **binaries** (~250–320 MB) are third-party and too large to vendor. They are fetched once by:
+## Local unpack
 
 ```bash
-bash Scripts/fetch-cef-macos.sh
+git lfs pull
+bash Scripts/fetch-cef-macos.sh          # prefers Vendor/CEF-dist, else CDN
 bash Scripts/build-oriel-engine-macos.sh
 ```
 
-into `~/Library/Application Support/Oriel/CEF/` (symlink `Vendor/CEF`). Release **DMG / PKG** installers already embed the built Engine — end users never run these scripts.
+Extracted tree: `~/Library/Application Support/Oriel/CEF/` (symlink `Vendor/CEF`). Not committed — rebuildable from the LFS archive.
+
+Release **DMG / PKG** installers already embed the built Engine for end users.
 
 See [`docs/CEF_NATIVE.md`](../../docs/CEF_NATIVE.md) and [`docs/DUAL_ENGINE.md`](../../docs/DUAL_ENGINE.md).
-
-CEF / Chromium remain under their upstream licenses (BSD-style + third-party notices inside the CEF distribution). Oriel’s glue in this folder is Apache 2.0.

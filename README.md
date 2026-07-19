@@ -92,10 +92,11 @@ bash Scripts/make-unsigned-ipa.sh
 # → build/ipa/Oriel-<version>-<build>-unsigned.ipa
 ```
 
-Oriel Engine (Mac Blink) — bundled by default in the DMG script:
+Oriel Engine (Mac Blink) — CEF binary is **in the repo** via Git LFS (`Vendor/CEF-dist/`); Oriel glue is under `Sources/CEF/`:
 
 ```bash
-bash Scripts/fetch-cef-macos.sh            # pinned CEF (~250 MB, once)
+git lfs install && git lfs pull
+bash Scripts/fetch-cef-macos.sh            # unpacks vendored archive (or CDN fallback)
 bash Scripts/build-oriel-engine-macos.sh   # wrapper + Helper apps
 bash Scripts/make-macos-dmg.sh             # Release app with Engine embedded
 ```
@@ -119,7 +120,7 @@ git push origin v1.0.0-N
 Sources/
   App/              # Entry, composition root
   BrowserCore/      # Engines, Smart routing, Chromium Native host
-  CEF/              # Oriel Engine bridge + Helper (open source; see Sources/CEF/README.md)
+  CEF/              # Oriel Engine bridge + Helper (Apache 2.0)
   WebView/          # WKWebView, pool, navigation
   Tabs/ History/ Bookmarks/ Downloads/
   Privacy/          # Shields, fingerprint, Fire
@@ -129,7 +130,8 @@ Sources/
   PlatformUI/       # Chrome, start page, Pulse Corner, settings
   Settings/ Persistence/
 Resources/          # Icons, content blocker lists
-Scripts/            # IPA, DMG/PKG, CEF, TestFlight
+Vendor/CEF-dist/    # Pinned CEF Standard tarball (Git LFS, ~253 MB arm64)
+Scripts/            # IPA, DMG/PKG, CEF fetch/build, TestFlight
 site/               # openoriel.com
 docs/               # Architecture, privacy, dual engine, CEF, …
 THIRD_PARTY_NOTICES.md  # CEF / Chromium notices for bundled Engine
