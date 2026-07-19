@@ -102,19 +102,45 @@ enum ExtensionStoreCatalog {
 
     // MARK: - Public (universal)
 
+    /// Page size used for browse / load-more. AMO caps at 50 per request; we may fetch multiple pages.
+    static let defaultPageSize: Int = 60
+
     /// Search Chrome + Firefox together and merge into one catalog. Optionally attach local Safari matches.
     static func searchUniversal(
         query: String,
         kind: ExtensionStoreItem.Kind,
-        limit: Int = 40,
+        limit: Int = defaultPageSize,
+        page: Int = 1,
+        category: StoreBrowseCategory? = nil,
+        sort: StoreBrowseSort = .popular,
         safariCandidates: [SafariExtensionCandidate] = []
     ) async -> [UnifiedStoreListing] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedCategory = category ?? (kind == .theme ? .featuredThemes : .featuredExtensions)
+        let resolvedSort: StoreBrowseSort = {
+            if !trimmed.isEmpty, sort == .popular { return .relevance }
+            return sort
+        }()
+        let pageIndex = max(page, 1)
+
         async let chromeResult: [ExtensionStoreItem] = {
-            (try? await searchChrome(query: trimmed, kind: kind, limit: limit)) ?? []
+            (try? await searchChrome(
+                query: trimmed,
+                kind: kind,
+                limit: limit,
+                category: resolvedCategory,
+                page: pageIndex
+            )) ?? []
         }()
         async let firefoxResult: [ExtensionStoreItem] = {
-            (try? await searchFirefox(query: trimmed, kind: kind, limit: limit)) ?? []
+            (try? await searchFirefox(
+                query: trimmed,
+                kind: kind,
+                limit: limit,
+                page: pageIndex,
+                category: resolvedCategory.firefoxCategory,
+                sort: resolvedSort
+            )) ?? []
         }()
         let chrome = await chromeResult
         let firefox = await firefoxResult
@@ -125,13 +151,14 @@ enum ExtensionStoreCatalog {
                 + curatedFallback(source: .firefox, kind: kind, query: trimmed)
         }
 
-        // Seed well-known multi-store aliases so Dark Reader etc. show Chrome+Firefox(+Safari).
-        items.append(contentsOf: knownMultiStoreSeeds(kind: kind, query: trimmed))
+        // Seeds only on first page so load-more stays clean.
+        if pageIndex == 1 {
+            items.append(contentsOf: knownMultiStoreSeeds(kind: kind, query: trimmed))
+            let safariItems = safariOffers(matching: trimmed, kind: kind, candidates: safariCandidates)
+            items.append(contentsOf: safariItems)
+        }
 
-        let safariItems = safariOffers(matching: trimmed, kind: kind, candidates: safariCandidates)
-        items.append(contentsOf: safariItems)
-
-        return mergeIntoUniversal(items, kind: kind, limit: limit)
+        return mergeIntoUniversal(items, kind: kind, limit: limit, sort: resolvedSort, query: trimmed)
     }
 
     /// Per-source search (tests + callers that need a single store).
@@ -144,9 +171,9 @@ enum ExtensionStoreCatalog {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         switch source {
         case .firefox:
-            return try await searchFirefox(query: trimmed, kind: kind, limit: limit)
+            return try await searchFirefox(query: trimmed, kind: kind, limit: limit, page: 1, category: nil, sort: trimmed.isEmpty ? .popular : .relevance)
         case .chrome:
-            return try await searchChrome(query: trimmed, kind: kind, limit: limit)
+            return try await searchChrome(query: trimmed, kind: kind, limit: limit, category: nil, page: 1)
         case .safari:
             return []
         }
@@ -157,7 +184,9 @@ enum ExtensionStoreCatalog {
     static func mergeIntoUniversal(
         _ items: [ExtensionStoreItem],
         kind: ExtensionStoreItem.Kind,
-        limit: Int
+        limit: Int,
+        sort: StoreBrowseSort = .popular,
+        query: String = ""
     ) -> [UnifiedStoreListing] {
         var buckets: [String: [ExtensionStoreItem]] = [:]
         var displayName: [String: String] = [:]
@@ -194,12 +223,30 @@ enum ExtensionStoreCatalog {
             )
         }
 
-        // Popular / relevance-ish: more sources first, then rating, then name.
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         listings.sort { a, b in
-            if a.offers.count != b.offers.count { return a.offers.count > b.offers.count }
-            let ar = a.rating ?? -1
-            let br = b.rating ?? -1
-            if ar != br { return ar > br }
+            switch sort {
+            case .rating:
+                let ar = a.rating ?? -1
+                let br = b.rating ?? -1
+                if ar != br { return ar > br }
+            case .recent, .relevance:
+                // Keep multi-source matches ahead when searching; otherwise preserve source order.
+                if !trimmedQuery.isEmpty {
+                    let aHit = a.name.lowercased().hasPrefix(trimmedQuery)
+                    let bHit = b.name.lowercased().hasPrefix(trimmedQuery)
+                    if aHit != bHit { return aHit && !bHit }
+                }
+                if a.offers.count != b.offers.count { return a.offers.count > b.offers.count }
+                let ar = a.rating ?? -1
+                let br = b.rating ?? -1
+                if ar != br { return ar > br }
+            case .popular:
+                if a.offers.count != b.offers.count { return a.offers.count > b.offers.count }
+                let ar = a.rating ?? -1
+                let br = b.rating ?? -1
+                if ar != br { return ar > br }
+            }
             return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
         }
         return Array(listings.prefix(limit))
@@ -338,20 +385,80 @@ enum ExtensionStoreCatalog {
     static func searchFirefox(
         query: String,
         kind: ExtensionStoreItem.Kind,
-        limit: Int
+        limit: Int,
+        page: Int = 1,
+        category: String? = nil,
+        sort: StoreBrowseSort = .popular
+    ) async throws -> [ExtensionStoreItem] {
+        // AMO max page_size is 50 — fetch enough pages to fill `limit`.
+        let pageSize = min(50, max(limit, 1))
+        let pagesNeeded = max(1, Int(ceil(Double(limit) / Double(pageSize))))
+        let startPage = max(page, 1)
+        var collected: [ExtensionStoreItem] = []
+        var seen = Set<String>()
+        var lastError: Error?
+
+        for offset in 0..<pagesNeeded {
+            let pageNumber = startPage + offset
+            do {
+                let batch = try await fetchFirefoxPage(
+                    query: query,
+                    kind: kind,
+                    pageSize: pageSize,
+                    page: pageNumber,
+                    category: category,
+                    sort: sort
+                )
+                if batch.isEmpty { break }
+                for item in batch where !seen.contains(item.storeIdentifier) {
+                    seen.insert(item.storeIdentifier)
+                    collected.append(item)
+                }
+                if collected.count >= limit { break }
+                if batch.count < pageSize { break }
+            } catch {
+                lastError = error
+                break
+            }
+        }
+
+        if !collected.isEmpty {
+            return Array(collected.prefix(limit))
+        }
+
+        if !query.isEmpty, let lastError {
+            throw lastError
+        }
+
+        let fallback = curatedFallback(source: .firefox, kind: kind, query: query)
+        if fallback.isEmpty {
+            throw lastError ?? URLError(.cannotParseResponse)
+        }
+        return Array(fallback.prefix(limit))
+    }
+
+    private static func fetchFirefoxPage(
+        query: String,
+        kind: ExtensionStoreItem.Kind,
+        pageSize: Int,
+        page: Int,
+        category: String?,
+        sort: StoreBrowseSort
     ) async throws -> [ExtensionStoreItem] {
         var components = URLComponents(string: "https://addons.mozilla.org/api/v5/addons/search/")!
         var items: [URLQueryItem] = [
             URLQueryItem(name: "app", value: "firefox"),
-            URLQueryItem(name: "page_size", value: String(min(max(limit, 1), 50))),
+            URLQueryItem(name: "page_size", value: String(pageSize)),
+            URLQueryItem(name: "page", value: String(page)),
             URLQueryItem(name: "type", value: kind == .theme ? "statictheme" : "extension"),
-            URLQueryItem(name: "lang", value: "en-US")
+            URLQueryItem(name: "lang", value: "en-US"),
+            URLQueryItem(name: "sort", value: query.isEmpty && sort == .relevance ? "users" : sort.firefoxSort)
         ]
-        if query.isEmpty {
-            items.append(URLQueryItem(name: "sort", value: "users"))
-        } else {
+        if !query.isEmpty {
             items.append(URLQueryItem(name: "q", value: query))
-            items.append(URLQueryItem(name: "sort", value: "relevance"))
+        }
+        if let category, !category.isEmpty {
+            items.append(URLQueryItem(name: "category", value: category))
         }
         components.queryItems = items
         guard let url = components.url else {
@@ -364,22 +471,11 @@ enum ExtensionStoreCatalog {
             "Oriel/\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") (extension store)",
             forHTTPHeaderField: "User-Agent"
         )
-        do {
-            let (data, response) = try await session.data(for: request)
-            guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-                throw URLError(.badServerResponse)
-            }
-            let parsed = parseAMOSearch(data: data, kind: kind)
-            if !parsed.isEmpty {
-                return Array(parsed.prefix(limit))
-            }
-        } catch {
-            if !query.isEmpty { throw error }
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw URLError(.badServerResponse)
         }
-
-        let fallback = curatedFallback(source: .firefox, kind: kind, query: query)
-        if fallback.isEmpty { throw URLError(.cannotParseResponse) }
-        return Array(fallback.prefix(limit))
+        return parseAMOSearch(data: data, kind: kind)
     }
 
     static func parseAMOSearch(data: Data, kind: ExtensionStoreItem.Kind) -> [ExtensionStoreItem] {
@@ -445,20 +541,33 @@ enum ExtensionStoreCatalog {
     static func searchChrome(
         query: String,
         kind: ExtensionStoreItem.Kind,
-        limit: Int
+        limit: Int,
+        category: StoreBrowseCategory? = nil,
+        page: Int = 1
     ) async throws -> [ExtensionStoreItem] {
-        let urls = chromeCatalogURLs(query: query, kind: kind)
+        let urls = chromeCatalogURLs(query: query, kind: kind, category: category, page: page)
+        var collected: [ExtensionStoreItem] = []
+        var seen = Set<String>()
         var lastError: Error?
+
+        // Featured browse: pull several category pages so the shelf isn't only top charts.
         for url in urls {
             do {
                 let html = try await fetchChromeHTML(url)
                 let items = parseChromeStoreHTML(html, kind: kind)
-                if !items.isEmpty {
-                    return Array(items.prefix(limit))
+                for item in items where !seen.contains(item.storeIdentifier) {
+                    seen.insert(item.storeIdentifier)
+                    collected.append(item)
+                    if collected.count >= limit { break }
                 }
+                if collected.count >= limit { break }
             } catch {
                 lastError = error
             }
+        }
+
+        if !collected.isEmpty {
+            return Array(collected.prefix(limit))
         }
 
         let fallback = curatedFallback(source: .chrome, kind: kind, query: query)
@@ -468,21 +577,40 @@ enum ExtensionStoreCatalog {
         throw lastError ?? URLError(.cannotParseResponse)
     }
 
-    /// Candidate CWS pages — first non-empty parse wins.
-    static func chromeCatalogURLs(query: String, kind: ExtensionStoreItem.Kind) -> [URL] {
+    /// Candidate CWS pages — all non-empty parses are merged for broader shelves.
+    static func chromeCatalogURLs(
+        query: String,
+        kind: ExtensionStoreItem.Kind,
+        category: StoreBrowseCategory? = nil,
+        page: Int = 1
+    ) -> [URL] {
         var urls: [URL] = []
         if query.isEmpty {
+            let paths: [String] = {
+                if let category, !category.chromeCategoryPaths.isEmpty {
+                    // Rotate category paths by page so "Load more" surfaces different Chrome shelves.
+                    let ordered = category.chromeCategoryPaths
+                    let start = (max(page, 1) - 1) % ordered.count
+                    return Array(ordered[start...]) + Array(ordered[..<start])
+                }
+                if kind == .theme {
+                    return ["themes"]
+                }
+                return [
+                    "extensions",
+                    "extensions/make_chrome_yours/privacy",
+                    "extensions/productivity/tools",
+                    "extensions/productivity/communication",
+                    "extensions/lifestyle/shopping"
+                ]
+            }()
+            // Cap concurrent category fetches to keep the first paint snappy.
+            let capped = Array(paths.prefix(page == 1 ? 3 : 2))
+            for path in capped {
+                urls.append(URL(string: "https://chromewebstore.google.com/category/\(path)?hl=en&gl=US")!)
+            }
             if kind == .theme {
-                urls.append(contentsOf: [
-                    URL(string: "https://chromewebstore.google.com/category/themes?hl=en&gl=US")!,
-                    URL(string: "https://chromewebstore.google.com/search/theme?hl=en&gl=US&itemTypes=2")!
-                ])
-            } else {
-                urls.append(contentsOf: [
-                    URL(string: "https://chromewebstore.google.com/category/extensions?hl=en&gl=US")!,
-                    URL(string: "https://chromewebstore.google.com/category/extensions/make_chrome_yours/privacy?hl=en&gl=US")!,
-                    URL(string: "https://chromewebstore.google.com/search/extension?hl=en&gl=US")!
-                ])
+                urls.append(URL(string: "https://chromewebstore.google.com/search/theme?hl=en&gl=US&itemTypes=2")!)
             }
         } else {
             let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? query

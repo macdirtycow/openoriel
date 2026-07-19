@@ -8,9 +8,14 @@ struct OrielStoreView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var kind: ExtensionStoreItem.Kind = .extension
+    @State private var category: StoreBrowseCategory = .featuredExtensions
+    @State private var sort: StoreBrowseSort = .popular
     @State private var query = ""
     @State private var listings: [UnifiedStoreListing] = []
+    @State private var page = 1
     @State private var isLoading = false
+    @State private var isLoadingMore = false
+    @State private var canLoadMore = true
     @State private var errorMessage: String?
     @State private var installingID: String?
     @State private var searchTask: Task<Void, Never>?
@@ -25,6 +30,8 @@ struct OrielStoreView: View {
     var showsDoneButton: Bool = true
 
     private var accent: Color { environment.settings.brandColor }
+    private var categories: [StoreBrowseCategory] { StoreBrowseCategory.categories(for: kind) }
+    private var sortOptions: [StoreBrowseSort] { StoreBrowseSort.options(forQuery: query) }
 
     var body: some View {
         Group {
@@ -46,16 +53,40 @@ struct OrielStoreView: View {
                     Button("Done") { dismiss() }
                 }
             }
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    ForEach(sortOptions) { option in
+                        Button {
+                            sort = option
+                        } label: {
+                            if option == sort {
+                                Label(option.title, systemImage: "checkmark")
+                            } else {
+                                Text(option.title)
+                            }
+                        }
+                    }
+                } label: {
+                    Label("Sort", systemImage: "arrow.up.arrow.down")
+                }
+                .help("Sort catalog")
+            }
         }
-        .task(id: kind.rawValue) {
-            await reload(debounce: false)
+        .task(id: catalogTaskID) {
+            await reload(debounce: false, reset: true)
         }
         .onChange(of: query) { _, _ in
             searchTask?.cancel()
             searchTask = Task {
                 try? await Task.sleep(nanoseconds: 350_000_000)
                 guard !Task.isCancelled else { return }
-                await reload(debounce: true)
+                await reload(debounce: true, reset: true)
+            }
+        }
+        .onChange(of: kind) { _, newKind in
+            category = newKind == .theme ? .featuredThemes : .featuredExtensions
+            if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                sort = .popular
             }
         }
         .onAppear {
@@ -79,8 +110,6 @@ struct OrielStoreView: View {
         } message: {
             Text(installError ?? "")
         }
-        // `presenting:` passes a stable copy into actions — avoids the SwiftUI alert bug
-        // where clearing the optional binding wiped the listing before Install ran.
         .confirmationDialog(
             "Limited WebKit support",
             isPresented: $showCompatWarning,
@@ -100,6 +129,10 @@ struct OrielStoreView: View {
         }
     }
 
+    private var catalogTaskID: String {
+        "\(kind.rawValue)|\(category.id)|\(sort.rawValue)"
+    }
+
     private var storeForm: some View {
         Form {
             Section {
@@ -112,7 +145,11 @@ struct OrielStoreView: View {
                 .listRowBackground(Color.clear)
 
                 storeSearchField
-                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 10, trailing: 16))
+                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(Color.clear)
+
+                categoryChips
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
                     .listRowBackground(Color.clear)
             } footer: {
                 Text(footerBlurb)
@@ -139,7 +176,7 @@ struct OrielStoreView: View {
                 .foregroundStyle(searchFocused ? accent : Color.secondary)
 
             TextField(
-                kind == .theme ? "Search themes" : "Search extensions",
+                kind == .theme ? "Search all themes" : "Search all extensions",
                 text: $query
             )
             .textFieldStyle(.plain)
@@ -180,6 +217,34 @@ struct OrielStoreView: View {
         }
     }
 
+    private var categoryChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(categories) { item in
+                    Button {
+                        category = item
+                    } label: {
+                        Label(item.title, systemImage: item.systemImage)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(
+                                item.id == category.id
+                                    ? accent.opacity(0.18)
+                                    : Color.primary.opacity(0.05),
+                                in: Capsule(style: .continuous)
+                            )
+                            .foregroundStyle(item.id == category.id ? accent : Color.primary.opacity(0.8))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(item.id == category.id ? .isSelected : [])
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 2)
+        }
+    }
+
     @ViewBuilder
     private var catalogSection: some View {
         if isLoading && listings.isEmpty {
@@ -204,7 +269,7 @@ struct OrielStoreView: View {
                 .listRowBackground(Color.clear)
 
                 Button("Retry") {
-                    Task { await reload(debounce: false) }
+                    Task { await reload(debounce: false, reset: true) }
                 }
                 .foregroundStyle(accent)
             }
@@ -213,7 +278,7 @@ struct OrielStoreView: View {
                 ContentUnavailableView(
                     "No results",
                     systemImage: "puzzlepiece.extension",
-                    description: Text("Try another search across Chrome, Firefox, and Safari.")
+                    description: Text("Try another category or search across Chrome, Firefox, and Safari.")
                 )
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
@@ -228,16 +293,45 @@ struct OrielStoreView: View {
                         storeRow(listing)
                     }
                 }
+
+                if canLoadMore {
+                    Button {
+                        Task { await loadMore() }
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if isLoadingMore {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("Loading more…")
+                                    .font(.subheadline.weight(.medium))
+                            } else {
+                                Text("Load more")
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                            Spacer()
+                        }
+                    }
+                    .disabled(isLoadingMore)
+                    .foregroundStyle(accent)
+                }
             } header: {
-                Text(query.isEmpty ? "Popular" : "Results")
+                Text(sectionTitle)
             } footer: {
-                Text("Open a listing for screenshots, full description, and install options.")
+                Text("Browsing Chrome Web Store and Firefox Add-ons. Open a listing for screenshots and the full description.")
             }
         }
     }
 
+    private var sectionTitle: String {
+        if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return "Results · \(sort.title)"
+        }
+        return "\(category.title) · \(sort.title)"
+    }
+
     private var footerBlurb: String {
-        "One catalog for Chrome, Firefox, and Safari. Open a listing for the full description — Oriel picks the best source when you install."
+        "Browse by category or search the full Chrome and Firefox catalogs. Open a listing for the full description — Oriel picks the best source when you install."
     }
 
     private func storeRow(_ listing: UnifiedStoreListing) -> some View {
@@ -400,29 +494,61 @@ struct OrielStoreView: View {
     }
 
     @MainActor
-    private func reload(debounce: Bool) async {
-        if !debounce {
-            isLoading = true
+    private func reload(debounce: Bool, reset: Bool) async {
+        if reset {
+            page = 1
+            canLoadMore = true
+            if !debounce {
+                isLoading = true
+                listings = []
+            }
         }
         errorMessage = nil
         let requestedKind = kind
         let requestedQuery = query
+        let requestedCategory = category
+        let requestedSort = sort
+        let requestedPage = page
         let safari = environment.extensions.safariCandidates
         let result = await ExtensionStoreCatalog.searchUniversal(
             query: requestedQuery,
             kind: requestedKind,
-            limit: 40,
+            limit: ExtensionStoreCatalog.defaultPageSize,
+            page: requestedPage,
+            category: requestedCategory,
+            sort: requestedSort,
             safariCandidates: safari
         )
         guard !Task.isCancelled else { return }
-        guard requestedKind == kind, requestedQuery == query else { return }
-        listings = result
-        if result.isEmpty && requestedQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        guard requestedKind == kind,
+              requestedQuery == query,
+              requestedCategory.id == category.id,
+              requestedSort == sort,
+              requestedPage == page else { return }
+
+        if reset || page == 1 {
+            listings = result
+        } else {
+            let existing = Set(listings.map(\.id))
+            let appended = result.filter { !existing.contains($0.id) }
+            listings.append(contentsOf: appended)
+        }
+        canLoadMore = result.count >= max(20, ExtensionStoreCatalog.defaultPageSize / 3)
+        if result.isEmpty && requestedQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && page == 1 {
             errorMessage = "Couldn’t load the catalog. Check your connection and try again."
         } else {
             errorMessage = nil
         }
         isLoading = false
+        isLoadingMore = false
+    }
+
+    @MainActor
+    private func loadMore() async {
+        guard canLoadMore, !isLoadingMore, !isLoading else { return }
+        isLoadingMore = true
+        page += 1
+        await reload(debounce: true, reset: false)
     }
 
     @MainActor
@@ -438,7 +564,6 @@ struct OrielStoreView: View {
 
         await install(offer: offer)
 
-        // If the preferred source failed, try the next Chrome/Firefox offer once.
         if environment.extensions.lastError != nil {
             let fallback = listing.offers.first(where: {
                 $0.id != offer.id && ($0.source == .chrome || $0.source == .firefox)

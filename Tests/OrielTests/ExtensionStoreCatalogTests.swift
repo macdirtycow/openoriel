@@ -128,9 +128,13 @@ final class ExtensionStoreCatalogTests: XCTestCase {
     func testChromeCatalogURLsIncludeLocaleHints() {
         let urls = ExtensionStoreCatalog.chromeCatalogURLs(query: "", kind: .extension)
         XCTAssertTrue(urls.contains(where: { $0.absoluteString.contains("hl=en") }))
+        XCTAssertTrue(urls.contains(where: { $0.absoluteString.contains("/category/extensions") }))
         let search = ExtensionStoreCatalog.chromeCatalogURLs(query: "vpn", kind: .theme)
         XCTAssertEqual(search.count, 1)
         XCTAssertTrue(search[0].absoluteString.contains("itemTypes=2"))
+        let privacy = StoreBrowseCategory.categories(for: .extension).first(where: { $0.id == "privacy-security" })
+        let privacyURLs = ExtensionStoreCatalog.chromeCatalogURLs(query: "", kind: .extension, category: privacy)
+        XCTAssertTrue(privacyURLs.contains(where: { $0.absoluteString.contains("privacy") }))
     }
 
     func testNormalizationKeyMergesStoreVariants() {
@@ -196,6 +200,23 @@ final class ExtensionStoreCatalogTests: XCTestCase {
         XCTAssertTrue(sources.contains(.chrome))
         XCTAssertTrue(sources.contains(.firefox))
         XCTAssertTrue(sources.contains(.safari))
+    }
+
+    func testBrowseCategoriesCoverExtensionsAndThemes() {
+        let extensions = StoreBrowseCategory.categories(for: .extension)
+        let themes = StoreBrowseCategory.categories(for: .theme)
+        XCTAssertGreaterThanOrEqual(extensions.count, 10)
+        XCTAssertGreaterThanOrEqual(themes.count, 8)
+        XCTAssertEqual(extensions.first?.id, StoreBrowseCategory.featuredExtensions.id)
+        XCTAssertTrue(extensions.contains(where: { $0.firefoxCategory == "privacy-security" }))
+        XCTAssertTrue(themes.contains(where: { $0.firefoxCategory == "nature" }))
+    }
+
+    func testSortOptionsDependOnQuery() {
+        XCTAssertEqual(StoreBrowseSort.options(forQuery: ""), [.popular, .rating, .recent])
+        XCTAssertTrue(StoreBrowseSort.options(forQuery: "dark").contains(.relevance))
+        XCTAssertEqual(StoreBrowseSort.popular.firefoxSort, "users")
+        XCTAssertEqual(StoreBrowseSort.recent.firefoxSort, "created")
     }
 
     func testParseAMODetailIncludesDescriptionAndScreenshots() throws {
