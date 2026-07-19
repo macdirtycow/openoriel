@@ -1,6 +1,8 @@
 import SwiftUI
 #if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
 #endif
 
 /// User-selectable accent colors for chrome, start page, and tint.
@@ -148,15 +150,9 @@ enum OrielTheme {
         ZStack {
             customBackground ?? baseFill(for: background, scheme: pageScheme)
             if let ntpImageURL {
-                AsyncImage(url: ntpImageURL) { phase in
-                    if case .success(let image) = phase {
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .opacity(0.55)
-                    }
-                }
-                .allowsHitTesting(false)
+                extensionThemeNTPImage(ntpImageURL)
+                    .opacity(0.55)
+                    .allowsHitTesting(false)
             }
             bloom(
                 accent: accent,
