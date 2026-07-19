@@ -26,12 +26,20 @@ struct NavigationControlsView: View {
         style == .compact ? 18 : 20
     }
 
+    private var canGoBack: Bool {
+        tab.navigation.canGoBack
+    }
+
+    private var canGoForward: Bool {
+        tab.navigation.canGoForward
+    }
+
     var body: some View {
         HStack(spacing: style == .compact ? 0 : 2) {
             navButton(
                 systemName: "chevron.backward",
                 label: "Back",
-                enabled: tab.navigation.canGoBack
+                enabled: canGoBack
             ) {
                 tab.goBack()
             }
@@ -39,7 +47,7 @@ struct NavigationControlsView: View {
             navButton(
                 systemName: "chevron.forward",
                 label: "Forward",
-                enabled: tab.navigation.canGoForward
+                enabled: canGoForward
             ) {
                 tab.goForward()
             }

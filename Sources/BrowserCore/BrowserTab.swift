@@ -203,26 +203,37 @@ final class BrowserTab: Identifiable {
         // Start page is an app overlay — back returns to the live WKWebView page if any.
         if isShowingStartPage {
             if let webURL = webView?.url, !URLParser.isStartPage(webURL) {
-                navigation.lastErrorMessage = nil
-                navigation.url = webURL
-                navigation.title = webView?.title ?? webURL.host ?? BrowserConstants.productName
-                navigation.syncAddressBarFromURL()
+                var next = navigation
+                next.lastErrorMessage = nil
+                next.url = webURL
+                next.title = webView?.title ?? webURL.host ?? BrowserConstants.productName
+                next.syncAddressBarFromURL()
+                navigation = next
                 refreshNavigationChrome()
                 return
             }
         }
 
-        guard let webView, webView.canGoBack else { return }
+        guard let webView, webView.canGoBack else {
+            refreshNavigationChrome()
+            return
+        }
         webView.goBack()
+        // Chrome flags update via KVO / didCommit; sync once now for snappier buttons.
         refreshNavigationChrome()
     }
 
     func goForward() {
-        guard let webView, webView.canGoForward else { return }
+        guard let webView, webView.canGoForward else {
+            refreshNavigationChrome()
+            return
+        }
         // Leaving start page via forward isn't typical; if web can go forward, show web content.
         if isShowingStartPage, let webURL = webView.url {
-            navigation.url = webURL
-            navigation.syncAddressBarFromURL()
+            var next = navigation
+            next.url = webURL
+            next.syncAddressBarFromURL()
+            navigation = next
         }
         webView.goForward()
         refreshNavigationChrome()
@@ -388,23 +399,28 @@ final class BrowserTab: Identifiable {
     /// Call after WebKit navigation changes so toolbar buttons stay accurate.
     func refreshNavigationChrome() {
         let web = webView
+        var next = navigation
         if isShowingStartPage {
             // From start page, Back is available when a real page is still loaded underneath.
             let hasUnderlyingPage: Bool = {
                 guard let url = web?.url else { return false }
                 return !URLParser.isStartPage(url)
             }()
-            navigation.canGoBack = hasUnderlyingPage || (web?.canGoBack ?? false)
-            navigation.canGoForward = web?.canGoForward ?? false
-            navigation.isLoading = false
-            navigation.estimatedProgress = 0
+            next.canGoBack = hasUnderlyingPage || (web?.canGoBack ?? false)
+            next.canGoForward = web?.canGoForward ?? false
+            next.isLoading = false
+            next.estimatedProgress = 0
         } else {
-            navigation.canGoBack = web?.canGoBack ?? false
-            navigation.canGoForward = web?.canGoForward ?? false
+            next.canGoBack = web?.canGoBack ?? false
+            next.canGoForward = web?.canGoForward ?? false
             if let web {
-                navigation.isLoading = web.isLoading
-                navigation.estimatedProgress = web.estimatedProgress
+                next.isLoading = web.isLoading
+                next.estimatedProgress = web.estimatedProgress
             }
+        }
+        // Replace the whole struct so @Observable reliably notifies SwiftUI.
+        if next != navigation {
+            navigation = next
         }
     }
 

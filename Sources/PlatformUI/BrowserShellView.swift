@@ -1115,7 +1115,10 @@ struct BrowserShellView: View {
                 contentBlockerGeneration: environment.contentBlocker.generation,
                 websiteDataStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate)
             )
-            .id("\(tab.id.uuidString)-fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)-p\(environment.profiles.activeProfileID.uuidString)-cb\(environment.contentBlocker.generation)")
+            // Remount only when the WKWebView configuration must change.
+            // Do NOT key on contentBlocker.generation — that wiped back/forward history
+            // whenever filter lists finished compiling (rules re-attach in updateWebView).
+            .id("\(tab.id.uuidString)-fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)-p\(environment.profiles.activeProfileID.uuidString)")
             .opacity(showStart || showError ? 0 : 1)
             .allowsHitTesting(!(showStart || showError))
             .accessibilityHidden(showStart || showError)
