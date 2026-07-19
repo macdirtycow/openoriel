@@ -429,7 +429,7 @@ final class BrowserSettings {
         }
         self.pulseLucidMode = defaults.bool(forKey: pulseLucidModeKey)
         self.pulseNetworkSaver = defaults.bool(forKey: pulseNetworkSaverKey)
-        self.pulseWallpaperID = defaults.string(forKey: pulseWallpaperKey) ?? "off"
+        self.pulseWallpaperID = defaults.string(forKey: pulseWallpaperKey) ?? "nebula"
         self.activeExtensionThemeID = defaults.string(forKey: activeExtensionThemeKey)
         self.customAccentRGB = Self.doubleArray(from: defaults, key: customAccentRGBKey)
         self.customBackgroundRGB = Self.doubleArray(from: defaults, key: customBackgroundRGBKey)

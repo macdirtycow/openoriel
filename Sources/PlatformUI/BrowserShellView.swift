@@ -938,7 +938,7 @@ struct BrowserShellView: View {
         }
         #endif
         if environment.settings.edition.isPulse {
-            Button("Pulse", systemImage: "bolt.horizontal") {
+            Button("Pulse", systemImage: "square.split.2x2") {
                 environment.showPulsePerformance = true
             }
             Button(environment.showPulseCorner ? "Hide Pulse Corner" : "Pulse Corner", systemImage: "rectangle.rightthird.inset.filled") {
@@ -1034,7 +1034,7 @@ struct BrowserShellView: View {
         }
         #endif
         if environment.settings.edition.isPulse {
-            Button("Pulse", systemImage: "bolt.horizontal") {
+            Button("Pulse", systemImage: "square.split.2x2") {
                 environment.showPulsePerformance = true
             }
             Button(environment.showPulseCorner ? "Hide Pulse Corner" : "Pulse Corner", systemImage: "rectangle.rightthird.inset.filled") {

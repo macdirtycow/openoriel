@@ -16,8 +16,7 @@ struct OrielMark: View {
         forcePulse ?? environment.settings.edition.isPulse
     }
 
-    private var hasMarkAsset: Bool {
-        guard !isPulse else { return false }
+    private var hasClassicMarkAsset: Bool {
         #if os(iOS)
         return UIImage(named: "OrielMark") != nil
         #elseif os(macOS)
@@ -27,11 +26,28 @@ struct OrielMark: View {
         #endif
     }
 
+    private var hasPulseMarkAsset: Bool {
+        #if os(iOS)
+        return UIImage(named: "OrielMarkPulse") != nil
+        #elseif os(macOS)
+        return NSImage(named: "OrielMarkPulse") != nil
+        #else
+        return false
+        #endif
+    }
+
     var body: some View {
         Group {
             if isPulse {
-                drawnPulseMark
-            } else if hasMarkAsset {
+                if hasPulseMarkAsset {
+                    Image("OrielMarkPulse")
+                        .resizable()
+                        .interpolation(.high)
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    drawnPulseMark
+                }
+            } else if hasClassicMarkAsset {
                 #if os(macOS)
                 if NSImage(named: "OrielMark") != nil {
                     Image("OrielMark")
@@ -87,39 +103,64 @@ struct OrielMark: View {
         }
     }
 
-    /// Pulse mark — same window panes, cyan / magenta energy on deep navy.
+    /// Fallback Pulse mark — ink studio + one vermillion pane (matches OrielMarkPulse asset).
     private var drawnPulseMark: some View {
-        let navy = EditionBranding.pulseNavy
-        let cyan = EditionBranding.pulseAccent
-        let magenta = EditionBranding.pulseMagenta
-        let pane = Color(red: 0.12, green: 0.18, blue: 0.28)
+        let ink = EditionBranding.pulseNavy
+        let well = Color(red: 0.09, green: 0.10, blue: 0.13)
+        let pane = Color(red: 0.14, green: 0.16, blue: 0.20)
+        let steel = EditionBranding.pulseSteel
+        let signal = EditionBranding.pulseAccent
+        let signalSoft = EditionBranding.pulseAccentSoft
+        let bar = max(1.4, size * 0.038)
+        let inset = size * 0.24
+        let gap = size * 0.035
 
         return ZStack {
             RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [navy, Color(red: 0.10, green: 0.12, blue: 0.22)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        colors: [Color(red: 0.055, green: 0.06, blue: 0.08), ink],
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
                 )
-            RoundedRectangle(cornerRadius: size * 0.18, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(colors: [cyan, magenta], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: max(1.2, size * 0.05)
-                )
-                .padding(size * 0.08)
-            RoundedRectangle(cornerRadius: size * 0.10, style: .continuous)
-                .fill(pane)
-                .padding(size * 0.28)
-            Rectangle()
-                .fill(cyan.opacity(0.85))
-                .frame(width: max(1.5, size * 0.06))
-                .padding(.vertical, size * 0.28)
-            Rectangle()
-                .fill(magenta.opacity(0.75))
-                .frame(height: max(1.5, size * 0.06))
-                .padding(.horizontal, size * 0.28)
+            RoundedRectangle(cornerRadius: size * 0.16, style: .continuous)
+                .fill(well)
+                .padding(size * 0.09)
+            // Four panes
+            VStack(spacing: gap) {
+                HStack(spacing: gap) {
+                    RoundedRectangle(cornerRadius: size * 0.055, style: .continuous)
+                        .fill(pane)
+                    RoundedRectangle(cornerRadius: size * 0.055, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [signalSoft, signal],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                }
+                HStack(spacing: gap) {
+                    RoundedRectangle(cornerRadius: size * 0.055, style: .continuous)
+                        .fill(pane)
+                    RoundedRectangle(cornerRadius: size * 0.055, style: .continuous)
+                        .fill(pane)
+                }
+            }
+            .padding(inset)
+            // Mullions
+            RoundedRectangle(cornerRadius: bar / 2, style: .continuous)
+                .fill(steel)
+                .frame(width: bar)
+                .padding(.vertical, inset)
+            RoundedRectangle(cornerRadius: bar / 2, style: .continuous)
+                .fill(steel)
+                .frame(height: bar)
+                .padding(.horizontal, inset)
+            RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)
+                .strokeBorder(steel.opacity(0.45), lineWidth: max(1, size * 0.02))
+                .padding(max(1, size * 0.018))
         }
     }
 

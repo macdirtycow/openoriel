@@ -33,6 +33,26 @@ struct PulsePerformanceView: View {
     private var formContent: some View {
         Form {
             Section {
+                HStack(spacing: 14) {
+                    OrielMark(size: 44, forcePulse: true)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("ORIEL")
+                            .font(EditionBranding.pulseEyebrowFont(size: 10))
+                            .tracking(EditionBranding.pulseEyebrowTracking)
+                            .foregroundStyle(EditionBranding.pulseSteel.opacity(0.85))
+                        Text("Pulse controls")
+                            .font(.headline)
+                        Text("WebKit-safe limits — not a system CPU/RAM gauge.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(.vertical, 4)
+            }
+
+            Section {
                 Text("Oriel Pulse can limit live page engines, block images (Data Saver), react to Low Power Mode, and play local ambience. This is not a system CPU, RAM, or network governor — WebKit does not expose that.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)

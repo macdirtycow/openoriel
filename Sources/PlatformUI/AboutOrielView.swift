@@ -18,14 +18,31 @@ struct AboutOrielView: View {
             ScrollView {
                 VStack(spacing: 22) {
                     OrielMark(size: 78)
-                        .shadow(color: accent.opacity(0.22), radius: 18, y: 6)
+                        .shadow(
+                            color: (environment.settings.edition.isPulse
+                                    ? EditionBranding.pulseAccent
+                                    : accent).opacity(environment.settings.edition.isPulse ? 0.12 : 0.22),
+                            radius: environment.settings.edition.isPulse ? 10 : 18,
+                            y: 6
+                        )
                         .padding(.top, 12)
 
                     VStack(spacing: 8) {
-                        Text(EditionBranding.productName(for: environment.settings.edition))
-                            .font(EditionBranding.productTitleFont(for: environment.settings.edition, size: 32))
-                            .tracking(EditionBranding.productTitleTracking(for: environment.settings.edition))
-                            .foregroundStyle(.primary)
+                        if environment.settings.edition.isPulse {
+                            Text("ORIEL")
+                                .font(EditionBranding.pulseEyebrowFont(size: 11))
+                                .tracking(EditionBranding.pulseEyebrowTracking)
+                                .foregroundStyle(EditionBranding.pulseSteel.opacity(0.9))
+                            Text("Pulse")
+                                .font(EditionBranding.productTitleFont(for: environment.settings.edition, size: 36))
+                                .tracking(EditionBranding.productTitleTracking(for: environment.settings.edition))
+                                .foregroundStyle(.primary)
+                        } else {
+                            Text(EditionBranding.productName(for: environment.settings.edition))
+                                .font(EditionBranding.productTitleFont(for: environment.settings.edition, size: 32))
+                                .tracking(EditionBranding.productTitleTracking(for: environment.settings.edition))
+                                .foregroundStyle(.primary)
+                        }
 
                         Text(EditionBranding.tagline(for: environment.settings.edition))
                             .font(.title3)

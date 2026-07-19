@@ -16,7 +16,7 @@ struct OnboardingView: View {
             body: "A privacy-minded browser for iPhone, iPad, and Mac. Choose Classic calm chrome or Oriel Pulse for a gaming-inspired look."
         ),
         OnboardingPage(
-            symbol: "bolt.horizontal.circle.fill",
+            symbol: "square.split.2x2.fill",
             title: "Choose your edition",
             body: "You can switch anytime in Settings → Appearance. Same app, same privacy — different chrome."
         ),
@@ -148,9 +148,8 @@ struct OnboardingView: View {
                     Button {
                         environment.selectBrowserEdition(edition, applySuggestedLook: true)
                     } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: edition.systemImage)
-                                .foregroundStyle(edition.isPulse ? EditionBranding.pulseAccent : environment.settings.brandColor)
+                        HStack(spacing: 14) {
+                            OrielMark(size: 36, forcePulse: edition.isPulse)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(edition.displayName)
                                     .font(.headline)
@@ -163,7 +162,7 @@ struct OnboardingView: View {
                             Spacer(minLength: 0)
                             if environment.settings.edition == edition {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(environment.settings.brandColor)
+                                    .foregroundStyle(edition.isPulse ? EditionBranding.pulseAccent : environment.settings.brandColor)
                             }
                         }
                         .padding(14)
@@ -171,6 +170,15 @@ struct OnboardingView: View {
                             OrielTheme.elevatedFill(for: environment.settings.edition.isPulse ? .dark : .light),
                             in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                         )
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(
+                                    environment.settings.edition == edition
+                                        ? (edition.isPulse ? EditionBranding.pulseAccent.opacity(0.55) : environment.settings.brandColor.opacity(0.45))
+                                        : Color.clear,
+                                    lineWidth: 1.5
+                                )
+                        }
                     }
                     .buttonStyle(.plain)
                 }

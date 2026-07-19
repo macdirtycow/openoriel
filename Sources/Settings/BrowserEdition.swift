@@ -32,14 +32,14 @@ enum BrowserEdition: String, CaseIterable, Identifiable, Codable, Sendable {
     var subtitle: String {
         switch self {
         case .classic: "Calm chrome and everyday browsing."
-        case .pulse: "Gaming-inspired chrome with performance controls."
+        case .pulse: "Dark studio chrome with performance controls."
         }
     }
 
     var systemImage: String {
         switch self {
         case .classic: "circle.lefthalf.filled"
-        case .pulse: "bolt.horizontal.circle.fill"
+        case .pulse: "square.split.2x2.fill"
         }
     }
 
@@ -47,7 +47,7 @@ enum BrowserEdition: String, CaseIterable, Identifiable, Codable, Sendable {
     var preferredAccent: BrowserAccentTheme {
         switch self {
         case .classic: .teal
-        case .pulse: .ocean
+        case .pulse: .slate
         }
     }
 
@@ -73,18 +73,32 @@ enum EditionBranding {
     /// Shared product-title type for start page, About, and onboarding (Classic + Pulse).
     static func productTitleFont(for edition: BrowserEdition, size: CGFloat) -> Font {
         if edition.isPulse {
-            return .system(size: size, weight: .bold, design: .rounded)
+            // Heavy default face — not rounded “toy” gaming type.
+            return .system(size: size, weight: .heavy, design: .default)
         }
         return .system(size: size, weight: .semibold, design: .serif)
     }
 
     static func productTitleTracking(for edition: BrowserEdition) -> CGFloat {
-        edition.isPulse ? -0.4 : -0.7
+        edition.isPulse ? -1.1 : -0.7
     }
 
-    /// Pulse accent — electric cyan that reads well on midnight chrome.
-    static let pulseAccent = Color(red: 0.20, green: 0.92, blue: 0.88)
-    static let pulseAccentSoft = Color(red: 0.45, green: 0.98, blue: 0.94)
-    static let pulseMagenta = Color(red: 0.92, green: 0.28, blue: 0.62)
-    static let pulseNavy = Color(red: 0.06, green: 0.08, blue: 0.16)
+    /// Small caps eyebrow above the Pulse wordmark.
+    static func pulseEyebrowFont(size: CGFloat = 11) -> Font {
+        .system(size: size, weight: .semibold, design: .default)
+    }
+
+    static let pulseEyebrowTracking: CGFloat = 3.2
+
+    // MARK: Pulse palette — obsidian studio + single vermillion signal (no neon cyan/magenta)
+
+    /// Deep ink used for Pulse marks and midnight wash.
+    static let pulseNavy = Color(red: 0.043, green: 0.047, blue: 0.059)
+    /// Primary Pulse accent — vermillion signal.
+    static let pulseAccent = Color(red: 1.0, green: 0.29, blue: 0.17)
+    static let pulseAccentSoft = Color(red: 1.0, green: 0.48, blue: 0.36)
+    /// Cool steel for mullions / secondary chrome.
+    static let pulseSteel = Color(red: 0.73, green: 0.75, blue: 0.80)
+    /// Kept for wallpaper warmth only (not a second brand color on chrome).
+    static let pulseMagenta = Color(red: 0.86, green: 0.28, blue: 0.22)
 }

@@ -214,7 +214,7 @@ enum OrielTheme {
                 ? Color(red: 0.08, green: 0.10, blue: 0.14)
                 : Color(red: 0.94, green: 0.95, blue: 0.98)
         case .midnight:
-            return Color(red: 0.07, green: 0.08, blue: 0.10)
+            return Color(red: 0.043, green: 0.047, blue: 0.059)
         }
     }
 
@@ -256,10 +256,16 @@ enum OrielTheme {
             )
         case .midnight:
             RadialGradient(
-                colors: [strong.opacity(0.32), Color.clear],
+                colors: [strong.opacity(0.18), Color.clear],
                 center: .topTrailing,
                 startRadius: 10,
-                endRadius: 400
+                endRadius: 420
+            )
+            RadialGradient(
+                colors: [soft.opacity(0.08), Color.clear],
+                center: .bottomLeading,
+                startRadius: 40,
+                endRadius: 500
             )
         default:
             RadialGradient(
