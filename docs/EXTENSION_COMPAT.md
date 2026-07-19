@@ -29,6 +29,7 @@ The store often shows **“not compatible with a phone”** when it sees a mobil
 2. **Desktop content mode** (`preferredContentMode = .desktop`) on iOS navigations to CWS.
 3. **JS spoof** of `navigator.userAgent` / `userAgentData` / `platform` / `maxTouchPoints`.
 4. **Hide** phone-incompatibility banners; keep a floating **Add to Oriel** button + short tip.
+5. **Multilingual** (`StoreBridgeI18n`): detect localized “Add to Chrome” CTAs (NL/DE/FR/ES/…/JA/KO/ZH/…) and rewrite tips + buttons into the page language.
 
 CRX download already used a desktop Chrome UA; page browsing now matches.
 
@@ -40,6 +41,7 @@ AMO often shows **“You’ll need Firefox…”** / Download Firefox when it do
 2. **Desktop content mode** on iOS navigations to AMO.
 3. **JS spoof** + `InstallTrigger` stub at document-start.
 4. **Hide** download-Firefox banners; floating **Add to Oriel** + tip; relabel install controls.
+5. Same shared **`StoreBridgeI18n`** catalog for localized Firefox CTAs and Oriel labels.
 
 ## Built-in compat (`ManifestCompatNormalizer`)
 

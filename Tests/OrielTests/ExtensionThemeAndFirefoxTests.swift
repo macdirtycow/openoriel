@@ -64,9 +64,10 @@ final class ExtensionThemeAndFirefoxTests: XCTestCase {
         XCTAssertEqual(FirefoxAddonsAPI.slug(fromInstallURL: install), "dark-theme")
         XCTAssertTrue(FirefoxAddonsBridge.desktopSpoofSource.contains("InstallTrigger"))
         XCTAssertTrue(FirefoxAddonsBridge.desktopSpoofSource.contains("MacIntel"))
-        XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("need firefox"))
+        XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("__orielStoreI18n"))
         XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("oriel-amo-tip"))
         XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("oriel-add-firefox-to-oriel"))
+        XCTAssertTrue(StoreBridgeI18n.catalogSource.contains("isNeedFirefoxBanner"))
     }
 
     func testFirefoxXPIURLFromDetailJSON() throws {

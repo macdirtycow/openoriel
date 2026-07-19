@@ -142,16 +142,32 @@ enum FirefoxAddonsBridge {
       }
       window.__orielPostFirefoxInstall = postInstall;
 
+      function i18n() { return window.__orielStoreI18n || null; }
+      function L(key) {
+        var api = i18n();
+        return api ? api.t(key) : ({
+          add: 'Add to Oriel', addTheme: 'Add theme to Oriel', installing: 'Installing…',
+          tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
+        })[key] || key;
+      }
+      function normalizeLabel(t) {
+        var api = i18n();
+        return api ? api.normalize(t) : (t || '').replace(/\s+/g, ' ').trim();
+      }
       function isDownloadFirefoxBanner(text) {
-        if (!text) return false;
-        if (/you.?ll need firefox/i.test(text)) return true;
-        if (/need to download firefox/i.test(text)) return true;
-        if (/download firefox (and|to) (get|use|install)/i.test(text)) return true;
-        if (/to use (these|this) add-?ons?, you.?ll need/i.test(text)) return true;
-        if (/only available (for|on) (desktop )?firefox/i.test(text)) return true;
-        if (/not available (on|for) (your )?(phone|mobile|ios|iphone|ipad|android)/i.test(text)) return true;
-        if (/available for firefox for android/i.test(text) && /not (available|supported).{0,40}ios/i.test(text)) return true;
-        return false;
+        var api = i18n();
+        if (api) return api.isNeedFirefoxBanner(text);
+        return /need firefox|download firefox/i.test(text || '');
+      }
+      function isFirefoxInstallLabel(text) {
+        var api = i18n();
+        if (api) return api.isFirefoxInstallLabel(text);
+        return /add to firefox|toevoegen aan firefox|download firefox|install theme|add theme/i.test(text || '');
+      }
+      function orielLabelFor(text) {
+        var t = normalizeLabel(text);
+        if (/theme|thema|thème|tema|motyw|тема|téma|テーマ|테마|主题|主題/i.test(t)) return L('addTheme');
+        return L('add');
       }
 
       function hideBanners() {
@@ -162,8 +178,8 @@ enum FirefoxAddonsBridge {
           if (el.getAttribute('data-oriel-hidden-amo') === '1') continue;
           if (el.id === 'oriel-add-firefox-to-oriel' || el.id === 'oriel-amo-tip') continue;
           if (el.childElementCount > 8) continue;
-          var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
-          if (text.length < 12 || text.length > 240) continue;
+          var text = normalizeLabel(el.textContent);
+          if (text.length < 10 || text.length > 240) continue;
           if (!isDownloadFirefoxBanner(text)) continue;
           el.style.setProperty('display', 'none', 'important');
           el.setAttribute('data-oriel-hidden-amo', '1');
@@ -186,9 +202,9 @@ enum FirefoxAddonsBridge {
             boxShadow: '0 6px 20px rgba(0,0,0,0.18)', textAlign: 'center',
             pointerEvents: 'none'
           });
-          tip.textContent = 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.';
           (document.body || document.documentElement).appendChild(tip);
         }
+        tip.textContent = L('tipFirefox');
       }
 
       function ensureButton() {
@@ -212,29 +228,18 @@ enum FirefoxAddonsBridge {
             var current = slugFromPath();
             if (!current) return;
             btn.disabled = true;
-            btn.textContent = 'Installing…';
+            btn.textContent = L('installing');
             postInstall(current);
             setTimeout(function () {
               btn.disabled = false;
-              btn.textContent = 'Add to Oriel';
+              btn.textContent = L('add');
             }, 4500);
           }, true);
           (document.body || document.documentElement).appendChild(btn);
         }
-        btn.textContent = 'Add to Oriel';
+        btn.textContent = L('add');
       }
 
-      function isFirefoxInstallLabel(text) {
-        var t = (text || '').replace(/\s+/g, ' ').trim();
-        if (!t || t.length > 64) return false;
-        if (/oriel/i.test(t)) return false;
-        return /add to firefox|toevoegen aan firefox|toev\.?\s*aan firefox|download file|install theme|add theme|download firefox|firefox downloaden|zu firefox hinzufügen|ajouter à firefox/i.test(t);
-      }
-      function orielLabelFor(text) {
-        var t = (text || '').replace(/\s+/g, ' ').trim();
-        if (/theme|thema/i.test(t)) return 'Add theme to Oriel';
-        return 'Add to Oriel';
-      }
       function relabel() {
         var slug = slugFromPath();
         if (!slug) return;
@@ -242,8 +247,8 @@ enum FirefoxAddonsBridge {
           'button, a, .InstallButtonWrapper a, .AMInstallButton-button, [class*="InstallButton"], [aria-label]'
         );
         buttons.forEach(function (el) {
-          var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
-          var aria = (el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim();
+          var text = normalizeLabel(el.textContent);
+          var aria = normalizeLabel(el.getAttribute('aria-label'));
           if (!isFirefoxInstallLabel(text) && !isFirefoxInstallLabel(aria)) return;
           var label = orielLabelFor(text || aria);
           if (el.childElementCount === 0) {

@@ -219,6 +219,12 @@ struct BrowserWebView: PlatformViewRepresentable {
         ucc.add(firefoxHandler, contentWorld: .page, name: FirefoxAddonsBridge.handlerName)
 
         guard includeUserScripts else { return }
+        let storeI18n = WKUserScript(
+            source: StoreBridgeI18n.catalogSource,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true,
+            in: .page
+        )
         let apiStub = WKUserScript(
             source: ChromeWebStoreBridge.chromeAPIStubSource,
             injectionTime: .atDocumentStart,
@@ -243,9 +249,11 @@ struct BrowserWebView: PlatformViewRepresentable {
             forMainFrameOnly: true,
             in: .page
         )
+        // i18n catalog first so CWS/AMO bridges can localize CTAs + tips.
+        ucc.addUserScript(storeI18n)
         ucc.addUserScript(apiStub)
-        ucc.addUserScript(uiBridge)
         ucc.addUserScript(firefoxSpoof)
+        ucc.addUserScript(uiBridge)
         ucc.addUserScript(firefoxBridge)
     }
     #endif

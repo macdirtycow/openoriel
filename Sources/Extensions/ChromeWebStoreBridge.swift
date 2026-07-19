@@ -232,36 +232,29 @@ enum ChromeWebStoreBridge {
       var scheduled = null;
       var busy = false;
 
+      function i18n() { return window.__orielStoreI18n || null; }
       function normalizeLabel(t) {
-        return (t || '').replace(/\s+/g, ' ').trim();
+        var api = i18n();
+        return api ? api.normalize(t) : (t || '').replace(/\s+/g, ' ').trim();
       }
       function isInstallChromeLabel(t) {
+        var api = i18n();
+        if (api) return api.isChromeInstallLabel(t);
         t = normalizeLabel(t);
-        if (!t || t.length > 64) return false;
-        if (/oriel/i.test(t)) return false;
-        if (/remove|verwijder|entfernen|supprimer|quitar/i.test(t)) return false;
-        // EN
-        if (/^(Add to|Get) (Chrome|Brave)$/i.test(t)) return true;
-        // NL (incl. abbreviated “Toev. aan Chrome”)
-        if (/^(Toevoegen|Toev\.?)\s+aan\s+(Chrome|Brave)$/i.test(t)) return true;
-        // DE / FR / ES / IT / PT
-        if (/^Zu (Chrome|Brave) hinzufügen$/i.test(t)) return true;
-        if (/^Ajouter à (Chrome|Brave)$/i.test(t)) return true;
-        if (/^(Añadir|Agregar) a (Chrome|Brave)$/i.test(t)) return true;
-        if (/^Aggiungi a (Chrome|Brave)$/i.test(t)) return true;
-        if (/^Adicionar ao (Chrome|Brave)$/i.test(t)) return true;
-        // Loose fallback for localized install CTAs that still name Chrome/Brave
-        if (/\b(Chrome|Brave)\b/i.test(t)
-            && /(add to|toevoegen|toev\.?|hinzufügen|ajouter|añadir|agregar|aggiungi|adicionar)/i.test(t)) {
-          return true;
-        }
-        return false;
+        return /\bChrome\b|\bBrave\b/i.test(t) && /add to|toevoegen|hinzufügen|ajouter/i.test(t);
       }
       function isInstalledChromeLabel(t) {
-        t = normalizeLabel(t);
-        if (!t || t.length > 64) return false;
-        return /^(Added to|Toegevoegd aan|Zu .+ hinzugefügt) (Chrome|Brave)$/i.test(t)
-          || /^(Added to Chrome|Toegevoegd aan Chrome)$/i.test(t);
+        var api = i18n();
+        if (api) return api.isChromeInstalledLabel(t);
+        return false;
+      }
+      function L(key) {
+        var api = i18n();
+        return api ? api.t(key) : ({
+          add: 'Add to Oriel', addTheme: 'Add theme to Oriel', installing: 'Installing…',
+          installed: 'Installed in Oriel',
+          tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.'
+        })[key] || key;
       }
       function rewriteTextNodeOrLeaf(el, label) {
         if (!el) return false;
@@ -283,7 +276,6 @@ enum ChromeWebStoreBridge {
             return true;
           }
         }
-        // Last resort: replace whole control text (may drop icon children).
         var whole = normalizeLabel(el.textContent);
         if (isInstallChromeLabel(whole) || isInstalledChromeLabel(whole)) {
           el.textContent = label;
@@ -303,9 +295,9 @@ enum ChromeWebStoreBridge {
           var text = normalizeLabel(el.textContent);
           var targetLabel = null;
           if (isInstallChromeLabel(text) || isInstallChromeLabel(aria) || isInstallChromeLabel(title)) {
-            targetLabel = 'Add to Oriel';
+            targetLabel = L('add');
           } else if (isInstalledChromeLabel(text) || isInstalledChromeLabel(aria) || isInstalledChromeLabel(title)) {
-            targetLabel = 'Installed in Oriel';
+            targetLabel = L('installed');
           }
           if (!targetLabel) continue;
           if (aria && (isInstallChromeLabel(aria) || isInstalledChromeLabel(aria))) {
@@ -319,15 +311,9 @@ enum ChromeWebStoreBridge {
       }
 
       function isPhoneIncompatText(text) {
-        if (!text) return false;
-        if (/Item currently unavailable/i.test(text)) return true;
-        if (/not compatible with (a )?(phone|mobile|device)/i.test(text)) return true;
-        if (/not available (on|for) (your )?(phone|mobile|device|ios|iphone|ipad)/i.test(text)) return true;
-        if (/only (works|available) on (desktop|computer|chrome for (desktop|mac|windows))/i.test(text)) return true;
-        if (/this (item|extension|theme) (is )?unavailable/i.test(text)) return true;
-        if (/can.?t (be )?(install|add).{0,24}(phone|mobile|ios)/i.test(text)) return true;
-        if (/requires? chrome (for )?(desktop|mac|windows)/i.test(text)) return true;
-        return false;
+        var api = i18n();
+        if (api) return api.isPhoneIncompatText(text);
+        return /not compatible with|Item currently unavailable/i.test(text || '');
       }
 
       function hideUnavailable() {
@@ -338,8 +324,8 @@ enum ChromeWebStoreBridge {
           if (el.getAttribute('data-oriel-hidden-unavailable') === '1') continue;
           if (el.id === 'oriel-add-to-oriel' || el.id === 'oriel-cws-tip') continue;
           if (el.childElementCount > 8) continue;
-          var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
-          if (text.length < 12 || text.length > 220) continue;
+          var text = normalizeLabel(el.textContent);
+          if (text.length < 10 || text.length > 240) continue;
           if (!isPhoneIncompatText(text)) continue;
           el.style.setProperty('display', 'none', 'important');
           el.setAttribute('data-oriel-hidden-unavailable', '1');
@@ -362,9 +348,9 @@ enum ChromeWebStoreBridge {
             boxShadow: '0 6px 20px rgba(0,0,0,0.18)', textAlign: 'center',
             pointerEvents: 'none'
           });
-          tip.textContent = 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.';
           (document.body || document.documentElement).appendChild(tip);
         }
+        tip.textContent = L('tipChrome');
       }
 
       function ensureButton() {
@@ -390,18 +376,18 @@ enum ChromeWebStoreBridge {
             if (!current) return;
             if (isInstalled(current)) { openManage(); return; }
             btn.disabled = true;
-            btn.textContent = 'Installing…';
+            btn.textContent = L('installing');
             postInstall(current);
             setTimeout(function () {
               btn.disabled = false;
               var done = isInstalled(current);
-              btn.textContent = done ? 'Installed in Oriel' : 'Add to Oriel';
+              btn.textContent = done ? L('installed') : L('add');
               btn.style.background = done ? '#5f6368' : '#1a73e8';
             }, 4500);
           }, true);
           (document.body || document.documentElement).appendChild(btn);
         }
-        btn.textContent = installed ? 'Installed in Oriel' : 'Add to Oriel';
+        btn.textContent = installed ? L('installed') : L('add');
         btn.style.background = installed ? '#5f6368' : '#1a73e8';
       }
 
@@ -413,11 +399,13 @@ enum ChromeWebStoreBridge {
         var label = normalizeLabel(el.textContent);
         var aria = normalizeLabel(el.getAttribute('aria-label'));
         var title = normalizeLabel(el.getAttribute('title'));
-        var isOriel = /add to oriel|toevoegen aan oriel|installed in oriel/i.test(label)
-          || /add to oriel|toevoegen aan oriel/i.test(aria);
+        var addLabel = L('add');
+        var installedLabel = L('installed');
+        var isOriel = label === addLabel || label === installedLabel
+          || aria === addLabel || /oriel/i.test(label) || /oriel/i.test(aria);
         var isChromeCTA = isInstallChromeLabel(label) || isInstallChromeLabel(aria) || isInstallChromeLabel(title);
         if (!isOriel && !isChromeCTA) return;
-        if (Math.max(label.length, aria.length) > 64) return;
+        if (Math.max(label.length, aria.length) > 72) return;
         var id = idFromPath();
         if (!id) return;
         event.preventDefault();
