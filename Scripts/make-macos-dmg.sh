@@ -38,18 +38,7 @@ if [[ "$BUNDLE_CEF" == "1" ]]; then
   source "$ROOT/build/oriel-engine/env.sh"
   ENGINE_ARCH="${ORIEL_ENGINE_ARCH:-arm64}"
   ARCH_ARGS=(ONLY_ACTIVE_ARCH=YES ARCHS="$ENGINE_ARCH" EXCLUDED_ARCHS="")
-  XCODEBUILD_EXTRA+=(
-    -xcconfig "$ORIEL_ENGINE_XCCONFIG"
-    CODE_SIGN_ENTITLEMENTS="$ORIEL_ENGINE_ENTITLEMENTS"
-    SWIFT_ACTIVE_COMPILATION_CONDITIONS="ORIEL_HAS_CEF"
-    OTHER_SWIFT_FLAGS="-DORIEL_HAS_CEF"
-    OTHER_CFLAGS="-DORIEL_HAS_CEF=1"
-    "OTHER_CPLUSPLUSFLAGS=-DORIEL_HAS_CEF=1 -std=c++17"
-    "HEADER_SEARCH_PATHS=$(SRCROOT)/Vendor/CEF"
-    "LIBRARY_SEARCH_PATHS=$(SRCROOT)/build/oriel-engine"
-    "OTHER_LDFLAGS=-lcef_dll_wrapper -lc++ -framework AppKit -framework CoreFoundation"
-  )
-  # Expand SRCROOT for xcodebuild command-line overrides.
+  # Flags live in Vendor/CEF.xcconfig — do not expand $(SRCROOT) in bash.
   XCODEBUILD_EXTRA=(
     -xcconfig "$ORIEL_ENGINE_XCCONFIG"
     CODE_SIGN_ENTITLEMENTS="$ORIEL_ENGINE_ENTITLEMENTS"
