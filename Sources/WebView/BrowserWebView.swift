@@ -231,6 +231,12 @@ struct BrowserWebView: PlatformViewRepresentable {
             forMainFrameOnly: true,
             in: .page
         )
+        let firefoxSpoof = WKUserScript(
+            source: FirefoxAddonsBridge.desktopSpoofSource,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true,
+            in: .page
+        )
         let firefoxBridge = WKUserScript(
             source: FirefoxAddonsBridge.userScriptSource,
             injectionTime: .atDocumentEnd,
@@ -239,6 +245,7 @@ struct BrowserWebView: PlatformViewRepresentable {
         )
         ucc.addUserScript(apiStub)
         ucc.addUserScript(uiBridge)
+        ucc.addUserScript(firefoxSpoof)
         ucc.addUserScript(firefoxBridge)
     }
     #endif

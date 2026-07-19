@@ -42,6 +42,17 @@ final class Phase6SearchSettingsTests: XCTestCase {
         XCTAssertFalse(UserAgentPolicy.isChromeWebStoreHost("www.google.com"))
     }
 
+    func testFirefoxAddonsUsesDesktopFirefoxUserAgent() {
+        let amo = URL(string: "https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/")!
+        XCTAssertTrue(UserAgentPolicy.isFirefoxAddonsHost(amo.host))
+        XCTAssertTrue(UserAgentPolicy.isExtensionStoreHost(amo.host))
+        XCTAssertEqual(
+            UserAgentPolicy.customUserAgent(for: amo, requestsDesktopSite: false),
+            UserAgentPolicy.firefoxDesktop
+        )
+        XCTAssertFalse(UserAgentPolicy.isFirefoxAddonsHost("www.mozilla.org"))
+    }
+
     func testSettingsPersistSearchEngine() async {
         await MainActor.run {
             let defaults = UserDefaults(suiteName: "oriel.tests.search.\(UUID().uuidString)")!

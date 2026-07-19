@@ -307,9 +307,9 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             tab.syncUserAgentForNavigation(to: url)
 
             #if os(iOS)
-            // Ask WebKit for the desktop layout of Chrome Web Store on iPhone/iPad.
+            // Desktop layout for Chrome Web Store / Firefox Add-ons on iPhone/iPad.
             if navigationAction.targetFrame?.isMainFrame != false,
-               UserAgentPolicy.isChromeWebStoreHost(url.host) {
+               UserAgentPolicy.isExtensionStoreHost(url.host) {
                 preferences.preferredContentMode = .desktop
             }
             #endif

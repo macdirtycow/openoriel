@@ -62,6 +62,11 @@ final class ExtensionThemeAndFirefoxTests: XCTestCase {
         XCTAssertEqual(FirefoxAddonsAPI.slug(fromStoreURL: url), "ublock-origin")
         let install = FirefoxAddonsAPI.installURL(forSlug: "dark-theme")!
         XCTAssertEqual(FirefoxAddonsAPI.slug(fromInstallURL: install), "dark-theme")
+        XCTAssertTrue(FirefoxAddonsBridge.desktopSpoofSource.contains("InstallTrigger"))
+        XCTAssertTrue(FirefoxAddonsBridge.desktopSpoofSource.contains("MacIntel"))
+        XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("need firefox"))
+        XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("oriel-amo-tip"))
+        XCTAssertTrue(FirefoxAddonsBridge.userScriptSource.contains("oriel-add-firefox-to-oriel"))
     }
 
     func testFirefoxXPIURLFromDetailJSON() throws {

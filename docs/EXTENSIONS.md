@@ -9,7 +9,7 @@ See also: [Extension compatibility (iOS research)](EXTENSION_COMPAT.md).
 | Source | Notes |
 |--------|--------|
 | Chrome Web Store | Install controls become **Add to Oriel** (on iPhone/iPad Oriel spoofs desktop Chrome for the store only, so “not compatible with a phone” is suppressed) |
-| Firefox Add-ons (AMO) | On addons.mozilla.org, install / theme buttons become **Add to Oriel** / **Add theme to Oriel** |
+| Firefox Add-ons (AMO) | Install / theme buttons become **Add to Oriel** / **Add theme to Oriel** (on iPhone/iPad Oriel spoofs desktop Firefox on AMO only, so “You’ll need Firefox…” does not block install) |
 | `.zip` / `.crx` / `.xpi` | Extensions → Install from file… (iOS + macOS) |
 | Unpacked folder | Directory with `manifest.json` |
 | Safari Web Extension `.appex` | Peel WebExtension resources (macOS can also scan Applications) |

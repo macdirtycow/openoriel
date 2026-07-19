@@ -32,6 +32,15 @@ The store often shows **“not compatible with a phone”** when it sees a mobil
 
 CRX download already used a desktop Chrome UA; page browsing now matches.
 
+## Firefox Add-ons (AMO) on iPhone / iPad
+
+AMO often shows **“You’ll need Firefox…”** / Download Firefox when it does not see desktop Firefox. Same pattern, Firefox-flavored:
+
+1. **Desktop Firefox HTTP UA** for `addons.mozilla.org` only.
+2. **Desktop content mode** on iOS navigations to AMO.
+3. **JS spoof** + `InstallTrigger` stub at document-start.
+4. **Hide** download-Firefox banners; floating **Add to Oriel** + tip; relabel install controls.
+
 ## Built-in compat (`ManifestCompatNormalizer`)
 
 Runs on every staged package (CRX / XPI / zip / Safari extract):
