@@ -27,6 +27,9 @@ final class WebExtensionManager {
     private(set) var isSupported: Bool = false
     private(set) var statusMessage: String?
     private(set) var isInstallingFromStore = false
+    /// Safari Web Extension `.appex` candidates discovered under Applications (macOS).
+    private(set) var safariCandidates: [SafariExtensionCandidate] = []
+    private(set) var isScanningSafari = false
 
     private var controllerStorage: AnyObject?
     private var hostStorage: AnyObject?
@@ -166,6 +169,36 @@ final class WebExtensionManager {
         #endif
     }
 
+    /// Scans `/Applications` and `~/Applications` for Safari Web Extension packages.
+    func refreshSafariCandidates() {
+        #if os(macOS)
+        isScanningSafari = true
+        defer { isScanningSafari = false }
+        safariCandidates = SafariWebExtensionImporter.discoverInstalledCandidates(fileManager: fileManager)
+        if safariCandidates.isEmpty {
+            statusMessage = "No Safari extension packages found in Applications."
+        } else {
+            let importable = safariCandidates.filter(\.isImportable).count
+            statusMessage = "Found \(safariCandidates.count) Safari package(s); \(importable) can be imported."
+        }
+        #else
+        lastError = "Scanning installed Safari extensions is available on macOS."
+        #endif
+    }
+
+    /// Imports a discovered Safari Web Extension candidate into Oriel.
+    func installSafariCandidate(_ candidate: SafariExtensionCandidate) async {
+        guard candidate.isImportable else {
+            lastError = candidate.statusDetail
+            return
+        }
+        statusMessage = "Importing \(candidate.displayName)…"
+        await installFromPackage(at: candidate.appexURL)
+        if lastError == nil {
+            statusMessage = "Imported \(candidate.displayName) from Safari."
+        }
+    }
+
     // MARK: - Shared implementation (macOS 15.4+ / iOS 18.4+)
 
     @available(macOS 15.4, iOS 18.4, *)
@@ -293,7 +326,7 @@ final class WebExtensionManager {
     ) async {
         lastError = nil
         do {
-            let staging = try stagePackage(at: url)
+            let staging = try await stagePackage(at: url)
             let webExtension = try await WKWebExtension(resourceBaseURL: staging)
             let context = WKWebExtensionContext(for: webExtension)
             if let preferredUniqueID, !preferredUniqueID.isEmpty {
@@ -327,7 +360,7 @@ final class WebExtensionManager {
             saveCatalog(catalog)
             await reloadFromDiskImpl()
         } catch {
-            lastError = error.localizedDescription
+            lastError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
 
@@ -372,7 +405,7 @@ final class WebExtensionManager {
     }
 
     @available(macOS 15.4, iOS 18.4, *)
-    private func stagePackage(at url: URL) throws -> URL {
+    private func stagePackage(at url: URL) async throws -> URL {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
 
@@ -385,17 +418,52 @@ final class WebExtensionManager {
             throw ExtensionError.invalidPackage
         }
 
-        if isDirectory.boolValue || ["appex", "bundle"].contains(url.pathExtension.lowercased()) {
-            // Copy package contents (folder or Safari .appex bundle).
-            let sourceRoot = url
-            for item in try fileManager.contentsOfDirectory(at: sourceRoot, includingPropertiesForKeys: nil) {
+        let ext = url.pathExtension.lowercased()
+
+        // Safari Web Extension `.appex`: peel WebExtension resources out of the appex wrapper.
+        if ext == "appex" {
+            do {
+                try SafariWebExtensionImporter.extractWebExtensionResources(
+                    from: url,
+                    to: tempRoot,
+                    fileManager: fileManager
+                )
+                return tempRoot
+            } catch let safariError as SafariImportError {
+                // Fall back to WebKit’s native appex loader, then persist extracted resources.
+                if case .missingManifestInAppex = safariError,
+                   let staged = try await stageFromAppExtensionBundle(url, into: tempRoot) {
+                    return staged
+                }
+                throw safariError
+            }
+        }
+
+        if isDirectory.boolValue || ext == "bundle" {
+            // Prefer Safari-aware extraction when the folder looks like a Safari Web Extension.
+            let candidate = SafariWebExtensionImporter.classify(appexURL: url)
+            if candidate.kind == .legacySafariAppExtension {
+                throw SafariImportError.legacySafariOnly
+            }
+            if candidate.kind == .contentBlocker {
+                throw SafariImportError.contentBlockerUnsupported
+            }
+            if candidate.manifestURL != nil || SafariWebExtensionImporter.findManifest(in: url) != nil {
+                try SafariWebExtensionImporter.extractWebExtensionResources(
+                    from: url,
+                    to: tempRoot,
+                    fileManager: fileManager
+                )
+                return tempRoot
+            }
+
+            for item in try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil) {
                 try fileManager.copyItem(
                     at: item,
                     to: tempRoot.appendingPathComponent(item.lastPathComponent)
                 )
             }
         } else {
-            let ext = url.pathExtension.lowercased()
             guard ext == "zip" || ext == "crx" else { throw ExtensionError.unsupportedFormat }
             try unzip(url, to: tempRoot)
         }
@@ -403,15 +471,48 @@ final class WebExtensionManager {
         guard let manifest = findManifest(in: tempRoot) else {
             throw ExtensionError.missingManifest
         }
+        try? SafariWebExtensionImporter.normalizeSafariManifestIfNeeded(at: manifest)
+
         let root = manifest.deletingLastPathComponent()
         if root != tempRoot {
             let promoted = fileManager.temporaryDirectory
                 .appendingPathComponent("oriel-ext-promoted-\(UUID().uuidString)", isDirectory: true)
             try fileManager.moveItem(at: root, to: promoted)
             try? fileManager.removeItem(at: tempRoot)
+            if let promotedManifest = findManifest(in: promoted) {
+                try? SafariWebExtensionImporter.normalizeSafariManifestIfNeeded(at: promotedManifest)
+            }
             return promoted
         }
         return tempRoot
+    }
+
+    /// Last-resort path: let WebKit read the Safari appex, then copy its resource tree for persistence.
+    @available(macOS 15.4, iOS 18.4, *)
+    private func stageFromAppExtensionBundle(_ appexURL: URL, into tempRoot: URL) async throws -> URL? {
+        guard let bundle = Bundle(url: appexURL) else { return nil }
+        // Validate the package with WebKit’s Safari appex loader.
+        _ = try await WKWebExtension(appExtensionBundle: bundle)
+
+        // Persist a resource tree Oriel can reload after quit. Prefer Resources/ when present.
+        let resourceCandidates = [
+            appexURL.appendingPathComponent("Contents/Resources", isDirectory: true),
+            appexURL.appendingPathComponent("Resources", isDirectory: true),
+            appexURL
+        ]
+        for candidate in resourceCandidates {
+            if SafariWebExtensionImporter.findManifest(in: candidate) != nil {
+                try? fileManager.removeItem(at: tempRoot)
+                try fileManager.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+                try SafariWebExtensionImporter.extractWebExtensionResources(
+                    from: candidate,
+                    to: tempRoot,
+                    fileManager: fileManager
+                )
+                return tempRoot
+            }
+        }
+        return nil
     }
 
     private func unzip(_ zipURL: URL, to destination: URL) throws {
@@ -577,9 +678,9 @@ enum ExtensionError: LocalizedError {
         switch self {
         case .invalidPackage: "This package could not be read as a web extension."
         case .unsupportedFormat:
-            "Use an unpacked folder with manifest.json, a .zip / .crx package, or a Safari Web Extension source folder. Safari App Store .appex installs are not transferable."
+            "Use an unpacked folder with manifest.json, a .zip / .crx, or a Safari Web Extension .appex that still contains WebExtension resources."
         case .missingManifest:
-            "No manifest.json found. Safari App Store extensions are not compatible — use a WebExtension package instead."
+            "No manifest.json found. Safari Web Extensions need a WebExtension manifest; legacy native Safari App Extensions cannot run in Oriel."
         case .unzipFailed: "Could not extract the extension archive."
         case .storeDownloadFailed: "Could not download this extension from the Chrome Web Store."
         }

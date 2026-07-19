@@ -2,7 +2,7 @@
 
 Bundle ID `net.inveil.oriel` · Team `2PP6UH4PWA` · https://openoriel.com · inveil.net
 
-Version **1.0.0 (17)** — bump `CURRENT_PROJECT_VERSION` in `project.yml` for each TestFlight upload, then run `xcodegen generate`.
+Version **1.0.0 (18)** — bump `CURRENT_PROJECT_VERSION` in `project.yml` for each TestFlight upload, then run `xcodegen generate`.
 
 ## Privacy
 
