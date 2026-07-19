@@ -31,7 +31,7 @@ enum BrowserEngineKind: String, CaseIterable, Identifiable, Codable, Sendable {
         case .chromiumCompatibility:
             return "Every tab uses Chrome desktop identity on WebKit (unless a site override forces WebKit)."
         case .chromiumNative:
-            return "Real Chromium/CEF when linked into the Mac build. Not available in this binary yet."
+            return "Real Chromium: embedded CEF when installed, otherwise managed system Chromium app-windows on Mac."
         }
     }
 
@@ -76,9 +76,9 @@ enum ChromiumNativeStatus: Sendable {
         case .unavailableOnIOS:
             return "Apple requires all iPhone and iPad browsers to use WebKit. Chromium cannot render pages here."
         case .frameworkNotLinked:
-            return "This Mac build does not include a Chromium/CEF framework yet. Use Chromium Compatible for Chrome identity on WebKit, or open a page in system Chrome."
+            return "Embedded CEF is not installed yet. On Mac, Native mode opens a managed Chromium app-window (real Blink). Run Scripts/fetch-cef-macos.sh to add CEF for in-app Native, or use Chromium Compatible for WebKit + Chrome identity."
         case .available:
-            return "Chromium Native is linked and can host tabs."
+            return "Chromium Native framework is available for embedded Blink tabs."
         }
     }
 }
@@ -89,8 +89,7 @@ enum RenderingEnginePolicy {
         #if os(iOS)
         return .unavailableOnIOS
         #else
-        if Bundle.main.path(forResource: "Chromium Embedded Framework", ofType: "framework") != nil
-            || Bundle.main.path(forResource: "OrielChromium", ofType: "framework") != nil {
+        if ChromiumNativeHost.isEmbeddedFrameworkAvailable {
             return .available
         }
         return .frameworkNotLinked

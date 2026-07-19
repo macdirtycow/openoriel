@@ -59,7 +59,7 @@ struct PageEngineSettingsSection: View {
         } header: {
             Text("Page engine")
         } footer: {
-            Text("Works in Classic and Pulse. Default is Smart: each tab picks WebKit or Chromium Compatible from the page. Chromium Compatible keeps WebKit painting with Chrome’s desktop identity and Client Hints. Chromium Native needs a future CEF framework.")
+            Text("Works in Classic and Pulse. Default is Smart: each tab picks WebKit or Chromium Compatible from the page. Chromium Compatible keeps WebKit painting with Chrome’s desktop identity and Client Hints. Chromium Native uses embedded CEF when installed, otherwise a managed system Chromium app-window on Mac.")
                 .fixedSize(horizontal: false, vertical: true)
         }
         #else

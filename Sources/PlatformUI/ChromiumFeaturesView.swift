@@ -29,7 +29,7 @@ struct ChromiumFeaturesView: View {
         @Bindable var policy = environment.chromiumPolicy
         return Form {
             Section {
-                Text("Oriel still paints with WebKit. Smart mode picks WebKit or Chromium Compatible per tab from the page. Chromium Compatible adds Chrome’s desktop identity (UA + Client Hints). Chromium Native needs a linked CEF framework later. Classic and Pulse share these controls.")
+                Text("Oriel paints with WebKit by default. Smart picks WebKit or Chromium Compatible per tab. Chromium Compatible = Chrome identity on WebKit. Chromium Native = embedded CEF when installed, otherwise a managed system Chromium app-window (real Blink process). Classic and Pulse share these controls.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -125,14 +125,21 @@ struct ChromiumFeaturesView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                Text(ChromiumNativeHost.statusSummary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 if ChromiumEngineBridge.systemChromiumInstalled {
                     Text("System Chromium detected: \(ChromiumEngineBridge.preferredSystemChromiumName ?? "Chrome")")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("No system Chrome/Chromium/Arc found — install one for hand-off.")
+                    Text("No system Chrome/Chromium/Arc found — install one for Native hand-off.")
                         .font(.caption)
                         .foregroundStyle(.orange)
+                }
+                Button("Mac Governors…") {
+                    environment.showMacGovernors = true
                 }
             } header: {
                 Text("Status")

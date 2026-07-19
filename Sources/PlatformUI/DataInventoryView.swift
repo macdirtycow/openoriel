@@ -44,12 +44,15 @@ struct DataInventoryView: View {
             }
 
             Section {
-                Text("Passwords and passkeys stay in the system Keychain. Oriel can fill them via the system picker. Oriel does not keep its own password database.")
+                Text("Passwords and passkeys can stay in the system Keychain (system picker). Oriel also has an optional encrypted Password Vault on this device (AES-GCM + Keychain-wrapped key). Vault secrets are not synced via iCloud KVS.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                Button("Open Password Vault…") {
+                    environment.showPasswordVault = true
+                }
             } header: {
-                Text("System Keychain")
+                Text("Passwords")
             }
 
             Section {

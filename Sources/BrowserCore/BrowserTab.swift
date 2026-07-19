@@ -68,6 +68,8 @@ final class BrowserTab: Identifiable {
     /// Per-host zoom lookup / save (wired by AppEnvironment).
     var siteZoomProvider: ((String?) -> Double)?
     var onZoomChanged: ((String?, Double) -> Void)?
+    /// Called after load enhancements (zoom / mute / dark) so governors can inject.
+    var onPageEnhanced: ((BrowserTab) -> Void)?
 
     init(
         id: UUID = UUID(),
@@ -413,6 +415,7 @@ final class BrowserTab: Identifiable {
         if isFocusMode {
             applyFocusMode()
         }
+        onPageEnhanced?(self)
     }
 
     func toggleMediaMute() {
