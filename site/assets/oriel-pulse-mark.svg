@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Oriel Pulse mark">
+  <rect x="1" y="1" width="62" height="62" rx="14" fill="#0B0C0F"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="13.5" stroke="#B8C0CC" stroke-opacity="0.45" stroke-width="1"/>
+  <rect x="6" y="6" width="52" height="52" rx="11" fill="#161820"/>
+  <rect x="16" y="16" width="13.5" height="13.5" rx="3.5" fill="#242832"/>
+  <rect x="34.5" y="16" width="13.5" height="13.5" rx="3.5" fill="url(#pulseSignal)"/>
+  <rect x="16" y="34.5" width="13.5" height="13.5" rx="3.5" fill="#242832"/>
+  <rect x="34.5" y="34.5" width="13.5" height="13.5" rx="3.5" fill="#242832"/>
+  <rect x="30.5" y="16" width="3" height="32" rx="1.5" fill="#BAC0CC"/>
+  <rect x="16" y="30.5" width="32" height="3" rx="1.5" fill="#BAC0CC"/>
+  <defs>
+    <linearGradient id="pulseSignal" x1="34.5" y1="16" x2="48" y2="29.5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF5C3A"/>
+      <stop offset="1" stop-color="#DC301C"/>
+    </linearGradient>
+  </defs>
+</svg>

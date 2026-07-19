@@ -277,10 +277,7 @@ private struct AppearanceSettingsPage: View {
                         environment.selectBrowserEdition(edition, applySuggestedLook: true)
                     } label: {
                         HStack(alignment: .top, spacing: 12) {
-                            Image(systemName: edition.systemImage)
-                                .font(.title3)
-                                .foregroundStyle(edition.isPulse ? EditionBranding.pulseAccent : settings.brandColor)
-                                .frame(width: 28)
+                            OrielMark(size: 28, forcePulse: edition.isPulse)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(edition.displayName)
                                     .foregroundStyle(.primary)
@@ -292,7 +289,7 @@ private struct AppearanceSettingsPage: View {
                             Spacer(minLength: 0)
                             if settings.edition == edition {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(settings.brandColor)
+                                    .foregroundStyle(edition.isPulse ? EditionBranding.pulseAccent : settings.brandColor)
                             }
                         }
                     }
@@ -313,7 +310,7 @@ private struct AppearanceSettingsPage: View {
                     NavigationLink {
                         PulsePerformanceView(showsDoneButton: false)
                     } label: {
-                        Label("Pulse performance", systemImage: "bolt.horizontal")
+                        Label("Pulse performance", systemImage: "square.split.2x2")
                     }
                     Picker("Wallpaper", selection: $settings.pulseWallpaperID) {
                         ForEach(PulseWallpaper.allCases) { paper in

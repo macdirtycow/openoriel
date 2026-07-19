@@ -49,6 +49,10 @@ struct StartPageView: View {
 
     private var contentSpacing: CGFloat { isWide ? 22 : 18 }
 
+    private var isPulseEdition: Bool {
+        environment.settings.edition.isPulse
+    }
+
     private var suggestedItems: [(String, String)] {
         if environment.settings.edition.isPulse {
             return [
@@ -92,11 +96,38 @@ struct StartPageView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: contentSpacing) {
                     topBand
-                        .padding(.top, isWide ? 28 : 20)
+                        .padding(.top, isWide ? (isPulseEdition ? 36 : 28) : (isPulseEdition ? 28 : 20))
 
                     searchBlock
 
-                    if isWide {
+                    if isPulseEdition {
+                        // Below the fold: quiet text links, then privacy / favorites.
+                        utilityBand
+                        if isWide {
+                            privacyCard
+                                .frame(maxWidth: 420)
+                            if !environment.bookmarks.favorites.isEmpty {
+                                tileSection(
+                                    title: "Favorites",
+                                    items: environment.bookmarks.favorites.prefix(8).compactMap { bookmark -> (String, String)? in
+                                        guard let url = bookmark.urlString else { return nil }
+                                        return (bookmark.title, url)
+                                    }
+                                )
+                            }
+                        } else {
+                            compactPrivacyStrip
+                            if !environment.bookmarks.favorites.isEmpty {
+                                tileSection(
+                                    title: "Favorites",
+                                    items: environment.bookmarks.favorites.prefix(8).compactMap { bookmark -> (String, String)? in
+                                        guard let url = bookmark.urlString else { return nil }
+                                        return (bookmark.title, url)
+                                    }
+                                )
+                            }
+                        }
+                    } else if isWide {
                         HStack(alignment: .top, spacing: 14) {
                             if !environment.bookmarks.favorites.isEmpty {
                                 tileSection(
@@ -197,7 +228,11 @@ struct StartPageView: View {
 
     private var topBand: some View {
         Group {
-            if isWide {
+            if isPulseEdition {
+                // One composition: mark + brand + tagline. No chips in the first viewport.
+                brandBlock
+                    .frame(maxWidth: .infinity)
+            } else if isWide {
                 HStack(alignment: .center, spacing: 20) {
                     brandBlock
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -213,9 +248,19 @@ struct StartPageView: View {
         }
     }
 
+    private var utilityBand: some View {
+        quickActions
+            .frame(maxWidth: .infinity)
+    }
+
     private var brandBlock: some View {
-        VStack(spacing: isWide ? 0 : 12) {
-            if isWide {
+        VStack(spacing: isPulseEdition ? (isWide ? 18 : 16) : (isWide ? 0 : 12)) {
+            if isPulseEdition {
+                OrielMark(size: isWide ? 72 : 64)
+                    .scaleEffect(appeared || reduceMotion ? 1 : 0.92)
+                    .opacity(appeared || reduceMotion ? 1 : 0)
+                brandCopy(alignment: .center)
+            } else if isWide {
                 HStack(spacing: 16) {
                     OrielMark(size: 48)
                         .shadow(color: accent.opacity(0.16), radius: 14, y: 5)
@@ -228,28 +273,44 @@ struct StartPageView: View {
                 brandCopy(alignment: .center)
             }
         }
-        .frame(maxWidth: .infinity, alignment: isWide ? .leading : .center)
+        .frame(maxWidth: .infinity, alignment: (isPulseEdition || !isWide) ? .center : .leading)
         .accessibilityElement(children: .combine)
     }
 
     private func brandCopy(alignment: HorizontalAlignment) -> some View {
         let edition = environment.settings.edition
-        return VStack(alignment: alignment, spacing: 4) {
-            Text(EditionBranding.productName(for: edition))
-                .font(EditionBranding.productTitleFont(for: edition, size: isWide ? 34 : 30))
-                .tracking(EditionBranding.productTitleTracking(for: edition))
-                .foregroundStyle(.primary)
+        return VStack(alignment: alignment, spacing: isPulseEdition ? 8 : 4) {
+            if isPulseEdition {
+                Text("ORIEL")
+                    .font(EditionBranding.pulseEyebrowFont(size: isWide ? 12 : 11))
+                    .tracking(EditionBranding.pulseEyebrowTracking)
+                    .foregroundStyle(EditionBranding.pulseSteel.opacity(0.9))
+                Text("Pulse")
+                    .font(EditionBranding.productTitleFont(for: edition, size: isWide ? 44 : 38))
+                    .tracking(EditionBranding.productTitleTracking(for: edition))
+                    .foregroundStyle(.primary)
+            } else {
+                Text(EditionBranding.productName(for: edition))
+                    .font(EditionBranding.productTitleFont(for: edition, size: isWide ? 34 : 30))
+                    .tracking(EditionBranding.productTitleTracking(for: edition))
+                    .foregroundStyle(.primary)
+            }
             Text(EditionBranding.tagline(for: edition))
-                .font(.system(.callout, design: .default).weight(.medium))
+                .font(isPulseEdition
+                      ? .system(size: isWide ? 16 : 15, weight: .medium, design: .default)
+                      : .system(.callout, design: .default).weight(.medium))
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(alignment == .center ? .center : .leading)
         }
     }
 
     /// Compact: 2×2 grid so Settings/Shields never clip off-screen.
-    /// Wide: single row.
+    /// Wide: single row. Pulse uses quieter text links (no capsule clutter).
     private var quickActions: some View {
         Group {
-            if isWide {
+            if isPulseEdition {
+                pulseUtilityRow
+            } else if isWide {
                 HStack(spacing: 8) {
                     ProfileSwitcherControl(style: .chip)
                     quickChip(systemImage: "gearshape", title: "Settings") {
@@ -257,11 +318,6 @@ struct StartPageView: View {
                     }
                     quickChip(systemImage: "hand.raised.fill", title: "Shields") {
                         environment.showPrivacyShield = true
-                    }
-                    if environment.settings.edition.isPulse {
-                        quickChip(systemImage: "bolt.horizontal", title: "Pulse") {
-                            environment.showPulsePerformance = true
-                        }
                     }
                     quickChip(systemImage: "safari", title: "Site") {
                         tab.openProductSite()
@@ -282,11 +338,6 @@ struct StartPageView: View {
                     quickActionCell(systemImage: "hand.raised.fill", title: "Shields") {
                         environment.showPrivacyShield = true
                     }
-                    if environment.settings.edition.isPulse {
-                        quickActionCell(systemImage: "bolt.horizontal", title: "Pulse") {
-                            environment.showPulsePerformance = true
-                        }
-                    }
                     quickActionCell(systemImage: "safari", title: "Site") {
                         tab.openProductSite()
                     }
@@ -294,6 +345,37 @@ struct StartPageView: View {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private var pulseUtilityRow: some View {
+        HStack(spacing: 0) {
+            pulseUtilityLink("Settings") { environment.showSettings = true }
+            pulseUtilityDivider
+            pulseUtilityLink("Shields") { environment.showPrivacyShield = true }
+            pulseUtilityDivider
+            pulseUtilityLink("Controls") { environment.showPulsePerformance = true }
+            pulseUtilityDivider
+            pulseUtilityLink("Site") { tab.openProductSite() }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var pulseUtilityDivider: some View {
+        Rectangle()
+            .fill(EditionBranding.pulseSteel.opacity(0.22))
+            .frame(width: 1, height: 12)
+    }
+
+    private func pulseUtilityLink(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private var profileActionCell: some View {
