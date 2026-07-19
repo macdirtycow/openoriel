@@ -42,7 +42,7 @@ final class ManifestCompatNormalizerTests: XCTestCase {
         XCTAssertNil(json["page_action"])
     }
 
-    func testForcesNonPersistentBackgroundAndDropsDuplicateScripts() throws {
+    func testRemovesPersistentKeyEntirelyAndDropsDuplicateScripts() throws {
         let url = try writeManifest([
             "manifest_version": 3,
             "name": "SW",
@@ -57,7 +57,24 @@ final class ManifestCompatNormalizerTests: XCTestCase {
         let background = try XCTUnwrap(try load(url)["background"] as? [String: Any])
         XCTAssertEqual(background["service_worker"] as? String, "bg.js")
         XCTAssertNil(background["scripts"])
-        XCTAssertEqual(background["persistent"] as? Bool, false)
+        // WebKit error: Invalid `persistent` manifest entry — key must be absent.
+        XCTAssertNil(background["persistent"])
+    }
+
+    func testRemovesPersistentFalseAsWell() throws {
+        let url = try writeManifest([
+            "manifest_version": 2,
+            "name": "BG",
+            "version": "1.0",
+            "background": [
+                "scripts": ["bg.js"],
+                "persistent": false
+            ]
+        ])
+        XCTAssertTrue(try ManifestCompatNormalizer.normalize(at: url))
+        let background = try XCTUnwrap(try load(url)["background"] as? [String: Any])
+        XCTAssertNil(background["persistent"])
+        XCTAssertEqual(background["scripts"] as? [String], ["bg.js"])
     }
 
     func testPromotesMV3ScriptsToServiceWorker() throws {
@@ -74,6 +91,7 @@ final class ManifestCompatNormalizerTests: XCTestCase {
         let background = try XCTUnwrap(try load(url)["background"] as? [String: Any])
         XCTAssertEqual(background["service_worker"] as? String, "worker.js")
         XCTAssertNil(background["scripts"])
+        XCTAssertNil(background["persistent"])
     }
 
     func testStripsSafariBSSNativeMessagingAndChromeStyle() throws {

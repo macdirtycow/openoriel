@@ -56,12 +56,12 @@ enum ManifestCompatNormalizer {
             }
         }
 
-        // --- Background: iOS rejects service_worker + persistent:true ---
+        // --- Background: WebKit rejects ANY `persistent` key ("Invalid `persistent` manifest entry") ---
         if var background = root["background"] as? [String: Any] {
             var bgChanged = false
-            if background["persistent"] as? Bool == true {
-                // Non-persistent backgrounds are safer across WebKit platforms.
-                background["persistent"] = false
+            if background["persistent"] != nil {
+                // Do not rewrite to false — WKWebExtension rejects the key entirely.
+                background.removeValue(forKey: "persistent")
                 bgChanged = true
             }
             // Prefer a single service_worker when both shapes are present.
@@ -76,7 +76,6 @@ enum ManifestCompatNormalizer {
                (root["manifest_version"] as? Int) == 3 {
                 background["service_worker"] = first
                 background.removeValue(forKey: "scripts")
-                background["persistent"] = false
                 bgChanged = true
             }
             if bgChanged {

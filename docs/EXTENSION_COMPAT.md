@@ -45,7 +45,7 @@ Store **websites** are not forced to desktop mode/UA. Desktop Chrome UA is kept 
 Runs on every staged package (CRX / XPI / zip / Safari extract):
 
 - `browser_action` / `page_action` → `action`
-- Force non-persistent backgrounds; prefer `service_worker` when both shapes exist
+- Strip `background.persistent` entirely (WebKit rejects the key, including `false`); prefer `service_worker` when both shapes exist
 - MV3 `scripts` → `service_worker` when needed
 - Drop Safari `browser_specific_settings.safari` and legacy Firefox `applications`
 - Strip permissions WebKit cannot host (`debugger`, `proxy`, `nativeMessaging`, …)
