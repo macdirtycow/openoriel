@@ -23,12 +23,8 @@ struct AboutOrielView: View {
 
                     VStack(spacing: 8) {
                         Text(EditionBranding.productName(for: environment.settings.edition))
-                            .font(
-                                environment.settings.edition.isPulse
-                                    ? .system(size: 34, weight: .bold, design: .rounded)
-                                    : .system(size: 36, weight: .semibold, design: .serif)
-                            )
-                            .tracking(-0.6)
+                            .font(EditionBranding.productTitleFont(for: environment.settings.edition, size: 32))
+                            .tracking(EditionBranding.productTitleTracking(for: environment.settings.edition))
                             .foregroundStyle(.primary)
 
                         Text(EditionBranding.tagline(for: environment.settings.edition))

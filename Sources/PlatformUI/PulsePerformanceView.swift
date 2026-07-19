@@ -39,6 +39,8 @@ struct PulsePerformanceView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            PageEngineSettingsSection()
+
             Section {
                 Picker("Live page engines", selection: Binding(
                     get: { environment.settings.pulseWebViewLimit },
@@ -69,6 +71,22 @@ struct PulsePerformanceView: View {
                         environment.icloudSync.noteLocalChange()
                     }
                 ))
+                Toggle("Network Saver (block media & fonts)", isOn: Binding(
+                    get: { environment.settings.pulseNetworkSaver },
+                    set: {
+                        environment.settings.pulseNetworkSaver = $0
+                        environment.syncPulseRuntimeFlags()
+                        environment.icloudSync.noteLocalChange()
+                    }
+                ))
+                Toggle("Lucid Mode (sharpen media)", isOn: Binding(
+                    get: { environment.settings.pulseLucidMode },
+                    set: {
+                        environment.settings.pulseLucidMode = $0
+                        environment.syncPulseRuntimeFlags()
+                        environment.icloudSync.noteLocalChange()
+                    }
+                ))
                 Toggle("Battery Saver (follow Low Power Mode)", isOn: Binding(
                     get: { environment.settings.pulseBatterySaver },
                     set: {
@@ -84,10 +102,13 @@ struct PulsePerformanceView: View {
                         environment.icloudSync.noteLocalChange()
                     }
                 ))
+                Button("Hibernate background tabs") {
+                    environment.hibernateBackgroundTabs()
+                }
             } header: {
                 Text("Performance")
             } footer: {
-                Text("Data Saver uses a WebKit content rule for images. Battery Saver tightens the engine cap when iOS/macOS Low Power Mode is on.")
+                Text("Data Saver blocks images. Network Saver blocks media and fonts. Lucid Mode is a CSS filter only — not a new GPU engine. Battery Saver tightens the engine cap in Low Power Mode.")
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -167,6 +188,24 @@ struct PulsePerformanceView: View {
             }
 
             Section {
+                VStack(alignment: .leading, spacing: 6) {
+                    shortcutRow("Pulse panel", keys: "⋯ → Pulse")
+                    shortcutRow("Pulse Corner", keys: "⋯ → Pulse Corner")
+                    shortcutRow("Hibernate tabs", keys: "Pulse panel / Corner")
+                    shortcutRow("Page engine", keys: "Settings → Appearance")
+                    #if os(macOS)
+                    shortcutRow("Open in Chrome", keys: "Page menu → Open in system Chrome")
+                    #endif
+                }
+                .font(.caption)
+            } header: {
+                Text("Shortcuts")
+            } footer: {
+                Text("GX-style governors for CPU/RAM/network are not possible with WebKit. These routes are the honest substitutes.")
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Section {
                 Button("Switch back to Classic Oriel") {
                     environment.selectBrowserEdition(.classic, applySuggestedLook: true)
                     environment.extensionThemes.clearActive()
@@ -174,6 +213,16 @@ struct PulsePerformanceView: View {
                     if showsDoneButton { dismiss() }
                 }
             }
+        }
+    }
+
+    private func shortcutRow(_ title: String, keys: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(keys)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.trailing)
         }
     }
 }

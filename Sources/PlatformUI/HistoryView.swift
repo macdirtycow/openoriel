@@ -21,7 +21,7 @@ struct HistoryView: View {
                 } else if query.isEmpty {
                     List {
                         if let remote = environment.icloudSync.remoteSession, !remote.tabs.isEmpty {
-                            Section("Tabs from other devices") {
+                            Section {
                                 ForEach(remote.tabs, id: \.id) { tab in
                                     Button {
                                         if let url = URL(string: tab.urlString) {
@@ -44,6 +44,8 @@ struct HistoryView: View {
                                     dismiss()
                                 }
                                 .foregroundStyle(.orange)
+                            } header: {
+                                Text("Tabs from other devices")
                             }
                         }
                         ForEach(environment.history.groupedByDay, id: \.day) { group in

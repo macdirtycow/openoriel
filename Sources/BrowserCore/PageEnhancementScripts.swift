@@ -160,4 +160,26 @@ enum PageEnhancementScripts {
         let clamped = min(3.0, max(0.5, factor))
         return "document.documentElement.style.zoom = '\(clamped)';"
     }
+
+    /// GX-style Lucid Mode — sharpen / contrast boost for images and video (CSS only).
+    static let enableLucidMode = #"""
+    (function() {
+      var s = document.getElementById('oriel-lucid-mode');
+      if (!s) {
+        s = document.createElement('style');
+        s.id = 'oriel-lucid-mode';
+        s.textContent = 'img,video,canvas,picture{filter:contrast(1.08) saturate(1.06) brightness(1.02)!important;}';
+        (document.head || document.documentElement).appendChild(s);
+      }
+      return true;
+    })();
+    """#
+
+    static let disableLucidMode = #"""
+    (function() {
+      var s = document.getElementById('oriel-lucid-mode');
+      if (s) s.remove();
+      return true;
+    })();
+    """#
 }

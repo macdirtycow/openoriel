@@ -98,13 +98,15 @@ enum BrowserBackgroundTheme: String, CaseIterable, Identifiable, Codable, Sendab
 }
 
 enum OrielTheme {
-    static let chromePadding: CGFloat = 10
+    /// Prefer ``OrielLayout`` chrome paddings; kept as alias for older call sites.
+    static let chromePadding: CGFloat = OrielLayout.phoneChromePadding
     static let controlRadius: CGFloat = 12
-    static let searchFieldRadius: CGFloat = 16
-    static let searchFieldHeight: CGFloat = 54
-    static let sectionRadius: CGFloat = 16
+    static let searchFieldRadius: CGFloat = 14
+    static let searchFieldHeight: CGFloat = 50
+    static let sectionRadius: CGFloat = 14
     static let hairlineOpacity: Double = 0.10
     static let chromeButtonRadius: CGFloat = 10
+    static let tabChipRadius: CGFloat = OrielLayout.tabChipRadius
 
     static let brandTeal = BrowserAccentTheme.teal.color
     static let brandTealSoft = BrowserAccentTheme.teal.softColor

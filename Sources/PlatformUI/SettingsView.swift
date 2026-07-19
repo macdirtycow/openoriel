@@ -246,8 +246,10 @@ private struct SearchEngineSettingsPage: View {
                 Text("Queries open \(settings.searchEngine.displayName)’s results page.")
             }
 
-            Section("Tabs") {
+            Section {
                 Toggle("Restore previous session", isOn: $settings.restorePreviousSession)
+            } header: {
+                Text("Tabs")
             }
         }
         .navigationTitle("Search")
@@ -303,6 +305,9 @@ private struct AppearanceSettingsPage: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            // Classic + Pulse — dual-engine preference is not Pulse-gated.
+            PageEngineSettingsSection()
+
             if settings.edition.isPulse {
                 Section {
                     NavigationLink {
@@ -310,8 +315,16 @@ private struct AppearanceSettingsPage: View {
                     } label: {
                         Label("Pulse performance", systemImage: "bolt.horizontal")
                     }
+                    Picker("Wallpaper", selection: $settings.pulseWallpaperID) {
+                        ForEach(PulseWallpaper.allCases) { paper in
+                            Text(paper.displayName).tag(paper.rawValue)
+                        }
+                    }
+                    .onChange(of: settings.pulseWallpaperID) { _, _ in
+                        environment.icloudSync.noteLocalChange()
+                    }
                 } footer: {
-                    Text("Live page-engine limits and privacy shortcuts for Pulse.")
+                    Text("Live page-engine limits, Data/Network Saver, Lucid Mode, and ambience.")
                 }
             }
 
@@ -653,7 +666,7 @@ private struct AboutSettingsPage: View {
     var body: some View {
         @Bindable var settings = environment.settings
         Form {
-            Section("Support") {
+            Section {
                 Link(destination: BrowserConstants.donateURL) {
                     Label("Donate via PayPal", systemImage: "heart.fill")
                 }
@@ -663,11 +676,18 @@ private struct AboutSettingsPage: View {
                 Link(destination: BrowserConstants.privacyPolicyURL) {
                     Label("Privacy policy", systemImage: "hand.raised")
                 }
+            } header: {
+                Text("Support")
             }
 
-            Section("About") {
+            Section {
                 LabeledContent("Product", value: EditionBranding.productName(for: environment.settings.edition))
                 LabeledContent("Version", value: appVersionLabel)
+                LabeledContent("Edition", value: environment.settings.edition.displayName)
+                LabeledContent(
+                    "Page engine",
+                    value: environment.resolvedEngine(for: environment.activeTab).displayName
+                )
                 LabeledContent("Website", value: BrowserConstants.productWebsiteHost)
                 LabeledContent("Publisher", value: BrowserConstants.publisherName)
                 Link("Open \(BrowserConstants.productWebsiteHost)", destination: BrowserConstants.productWebsiteURL)
@@ -675,6 +695,8 @@ private struct AboutSettingsPage: View {
                     settings.hasCompletedOnboarding = false
                     if showsDoneButton { dismiss() }
                 }
+            } header: {
+                Text("About")
             }
         }
         .navigationTitle("About")

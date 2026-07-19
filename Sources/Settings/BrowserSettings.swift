@@ -135,6 +135,35 @@ final class BrowserSettings {
         didSet { defaults.set(pulseCornerEnabled, forKey: pulseCornerEnabledKey) }
     }
 
+    /// Preferred rendering engine (WebKit everywhere; Chromium modes on Mac).
+    var preferredEngine: BrowserEngineKind {
+        didSet {
+            let allowed = BrowserEngineKind.availableOnThisPlatform
+            if !allowed.contains(preferredEngine) {
+                // Persist the corrected value — Swift does not re-enter didSet for this assignment.
+                defaults.set(BrowserEngineKind.webkit.rawValue, forKey: preferredEngineKey)
+                preferredEngine = .webkit
+                return
+            }
+            defaults.set(preferredEngine.rawValue, forKey: preferredEngineKey)
+        }
+    }
+
+    /// Lucid Mode — CSS image/video sharpening (Pulse).
+    var pulseLucidMode: Bool {
+        didSet { defaults.set(pulseLucidMode, forKey: pulseLucidModeKey) }
+    }
+
+    /// Network Saver — also block media + fonts (on top of Data Saver images).
+    var pulseNetworkSaver: Bool {
+        didSet { defaults.set(pulseNetworkSaver, forKey: pulseNetworkSaverKey) }
+    }
+
+    /// Built-in Pulse start-page wallpaper id (`off`, `nebula`, `grid`, `aurora`).
+    var pulseWallpaperID: String {
+        didSet { defaults.set(pulseWallpaperID, forKey: pulseWallpaperKey) }
+    }
+
     var homepageURL: URL {
         if let url = URL(string: homepageURLString), url.scheme != nil {
             return url
@@ -290,6 +319,10 @@ final class BrowserSettings {
     private let pulseDataSaverKey = "oriel.pulseDataSaver"
     private let pulseBatterySaverKey = "oriel.pulseBatterySaver"
     private let pulseCornerEnabledKey = "oriel.pulseCornerEnabled"
+    private let preferredEngineKey = "oriel.preferredEngine"
+    private let pulseLucidModeKey = "oriel.pulseLucidMode"
+    private let pulseNetworkSaverKey = "oriel.pulseNetworkSaver"
+    private let pulseWallpaperKey = "oriel.pulseWallpaperID"
     private let activeExtensionThemeKey = "oriel.activeExtensionThemeID"
     private let customAccentRGBKey = "oriel.customAccentRGB"
     private let customBackgroundRGBKey = "oriel.customBackgroundRGB"
@@ -374,6 +407,20 @@ final class BrowserSettings {
         } else {
             self.pulseCornerEnabled = defaults.bool(forKey: pulseCornerEnabledKey)
         }
+        if let raw = defaults.string(forKey: preferredEngineKey),
+           let engine = BrowserEngineKind(rawValue: raw),
+           engine.isSelectableOnThisPlatform {
+            self.preferredEngine = engine
+        } else {
+            #if os(macOS)
+            self.preferredEngine = .smart
+            #else
+            self.preferredEngine = .webkit
+            #endif
+        }
+        self.pulseLucidMode = defaults.bool(forKey: pulseLucidModeKey)
+        self.pulseNetworkSaver = defaults.bool(forKey: pulseNetworkSaverKey)
+        self.pulseWallpaperID = defaults.string(forKey: pulseWallpaperKey) ?? "off"
         self.activeExtensionThemeID = defaults.string(forKey: activeExtensionThemeKey)
         self.customAccentRGB = Self.doubleArray(from: defaults, key: customAccentRGBKey)
         self.customBackgroundRGB = Self.doubleArray(from: defaults, key: customBackgroundRGBKey)

@@ -32,7 +32,12 @@ final class BrowserTab: Identifiable {
     var zoomFactor: Double = 1.0
 
     var forceDarkEnabled = false
+    var lucidModeEnabled = false
     var isReaderMode = false
+    /// Mirrors Settings preferred engine for UA (WebKit vs Chromium Compatible).
+    var preferredEngine: BrowserEngineKind = .webkit
+    /// Optional per-tab lock; `nil` follows global + site policy.
+    var engineOverride: BrowserEngineKind?
 
     /// Quiet browsing: mute media, pause playback, hide noisy sticky UI.
     var isFocusMode = false
@@ -49,6 +54,12 @@ final class BrowserTab: Identifiable {
     var shouldStripTracking: (() -> Bool)?
     var isHTTPSOnlyMode: (() -> Bool)?
     var elementHideScript: (() -> String)?
+    /// Refresh `preferredEngine` from global/site/tab policy before UA apply.
+    /// Passes the destination URL so Smart mode can pick per navigation, not the previous page.
+    var onResolveEngine: ((BrowserTab, URL?) -> Void)?
+    /// When true, cancel navigation and open system Chromium for this URL.
+    var shouldHandOffToSystemChromium: ((URL) -> Bool)?
+    var onHandOffToSystemChromium: ((URL) -> Void)?
 
     init(
         id: UUID = UUID(),
@@ -123,10 +134,9 @@ final class BrowserTab: Identifiable {
             }
         }
 
-        navigation.url = destination
-        navigation.syncAddressBarFromURL()
-
         if URLParser.isStartPage(destination) {
+            navigation.url = destination
+            navigation.syncAddressBarFromURL()
             showStartPagePreservingWebHistory()
             return
         }
@@ -135,6 +145,19 @@ final class BrowserTab: Identifiable {
             navigation.lastErrorMessage = "This address uses an unsupported or blocked scheme."
             return
         }
+
+        // Hand off before mutating local navigation — avoids address-bar/content desync.
+        if shouldHandOffToSystemChromium?(destination) == true {
+            #if os(macOS)
+            if ChromiumEngineBridge.systemChromiumInstalled {
+                onHandOffToSystemChromium?(destination)
+                return
+            }
+            #endif
+        }
+
+        navigation.url = destination
+        navigation.syncAddressBarFromURL()
 
         navigation.isLoading = true
         applyUserAgent(for: destination)
@@ -340,6 +363,9 @@ final class BrowserTab: Identifiable {
         if forceDarkEnabled {
             webView?.evaluateJavaScript(PageEnhancementScripts.enableForceDark, completionHandler: nil)
         }
+        if lucidModeEnabled {
+            webView?.evaluateJavaScript(PageEnhancementScripts.enableLucidMode, completionHandler: nil)
+        }
     }
 
     func toggleFocusMode() {
@@ -361,6 +387,32 @@ final class BrowserTab: Identifiable {
             ? PageEnhancementScripts.enableForceDark
             : PageEnhancementScripts.disableForceDark
         webView?.evaluateJavaScript(script, completionHandler: nil)
+    }
+
+    func setLucidMode(_ enabled: Bool) {
+        lucidModeEnabled = enabled
+        let script = enabled
+            ? PageEnhancementScripts.enableLucidMode
+            : PageEnhancementScripts.disableLucidMode
+        webView?.evaluateJavaScript(script, completionHandler: nil)
+    }
+
+    /// Apply Settings engine preference (Classic and Pulse) and refresh the live UA.
+    func applyPreferredEngine(_ engine: BrowserEngineKind) {
+        preferredEngine = engine
+        applyUserAgent()
+    }
+
+    func clearEngineOverride() {
+        engineOverride = nil
+        onResolveEngine?(self, navigation.url)
+        applyUserAgent()
+    }
+
+    func setEngineOverride(_ engine: BrowserEngineKind?) {
+        engineOverride = engine
+        onResolveEngine?(self, navigation.url)
+        applyUserAgent()
     }
 
     func toggleReaderMode() {
@@ -438,15 +490,17 @@ final class BrowserTab: Identifiable {
         guard let webView else { return }
         let desired = UserAgentPolicy.customUserAgent(
             for: url ?? navigation.url,
-            requestsDesktopSite: requestsDesktopSite
+            requestsDesktopSite: requestsDesktopSite,
+            preferredEngine: preferredEngine
         )
         if webView.customUserAgent != desired {
             webView.customUserAgent = desired
         }
     }
 
-    /// Keeps desktop UA in sync during in-page navigations when Request Desktop Website is on.
+    /// Keeps UA / Smart engine choice in sync for the destination URL of a navigation.
     func syncUserAgentForNavigation(to url: URL?) {
+        onResolveEngine?(self, url)
         applyUserAgent(for: url)
     }
 

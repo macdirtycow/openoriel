@@ -39,6 +39,10 @@ struct BrowserWebView: PlatformViewRepresentable {
     var contentBlockerGeneration: Int = 0
     /// Isolated cookie/storage jar for the active browser profile.
     var websiteDataStore: WKWebsiteDataStore?
+    /// When true, force Chrome desktop UA (Chromium Compatible / Native preference on Mac).
+    var preferChromeUserAgent: Bool = false
+    /// Inject Chrome Client Hints / navigator identity (Mac Chromium Compatible).
+    var injectChromiumIdentity: Bool = false
     /// Configuration fingerprint used by `WebViewPool` (profile / fingerprinting / autoplay).
     var poolConfigKey: String = "default"
     /// Tab IDs that must not be evicted while this view is alive (active + split).
@@ -122,6 +126,10 @@ struct BrowserWebView: PlatformViewRepresentable {
         }
         #endif
 
+        // Do not add ChromiumIdentityScript as a permanent user script — Smart mode
+        // reuses the same WKWebView across WebKit ↔ Compatible hosts; a sticky script
+        // would keep spoofing Chrome on Apple/captcha pages. Inject per-navigation instead.
+
         let webView = WKWebView(frame: .zero, configuration: configuration)
         // Keep the web view clear so themed start-page washes aren't covered by opaque white/black.
         #if os(iOS)
@@ -157,10 +165,11 @@ struct BrowserWebView: PlatformViewRepresentable {
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
 
-        if tab.requestsDesktopSite {
+        if tab.requestsDesktopSite || preferChromeUserAgent {
             webView.customUserAgent = UserAgentPolicy.customUserAgent(
                 for: tab.navigation.url,
-                requestsDesktopSite: true
+                requestsDesktopSite: tab.requestsDesktopSite,
+                preferredEngine: preferChromeUserAgent ? .chromiumCompatibility : .webkit
             )
         }
 
@@ -192,6 +201,9 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.youTubeAdBlockingEnabled = contentBlockingEnabled
         context.coordinator.appliedContentBlockerGeneration = contentBlockerGeneration
         context.coordinator.appliedThirdPartyCookieBlocking = blockThirdPartyCookies
+        #if os(macOS)
+        context.coordinator.injectChromiumIdentity = injectChromiumIdentity
+        #endif
         tab.webView = webView
         tab.refreshNavigationChrome()
         WebViewPool.shared.touch(tab.id)
@@ -276,6 +288,9 @@ struct BrowserWebView: PlatformViewRepresentable {
         context.coordinator.onPopupCreated = onPopupCreated
         context.coordinator.onPopupClosed = onPopupClosed
         context.coordinator.onPopupTitleChanged = onPopupTitleChanged
+        #if os(macOS)
+        context.coordinator.injectChromiumIdentity = injectChromiumIdentity
+        #endif
         context.coordinator.onOpenURLInNewTab = onOpenURLInNewTab
         context.coordinator.onEnqueueURLForLater = onEnqueueURLForLater
         context.coordinator.shouldStripTracking = shouldStripTracking
@@ -313,7 +328,8 @@ struct BrowserWebView: PlatformViewRepresentable {
 
         let desiredUA = UserAgentPolicy.customUserAgent(
             for: tab.navigation.url,
-            requestsDesktopSite: tab.requestsDesktopSite
+            requestsDesktopSite: tab.requestsDesktopSite,
+            preferredEngine: preferChromeUserAgent ? .chromiumCompatibility : .webkit
         )
         if webView.customUserAgent != desiredUA {
             webView.customUserAgent = desiredUA

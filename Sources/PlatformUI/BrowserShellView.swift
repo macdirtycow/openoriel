@@ -128,6 +128,13 @@ struct BrowserShellView: View {
                 .orielSheetChrome()
                 .orielTheming(settings: environment.settings)
         }
+        #if os(macOS)
+        .sheet(isPresented: $environment.showChromiumFeatures) {
+            ChromiumFeaturesView()
+                .orielSheetChrome()
+                .orielTheming(settings: environment.settings)
+        }
+        #endif
         .sheet(isPresented: $environment.showTranslate) {
             TranslatePageView()
                 .orielSheetChrome()
@@ -158,6 +165,8 @@ struct BrowserShellView: View {
         }
         .onChange(of: environment.activeTab?.navigation.url) { _, newURL in
             environment.considerOrielStoreTip(for: newURL)
+            // Keep Smart / per-site engine aligned with the visible page.
+            environment.applyResolvedEngine(to: environment.activeTab, host: newURL?.host)
         }
         .onChange(of: environment.tabs.activeTabID) { _, _ in
             environment.considerOrielStoreTip(for: environment.activeTab?.navigation.url)
@@ -212,7 +221,7 @@ struct BrowserShellView: View {
 
     private func phoneBottomChrome(tab: BrowserTab, environment: AppEnvironment) -> some View {
         let accent = environment.settings.brandColor
-        return VStack(spacing: 10) {
+        return VStack(spacing: OrielLayout.phoneChromeStackSpacing) {
             AddressBarView(
                 tab: tab,
                 searchEngine: environment.settings.searchEngine,
@@ -224,9 +233,9 @@ struct BrowserShellView: View {
             }
 
             // One calm row: back/forward · shields · more · tabs (New Tab lives in the menu).
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 NavigationControlsView(tab: tab, style: .compact, showsShields: false)
-                Spacer(minLength: 12)
+                Spacer(minLength: 8)
                 phoneToolbarButton(
                     systemName: environment.privacy.contentBlockingEnabled ? "shield.lefthalf.filled" : "shield.slash",
                     label: "Privacy Shields",
@@ -254,8 +263,8 @@ struct BrowserShellView: View {
             }
         }
         .padding(.horizontal, OrielLayout.phoneChromePadding)
-        .padding(.top, 10)
-        .padding(.bottom, 8)
+        .padding(.top, OrielLayout.phoneChromeTopPadding)
+        .padding(.bottom, OrielLayout.phoneChromeBottomPadding)
     }
 
     private func phoneToolbarButton(
@@ -301,7 +310,7 @@ struct BrowserShellView: View {
                 iPadTabStrip(environment: environment)
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 NavigationControlsView(tab: tab, showsShields: true)
                 AddressBarView(
                     tab: tab,
@@ -396,14 +405,14 @@ struct BrowserShellView: View {
                             }
                         }
                         .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 7)
                         .frame(minWidth: 120, maxWidth: 220, alignment: .leading)
                         .background(
                             selected ? environment.settings.brandColor.opacity(0.16) : Color.primary.opacity(0.04),
-                            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            in: RoundedRectangle(cornerRadius: OrielLayout.tabChipRadius, style: .continuous)
                         )
                         .overlay {
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            RoundedRectangle(cornerRadius: OrielLayout.tabChipRadius, style: .continuous)
                                 .strokeBorder(
                                     selected ? environment.settings.brandColor.opacity(0.35) : Color.primary.opacity(0.06),
                                     lineWidth: 1
@@ -416,7 +425,7 @@ struct BrowserShellView: View {
                 }
             }
             .padding(.horizontal, OrielLayout.padChromePadding)
-            .padding(.vertical, 8)
+            .padding(.vertical, 6)
         }
         .background(.bar)
     }
@@ -613,10 +622,10 @@ struct BrowserShellView: View {
                 }
             }
             .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.vertical, 7)
             .background(
                 selected ? environment.settings.brandColor.opacity(0.16) : Color.clear,
-                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                in: RoundedRectangle(cornerRadius: OrielLayout.tabChipRadius, style: .continuous)
             )
             .contentShape(Rectangle())
         }
@@ -649,8 +658,8 @@ struct BrowserShellView: View {
                 chromeStyled: false
             )
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, OrielLayout.macChromePadding)
+        .padding(.vertical, 7)
         .background(.bar)
     }
 
@@ -711,7 +720,7 @@ struct BrowserShellView: View {
                             selected
                                 ? environment.settings.brandColor.opacity(0.14)
                                 : Color.primary.opacity(0.035),
-                            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            in: RoundedRectangle(cornerRadius: OrielLayout.tabChipRadius, style: .continuous)
                         )
                     }
                     .buttonStyle(.plain)
@@ -719,7 +728,7 @@ struct BrowserShellView: View {
                     .accessibilityAddTraits(selected ? .isSelected : [])
                 }
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, OrielLayout.macChromePadding)
             .padding(.vertical, 6)
         }
         .background(.bar)
@@ -917,6 +926,11 @@ struct BrowserShellView: View {
             environment.showProfiles = true
         }
         Button("Settings", systemImage: "gearshape") { openAppSettings() }
+        #if os(macOS)
+        Button("Chromium…", systemImage: "cpu") {
+            environment.showChromiumFeatures = true
+        }
+        #endif
         if environment.settings.edition.isPulse {
             Button("Pulse", systemImage: "bolt.horizontal") {
                 environment.showPulsePerformance = true
@@ -1008,6 +1022,11 @@ struct BrowserShellView: View {
         Button("Shields", systemImage: "shield.lefthalf.filled") {
             environment.showPrivacyShield = true
         }
+        #if os(macOS)
+        Button("Chromium…", systemImage: "cpu") {
+            environment.showChromiumFeatures = true
+        }
+        #endif
         if environment.settings.edition.isPulse {
             Button("Pulse", systemImage: "bolt.horizontal") {
                 environment.showPulsePerformance = true
@@ -1083,6 +1102,55 @@ struct BrowserShellView: View {
             tab.toggleDesktopSite()
         }
         .disabled(tab.isShowingStartPage)
+        #if os(macOS)
+        Menu("Page Engine") {
+            Button("This Tab: WebKit") {
+                tab.setEngineOverride(.webkit)
+                tab.reload()
+            }
+            Button("This Tab: Chromium Compatible") {
+                tab.setEngineOverride(.chromiumCompatibility)
+                tab.reload()
+            }
+            Button("Follow Default / Site Policy") {
+                tab.clearEngineOverride()
+                environment.applyResolvedEngine(to: tab)
+                tab.reload()
+            }
+            Divider()
+            if let host = tab.navigation.url?.host, !tab.isShowingStartPage {
+                Button("Always Chromium Compatible for \(host)") {
+                    environment.chromiumPolicy.setPreference(.forceChromiumCompatible, forHost: host)
+                    environment.applyResolvedEngine(to: tab)
+                    tab.reload()
+                }
+                Button("Always WebKit for \(host)") {
+                    environment.chromiumPolicy.setPreference(.forceWebKit, forHost: host)
+                    environment.applyResolvedEngine(to: tab)
+                    tab.reload()
+                }
+                Button("Always Open \(host) in System Chrome") {
+                    environment.chromiumPolicy.setPreference(.openInSystemChrome, forHost: host)
+                }
+                Button("Reset Site Preference") {
+                    environment.chromiumPolicy.setPreference(.followDefault, forHost: host)
+                    environment.applyResolvedEngine(to: tab)
+                    tab.reload()
+                }
+            }
+            Divider()
+            Button("Chromium Features…") {
+                environment.showChromiumFeatures = true
+            }
+            if let url = tab.navigation.url, !URLParser.isStartPage(url) {
+                Button("Open in System Chrome…") {
+                    _ = ChromiumEngineBridge.openInSystemChromium(url)
+                }
+                .disabled(!ChromiumEngineBridge.systemChromiumInstalled)
+            }
+        }
+        .disabled(tab.isShowingStartPage)
+        #endif
         Button(tab.javaScriptEnabled ? "Disable JavaScript" : "Enable JavaScript") {
             tab.toggleJavaScript()
         }
@@ -1196,8 +1264,17 @@ struct BrowserShellView: View {
         }
     }
 
-    private func webViewPoolConfigKey(environment: AppEnvironment) -> String {
-        "fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)-p\(environment.profiles.activeProfileID.uuidString)"
+    private func webViewStructuralID(environment: AppEnvironment, tab: BrowserTab) -> String {
+        // Do not include page-engine here — Smart mode changes engine per navigation
+        // and remounting mid-load would cancel the page. UA/identity update in-place.
+        let identity = environment.chromiumPolicy.injectChromeIdentity ? "1" : "0"
+        return "\(tab.id.uuidString)-fp\(environment.privacy.fingerprintingProtection)-ap\(environment.settings.blockAutoplay)-p\(environment.profiles.activeProfileID.uuidString)-ci\(identity)"
+    }
+
+    private func webViewPoolConfigKey(environment: AppEnvironment, tab: BrowserTab) -> String {
+        // Must match structural ID: including concrete engine wiped history when Smart
+        // flipped WebKit ↔ Chromium Compatible on the same tab.
+        webViewStructuralID(environment: environment, tab: tab)
     }
 
     private func protectedWebViewTabIDs(environment: AppEnvironment) -> Set<UUID> {
@@ -1325,14 +1402,17 @@ struct BrowserShellView: View {
                 },
                 contentBlockerGeneration: environment.contentBlocker.generation,
                 websiteDataStore: environment.profiles.dataStore(isPrivateTab: tab.isPrivate),
-                poolConfigKey: webViewPoolConfigKey(environment: environment),
+                preferChromeUserAgent: RenderingEnginePolicy.usesChromeDesktopUserAgent(tab.preferredEngine),
+                injectChromiumIdentity: environment.chromiumPolicy.injectChromeIdentity
+                    && RenderingEnginePolicy.usesChromeDesktopUserAgent(tab.preferredEngine),
+                poolConfigKey: webViewPoolConfigKey(environment: environment, tab: tab),
                 protectedTabIDs: protectedWebViewTabIDs(environment: environment)
             )
             // Remount only when the WKWebView configuration must change.
             // Do NOT key on contentBlocker.generation — that wiped back/forward history
             // whenever filter lists finished compiling (rules re-attach in updateWebView).
             // Tab switches keep history via WebViewPool even when this view leaves the hierarchy.
-            .id("\(tab.id.uuidString)-\(webViewPoolConfigKey(environment: environment))")
+            .id(webViewStructuralID(environment: environment, tab: tab))
             .opacity(showStart || showError ? 0 : 1)
             .allowsHitTesting(!(showStart || showError))
             .accessibilityHidden(showStart || showError)

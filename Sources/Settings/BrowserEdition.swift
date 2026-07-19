@@ -70,6 +70,18 @@ enum EditionBranding {
         edition.tagline
     }
 
+    /// Shared product-title type for start page, About, and onboarding (Classic + Pulse).
+    static func productTitleFont(for edition: BrowserEdition, size: CGFloat) -> Font {
+        if edition.isPulse {
+            return .system(size: size, weight: .bold, design: .rounded)
+        }
+        return .system(size: size, weight: .semibold, design: .serif)
+    }
+
+    static func productTitleTracking(for edition: BrowserEdition) -> CGFloat {
+        edition.isPulse ? -0.4 : -0.7
+    }
+
     /// Pulse accent — electric cyan that reads well on midnight chrome.
     static let pulseAccent = Color(red: 0.20, green: 0.92, blue: 0.88)
     static let pulseAccentSoft = Color(red: 0.45, green: 0.98, blue: 0.94)

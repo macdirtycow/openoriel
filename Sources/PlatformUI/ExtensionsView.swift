@@ -164,11 +164,13 @@ struct ExtensionsView: View {
             }
 
             if let error = environment.extensions.lastError ?? environment.extensionThemes.lastError {
-                Section("Status") {
+                Section {
                     Label(error, systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote)
                         .foregroundStyle(.orange)
                         .fixedSize(horizontal: false, vertical: true)
+                } header: {
+                    Text("Status")
                 }
             }
         }

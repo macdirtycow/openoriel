@@ -47,7 +47,7 @@ struct StartPageView: View {
         sizeClass == .regular
     }
 
-    private var contentSpacing: CGFloat { isWide ? 26 : 22 }
+    private var contentSpacing: CGFloat { isWide ? 22 : 18 }
 
     private var suggestedItems: [(String, String)] {
         if environment.settings.edition.isPulse {
@@ -81,15 +81,23 @@ struct StartPageView: View {
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
+            if environment.settings.edition.isPulse,
+               let wallpaper = PulseWallpaper(rawValue: environment.settings.pulseWallpaperID),
+               wallpaper != .off {
+                wallpaper.background(accent: accent)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .allowsHitTesting(false)
+            }
+
             ScrollView {
                 VStack(alignment: .leading, spacing: contentSpacing) {
                     topBand
-                        .padding(.top, isWide ? 36 : 28)
+                        .padding(.top, isWide ? 28 : 20)
 
                     searchBlock
 
                     if isWide {
-                        HStack(alignment: .top, spacing: 16) {
+                        HStack(alignment: .top, spacing: 14) {
                             if !environment.bookmarks.favorites.isEmpty {
                                 tileSection(
                                     title: "Favorites",
@@ -100,10 +108,10 @@ struct StartPageView: View {
                                 )
                             }
                             privacyCard
-                                .frame(maxWidth: 320)
+                                .frame(maxWidth: 300)
                         }
                     } else {
-                        privacyCard
+                        compactPrivacyStrip
                         if !environment.bookmarks.favorites.isEmpty {
                             tileSection(
                                 title: "Favorites",
@@ -196,7 +204,7 @@ struct StartPageView: View {
                     quickActions
                 }
             } else {
-                VStack(spacing: 18) {
+                VStack(spacing: 14) {
                     brandBlock
                     quickActions
                 }
@@ -228,12 +236,8 @@ struct StartPageView: View {
         let edition = environment.settings.edition
         return VStack(alignment: alignment, spacing: 4) {
             Text(EditionBranding.productName(for: edition))
-                .font(
-                    edition.isPulse
-                        ? .system(size: isWide ? 34 : 32, weight: .bold, design: .rounded)
-                        : .system(size: isWide ? 36 : 34, weight: .semibold, design: .serif)
-                )
-                .tracking(edition.isPulse ? -0.4 : -0.8)
+                .font(EditionBranding.productTitleFont(for: edition, size: isWide ? 34 : 30))
+                .tracking(EditionBranding.productTitleTracking(for: edition))
                 .foregroundStyle(.primary)
             Text(EditionBranding.tagline(for: edition))
                 .font(.system(.callout, design: .default).weight(.medium))
@@ -282,10 +286,9 @@ struct StartPageView: View {
                         quickActionCell(systemImage: "bolt.horizontal", title: "Pulse") {
                             environment.showPulsePerformance = true
                         }
-                    } else {
-                        quickActionCell(systemImage: "safari", title: "Site") {
-                            tab.openProductSite()
-                        }
+                    }
+                    quickActionCell(systemImage: "safari", title: "Site") {
+                        tab.openProductSite()
                     }
                 }
             }
@@ -341,17 +344,17 @@ struct StartPageView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 11)
+        .padding(.vertical, 10)
         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
         .background(
             OrielTheme.elevatedFill(for: pageScheme),
-            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+            in: RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
                 .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
         }
-        .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous))
     }
 
     private func quickChip(systemImage: String, title: String, action: @escaping () -> Void) -> some View {
@@ -560,6 +563,48 @@ struct StartPageView: View {
 
     // MARK: - Shields
 
+    /// Compact Shields summary for phone / narrow — keeps the first screen from becoming a dashboard.
+    private var compactPrivacyStrip: some View {
+        Button {
+            environment.showPrivacyShield = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "hand.raised.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Shields")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    Text(
+                        environment.privacy.contentBlockingEnabled
+                            ? "\(stats.blockedRequestsSession) blocked this session"
+                            : "Protection off"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                OrielTheme.elevatedFill(for: pageScheme),
+                in: RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
+                    .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Shields summary")
+        .accessibilityHint("Opens Shields for tracker and cookie details")
+    }
+
     private var privacyCard: some View {
         Button {
             environment.showPrivacyShield = true
@@ -729,10 +774,10 @@ struct StartPageView: View {
         }
         .background(
             OrielTheme.elevatedFill(for: pageScheme),
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+            in: RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
                 .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
         }
         .shadow(color: OrielTheme.softShadow(for: pageScheme), radius: 8, y: 2)
@@ -772,17 +817,17 @@ struct StartPageView: View {
                             Spacer(minLength: 0)
                         }
                         .padding(.horizontal, 12)
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+                        .padding(.vertical, 11)
+                        .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
                         .background(
                             OrielTheme.elevatedFill(for: pageScheme),
-                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            in: RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
                         )
                         .overlay {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)
                                 .strokeBorder(OrielTheme.hairline(for: pageScheme), lineWidth: 1)
                         }
-                        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .contentShape(RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous))
                     }
                     .buttonStyle(.plain)
                 }

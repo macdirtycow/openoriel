@@ -75,8 +75,8 @@ struct AddressBarView: View {
                     .accessibilityLabel("Clear address")
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: OrielTheme.controlRadius, style: .continuous)

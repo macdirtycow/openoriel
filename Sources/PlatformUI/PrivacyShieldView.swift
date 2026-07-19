@@ -174,8 +174,37 @@ struct PrivacyShieldView: View {
             )) {
                 labeledToggle("HTTPS upgrade", subtitle: host)
             }
+            #if os(macOS)
+            Picker("Page engine", selection: Binding(
+                get: { environment.chromiumPolicy.preference(forHost: host) },
+                set: {
+                    environment.chromiumPolicy.setPreference($0, forHost: host)
+                    environment.applyResolvedEngine(to: environment.activeTab)
+                    environment.activeTab?.reload()
+                }
+            )) {
+                ForEach(ChromiumHostPreference.allCases) { pref in
+                    Text(pref.displayName).tag(pref)
+                }
+            }
+            if environment.chromiumPolicy.suggestSystemChromeForStubbornSites,
+               ChromiumAutoSiteList.matches(host),
+               ChromiumEngineBridge.systemChromiumInstalled,
+               let url = environment.activeTab?.navigation.url {
+                Button("Open in \(ChromiumEngineBridge.preferredSystemChromiumName ?? "Chrome")…") {
+                    _ = ChromiumEngineBridge.openInSystemChromium(url)
+                }
+            }
+            #endif
         } header: {
             Text("This site")
+        } footer: {
+            #if os(macOS)
+            Text("Page engine overrides apply in Classic and Pulse. Chromium Compatible uses Chrome identity on WebKit.")
+                .fixedSize(horizontal: false, vertical: true)
+            #else
+            EmptyView()
+            #endif
         }
     }
 

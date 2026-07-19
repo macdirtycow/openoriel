@@ -86,7 +86,7 @@ struct WorkspacesView: View {
                     Text("Workspaces keep separate tab sets. Profiles isolate cookies; workspaces organize tabs.")
                 }
 
-                Section("New workspace") {
+                Section {
                     HStack {
                         TextField("Name", text: $newName)
                         Button("Add") {
@@ -98,6 +98,8 @@ struct WorkspacesView: View {
                         }
                         .disabled(newName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
+                } header: {
+                    Text("New workspace")
                 }
             }
             .navigationTitle("Workspaces")
