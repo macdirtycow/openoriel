@@ -39,8 +39,14 @@ struct ExtensionCompatReport: Hashable, Sendable {
     var limitedAPIs: [String]
     var score: OrielCompatScore
 
+    /// Warn only when we have concrete API evidence (or a hard unsupported rating).
+    /// Unknown Chrome rows often lack permission metadata — don’t block Add behind a dialog.
     var shouldWarnBeforeInstall: Bool {
-        level == .partial || level == .unsupported
+        if level == .unsupported { return true }
+        if level == .partial {
+            return !blockedAPIs.isEmpty || !limitedAPIs.isEmpty
+        }
+        return false
     }
 
     var installWarning: String {

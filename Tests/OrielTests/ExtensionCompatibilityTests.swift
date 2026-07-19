@@ -58,6 +58,33 @@ final class ExtensionCompatibilityTests: XCTestCase {
         XCTAssertTrue(report.installWarning.contains("unavailable on WebKit"))
     }
 
+    func testUnknownPermissionsDoNotBlockAddBehindDialog() {
+        let listing = UnifiedStoreListing(
+            id: "somechromeonly",
+            kind: .extension,
+            name: "Some Chrome Only",
+            summary: "",
+            iconURL: nil,
+            rating: nil,
+            offers: [
+                ExtensionStoreItem(
+                    source: .chrome,
+                    kind: .extension,
+                    storeIdentifier: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    name: "Some Chrome Only",
+                    summary: "",
+                    iconURL: nil,
+                    rating: nil,
+                    storeURL: nil,
+                    permissions: []
+                )
+            ]
+        )
+        let report = ExtensionCompatibility.assess(listing)
+        // May be partial/estimated, but Add must not require a confirmation with no API evidence.
+        XCTAssertFalse(report.shouldWarnBeforeInstall)
+    }
+
     func testDebuggerPermissionMarksUnsupported() {
         let listing = UnifiedStoreListing(
             id: "somedebuggertool",

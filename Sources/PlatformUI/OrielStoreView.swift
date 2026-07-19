@@ -15,7 +15,9 @@ struct OrielStoreView: View {
     @State private var searchTask: Task<Void, Never>?
     @State private var installHint: String?
     @State private var pendingCompatInstall: UnifiedStoreListing?
-    @State private var compatWarningMessage = ""
+    @State private var showCompatWarning = false
+    @State private var installError: String?
+    @State private var installStatus: String?
 
     /// When true (sheet presentation), show a Done button. Hidden inside Extensions navigation.
     var showsDoneButton: Bool = true
@@ -24,6 +26,14 @@ struct OrielStoreView: View {
         VStack(spacing: 0) {
             kindPicker
             searchField
+            if let installStatus {
+                Text(installStatus)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.bottom, 6)
+            }
             content
         }
         .navigationTitle("Oriel Store")
@@ -61,24 +71,32 @@ struct OrielStoreView: View {
         } message: {
             Text(installHint ?? "")
         }
-        .alert(
+        .alert("Couldn’t install", isPresented: Binding(
+            get: { installError != nil },
+            set: { if !$0 { installError = nil } }
+        )) {
+            Button("OK", role: .cancel) { installError = nil }
+        } message: {
+            Text(installError ?? "")
+        }
+        // `presenting:` passes a stable copy into actions — avoids the SwiftUI alert bug
+        // where clearing the optional binding wiped the listing before Install ran.
+        .confirmationDialog(
             "Limited WebKit support",
-            isPresented: Binding(
-                get: { pendingCompatInstall != nil },
-                set: { if !$0 { pendingCompatInstall = nil } }
-            )
-        ) {
+            isPresented: $showCompatWarning,
+            titleVisibility: .visible,
+            presenting: pendingCompatInstall
+        ) { listing in
             Button("Install anyway") {
-                if let listing = pendingCompatInstall {
-                    pendingCompatInstall = nil
-                    Task { await performInstall(listing) }
-                }
+                showCompatWarning = false
+                Task { await performInstall(listing) }
             }
             Button("Cancel", role: .cancel) {
+                showCompatWarning = false
                 pendingCompatInstall = nil
             }
-        } message: {
-            Text(compatWarningMessage)
+        } message: { listing in
+            Text(ExtensionCompatibility.assess(listing).installWarning)
         }
     }
 
@@ -383,8 +401,8 @@ struct OrielStoreView: View {
         }
         let report = ExtensionCompatibility.assess(listing)
         if report.shouldWarnBeforeInstall {
-            compatWarningMessage = report.installWarning
             pendingCompatInstall = listing
+            showCompatWarning = true
             return
         }
         Task { await performInstall(listing) }
@@ -418,9 +436,41 @@ struct OrielStoreView: View {
 
     @MainActor
     private func performInstall(_ listing: UnifiedStoreListing) async {
-        guard let offer = offerToInstall(for: listing) else { return }
+        guard let offer = offerToInstall(for: listing) else {
+            installError = "No installable source found for this extension."
+            return
+        }
         installingID = listing.id
+        installError = nil
+        installStatus = "Starting install from \(offer.source.displayName)…"
         defer { installingID = nil }
+
+        await install(offer: offer)
+
+        // If the preferred source failed, try the next Chrome/Firefox offer once.
+        if environment.extensions.lastError != nil {
+            let fallback = listing.offers.first(where: {
+                $0.id != offer.id && ($0.source == .chrome || $0.source == .firefox)
+            })
+            if let fallback {
+                installStatus = "Retrying from \(fallback.source.displayName)…"
+                await install(offer: fallback)
+            }
+        }
+
+        if let err = environment.extensions.lastError {
+            installError = err
+            installStatus = nil
+        } else if installHint != nil {
+            installStatus = nil
+        } else {
+            ExtensionCompatibility.recordLocalInstall(listingID: listing.id)
+            installStatus = environment.extensions.statusMessage ?? "Installed “\(listing.name)”."
+        }
+    }
+
+    @MainActor
+    private func install(offer: ExtensionStoreItem) async {
         switch offer.source {
         case .chrome:
             await environment.extensions.installFromChromeWebStore(extensionID: offer.storeIdentifier)
@@ -440,9 +490,5 @@ struct OrielStoreView: View {
                 installHint = "That Safari extension isn’t available to import on this device yet."
             }
         }
-        if environment.extensions.lastError == nil, installHint == nil {
-            ExtensionCompatibility.recordLocalInstall(listingID: listing.id)
-        }
-        listings = listings
     }
 }
