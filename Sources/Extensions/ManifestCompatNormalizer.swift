@@ -12,17 +12,19 @@ enum ManifestCompatNormalizer {
     static let stripPermissions: Set<String> = [
         "debugger",
         "proxy",
-        "privacy",
-        "fontSettings",
+        "nativeMessaging",
         "enterprise.deviceAttributes",
         "enterprise.hardwarePlatform",
         "enterprise.platformKeys",
-        "loginState",
+        "privacy",
+        "fontSettings",
         "gcm",
         "system.cpu",
         "system.memory",
         "system.storage",
-        "system.display"
+        "system.display",
+        "loginState",
+        "dns"
     ]
 
     /// Soft-normalize `manifest.json` in place. Safe to call repeatedly.
@@ -131,6 +133,41 @@ enum ManifestCompatNormalizer {
             optionsUI.removeValue(forKey: "chrome_style")
             root["options_ui"] = optionsUI
             changed = true
+        }
+
+        // --- Drop keys WebKit rejects or ignores that often break load ---
+        for key in ["update_url", "key", "minimum_chrome_version", "minimum_opera_version", "nacl_modules", "oauth2", "platforms"] {
+            if root[key] != nil {
+                root.removeValue(forKey: key)
+                changed = true
+            }
+        }
+        if root["externally_connectable"] != nil {
+            root.removeValue(forKey: "externally_connectable")
+            changed = true
+        }
+        // sidebar_action → action fallback when no toolbar action exists
+        if root["action"] == nil, let sidebar = root["sidebar_action"] {
+            root["action"] = sidebar
+            root.removeValue(forKey: "sidebar_action")
+            changed = true
+        } else if root["sidebar_action"] != nil {
+            root.removeValue(forKey: "sidebar_action")
+            changed = true
+        }
+        // Merge MV3 host_permissions into permissions for hosts WebKit still reads from permissions.
+        if let hosts = root["host_permissions"] as? [String], !hosts.isEmpty {
+            var permissions = (root["permissions"] as? [String]) ?? []
+            var seen = Set(permissions)
+            var merged = false
+            for host in hosts where seen.insert(host).inserted {
+                permissions.append(host)
+                merged = true
+            }
+            if merged {
+                root["permissions"] = permissions
+                changed = true
+            }
         }
 
         // Ensure a name exists (some theme packs omit it).

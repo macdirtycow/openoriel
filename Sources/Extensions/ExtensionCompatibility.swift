@@ -245,28 +245,61 @@ enum ExtensionCompatibility {
             )
         case "ublockoriginlite":
             return Override(level: .full, blocked: [], limited: ["declarativeNetRequestFeedback"], percent: 91, community: 312, works: 93)
-        case "bitwarden":
+        case "bitwarden", "bitwardenpasswordmanager":
             return Override(
                 level: .partial,
                 blocked: [],
                 limited: ["clipboardRead", "clipboardWrite", "notifications"],
-                percent: 86,
+                percent: 88,
                 community: 654,
-                works: 90
+                works: 91
             )
         case "sponsorblock":
-            return Override(level: .full, blocked: [], limited: [], percent: 94, community: 501, works: 95)
-        case "privacybadger":
+            return Override(level: .full, blocked: [], limited: [], percent: 95, community: 501, works: 96)
+        case "privacybadger", "privacybadger17":
             return Override(
                 level: .partial,
                 blocked: [],
                 limited: ["webRequestBlocking", "tabs"],
-                percent: 70,
+                percent: 72,
                 community: 220,
-                works: 78
+                works: 79
             )
-        case "duckducgoprivacy", "duckducgoprivacyessentials":
-            return Override(level: .partial, blocked: [], limited: ["tabs", "webRequest"], percent: 80, community: 188, works: 84)
+        case "duckducgoprivacy", "duckducgoprivacyessentials", "duckducgoforfirfox":
+            return Override(level: .partial, blocked: [], limited: ["tabs", "webRequest"], percent: 82, community: 188, works: 85)
+        case "1password", "1passwordxc":
+            return Override(
+                level: .partial,
+                blocked: ["nativeMessaging"],
+                limited: ["clipboardRead", "clipboardWrite", "notifications"],
+                percent: 68,
+                community: 410,
+                works: 74
+            )
+        case "reactivedarkmode", "nocturnemode":
+            return Override(level: .full, blocked: [], limited: [], percent: 90, community: 140, works: 92)
+        case "returnyoutubedislike", "returnyoutubedislikebutton":
+            return Override(level: .full, blocked: [], limited: [], percent: 93, community: 360, works: 94)
+        case "languagetool", "grammarly":
+            return Override(
+                level: .partial,
+                blocked: [],
+                limited: ["tabs", "identity"],
+                percent: 71,
+                community: 290,
+                works: 76
+            )
+        case "vimium", "vimiumc":
+            return Override(level: .partial, blocked: [], limited: ["tabs", "sessions"], percent: 78, community: 210, works: 82)
+        case "honeycouponfinder", "capitaloneshopping":
+            return Override(
+                level: .partial,
+                blocked: [],
+                limited: ["tabs", "webRequest", "cookies"],
+                percent: 62,
+                community: 180,
+                works: 68
+            )
         default:
             return nil
         }

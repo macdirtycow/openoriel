@@ -38,6 +38,12 @@ struct SettingsView: View {
                     } label: {
                         settingsRow("Privacy & media", systemImage: "hand.raised.fill")
                     }
+
+                    NavigationLink {
+                        DataInventoryView()
+                    } label: {
+                        settingsRow("What Oriel stores", systemImage: "internaldrive")
+                    }
                 }
 
                 Section {
@@ -539,7 +545,7 @@ private struct AccountsSettingsPage: View {
                 ))
                 #endif
             } footer: {
-                Text("iCloud Sync mirrors bookmarks, Open Later, history, open tabs, and appearance. Passwords use the system Keychain.")
+                Text("iCloud Sync mirrors bookmarks, Reading List, history, open tabs, and appearance. Passwords use the system Keychain.")
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -584,62 +590,6 @@ private struct HomepageSettingsPage: View {
         #if os(macOS)
         .formStyle(.grouped)
         #endif
-    }
-}
-
-// MARK: - Default browser
-
-private struct DefaultBrowserSettingsPage: View {
-    @Environment(AppEnvironment.self) private var environment
-
-    var body: some View {
-        let browser = environment.defaultBrowser
-        Form {
-            Section {
-                Text(browser.platformGuidance)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                if let status = browser.lastStatusMessage {
-                    Label(status, systemImage: browser.isDefaultBrowser ? "checkmark.seal.fill" : "safari")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                if let error = browser.lastError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
-
-                if browser.canSetAsDefaultDirectly {
-                    Button("Set Oriel as Default Browser") {
-                        browser.promoteToDefaultBrowser()
-                    }
-                    Button("Open System Settings…") {
-                        browser.openDefaultBrowserSettings()
-                    }
-                } else {
-                    Button("Open Default Browser Settings") {
-                        browser.promoteToDefaultBrowser()
-                    }
-                }
-            } footer: {
-                #if os(macOS)
-                Text("Oriel registers for http and https links.")
-                #else
-                Text("Apple requires the Default Browser entitlement before Oriel appears in Settings → Apps → Default Browser App.")
-                #endif
-            }
-        }
-        .navigationTitle("Default browser")
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
-        #if os(macOS)
-        .formStyle(.grouped)
-        #endif
-        .onAppear { browser.refreshStatus() }
     }
 }
 

@@ -15,6 +15,7 @@ struct OrielStoreDetailView: View {
     @State private var installing = false
     @State private var installHint: String?
     @State private var pendingCompatInstall = false
+    @State private var showPermissionReview = false
     @State private var installError: String?
     @State private var installStatus: String?
 
@@ -80,12 +81,34 @@ struct OrielStoreDetailView: View {
             isPresented: $pendingCompatInstall,
             titleVisibility: .visible
         ) {
-            Button("Install anyway") {
-                Task { await performInstall() }
+            Button("Review & install") {
+                showPermissionReview = true
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(report.installWarning)
+        }
+        .sheet(isPresented: $showPermissionReview) {
+            let declared = permissions
+            let hosts = declared.filter { $0.contains("://") || $0 == "<all_urls>" || $0.hasPrefix("*://") }
+            ExtensionPermissionReviewView(
+                extensionName: listing.name,
+                permissions: declared.filter { !($0.contains("://") || $0 == "<all_urls>" || $0.hasPrefix("*://")) },
+                hostPatterns: hosts,
+                onConfirm: { allowed in
+                    let offer = offerToInstall(for: listing)
+                    environment.extensions.prepareInstallPermissionReview(
+                        allowed: allowed,
+                        directoryHint: offer?.storeIdentifier
+                    )
+                    showPermissionReview = false
+                    Task { await performInstall() }
+                },
+                onCancel: {
+                    environment.extensions.clearPendingPermissionReview()
+                    showPermissionReview = false
+                }
+            )
         }
     }
 
@@ -360,7 +383,7 @@ struct OrielStoreDetailView: View {
             pendingCompatInstall = true
             return
         }
-        Task { await performInstall() }
+        showPermissionReview = true
     }
 
     @MainActor

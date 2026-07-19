@@ -130,11 +130,7 @@ final class iCloudSyncService {
         if let data = defaults.data(forKey: bookmarksKey),
            let remote = try? JSONDecoder().decode([Bookmark].self, from: data),
            let bookmarks {
-            var map = Dictionary(uniqueKeysWithValues: bookmarks.bookmarks.map { ($0.id, $0) })
-            for item in remote {
-                map[item.id] = item
-            }
-            bookmarks.replaceAll(Array(map.values))
+            bookmarks.mergeRemote(remote)
         }
         if let data = defaults.data(forKey: settingsKey),
            let payload = try? JSONDecoder().decode([String: String].self, from: data),

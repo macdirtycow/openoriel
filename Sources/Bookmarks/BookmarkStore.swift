@@ -6,6 +6,7 @@ import Observation
 final class BookmarkStore {
     private(set) var bookmarks: [Bookmark] = []
     private let fileName = "bookmarks.json"
+    private var tombstones = BookmarkTombstoneStore()
     /// Fired after local mutations so iCloud sync can push.
     var onDidChange: (() -> Void)?
 
@@ -132,6 +133,7 @@ final class BookmarkStore {
             }
         }
         bookmarks.removeAll { toRemove.contains($0.id) }
+        tombstones.markDeleted(toRemove)
         persist()
     }
 
@@ -145,7 +147,13 @@ final class BookmarkStore {
     }
 
     func replaceAll(_ items: [Bookmark]) {
-        bookmarks = items
+        bookmarks = items.filter { !tombstones.contains($0.id) }
+        persist()
+    }
+
+    /// Merge remote bookmarks without resurrecting locally deleted ones.
+    func mergeRemote(_ remote: [Bookmark]) {
+        bookmarks = tombstones.merge(local: bookmarks, remote: remote)
         persist()
     }
 

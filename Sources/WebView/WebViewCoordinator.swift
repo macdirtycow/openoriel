@@ -556,7 +556,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
             let open = UIAction(title: "Open in New Tab", image: UIImage(systemName: "plus.square.on.square")) { _ in
                 self?.onOpenURLInNewTab?(linkURL)
             }
-            let later = UIAction(title: "Open Later", image: UIImage(systemName: "tray.and.arrow.down")) { _ in
+            let later = UIAction(title: "Reading List", image: UIImage(systemName: "tray.and.arrow.down")) { _ in
                 self?.onEnqueueURLForLater?(linkURL)
             }
             let copy = UIAction(title: "Copy Link", image: UIImage(systemName: "link")) { _ in

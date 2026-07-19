@@ -41,6 +41,10 @@ struct TabOverviewView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
+                    if query.isEmpty, let remote = environment.icloudSync.remoteSession, !remote.tabs.isEmpty {
+                        remoteDevicesSection(remote)
+                    }
+
                     ForEach(environment.tabs.groups) { group in
                         let tabs = filteredTabs.filter { $0.groupID == group.id }
                         if query.isEmpty || !tabs.isEmpty {
@@ -201,6 +205,70 @@ struct TabOverviewView: View {
                 .frame(width: 8, height: 8)
             Text(title)
                 .font(.headline)
+        }
+    }
+
+    private func remoteDevicesSection(_ remote: SessionSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                sectionHeader("Other devices", color: environment.settings.brandColor)
+                Spacer()
+                Button("Open all") {
+                    for tab in remote.tabs.prefix(12) {
+                        if let url = URL(string: tab.urlString), URLParser.isAllowedNavigation(url) {
+                            environment.openURLInNewTab(url)
+                        }
+                    }
+                    dismiss()
+                }
+                .font(.caption.weight(.semibold))
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(remote.tabs.prefix(8), id: \.id) { tab in
+                    Button {
+                        if let url = URL(string: tab.urlString) {
+                            environment.openURLInNewTab(url)
+                            dismiss()
+                        }
+                    } label: {
+                        HStack(spacing: 10) {
+                            FaviconImage(pageURL: URL(string: tab.urlString), size: 18)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(tab.title.isEmpty ? (URL(string: tab.urlString)?.host ?? "Tab") : tab.title)
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundStyle(.primary)
+                                    .lineLimit(1)
+                                Text(tab.urlString)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: "arrow.up.forward")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                    if tab.id != remote.tabs.prefix(8).last?.id {
+                        Divider()
+                    }
+                }
+            }
+
+            if remote.tabs.count > 8 {
+                Text("\(remote.tabs.count - 8) more on other devices — see History")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Button("Replace local tabs with remote session") {
+                environment.applyRemoteSession(remote)
+                dismiss()
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.orange)
         }
     }
 

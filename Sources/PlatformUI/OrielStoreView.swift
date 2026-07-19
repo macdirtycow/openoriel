@@ -22,6 +22,7 @@ struct OrielStoreView: View {
     @State private var installHint: String?
     @State private var pendingCompatInstall: UnifiedStoreListing?
     @State private var showCompatWarning = false
+    @State private var pendingPermissionListing: UnifiedStoreListing?
     @State private var installError: String?
     @State private var installStatus: String?
     @FocusState private var searchFocused: Bool
@@ -116,9 +117,9 @@ struct OrielStoreView: View {
             titleVisibility: .visible,
             presenting: pendingCompatInstall
         ) { listing in
-            Button("Install anyway") {
+            Button("Review & install") {
                 showCompatWarning = false
-                Task { await performInstall(listing) }
+                pendingPermissionListing = listing
             }
             Button("Cancel", role: .cancel) {
                 showCompatWarning = false
@@ -126,6 +127,30 @@ struct OrielStoreView: View {
             }
         } message: { listing in
             Text(ExtensionCompatibility.assess(listing).installWarning)
+        }
+        .sheet(item: $pendingPermissionListing) { listing in
+            let declared = Self.declaredPermissions(for: listing)
+            let hosts = Self.hostPatterns(from: declared)
+            ExtensionPermissionReviewView(
+                extensionName: listing.name,
+                permissions: declared.filter { !Self.looksLikeHostPattern($0) },
+                hostPatterns: hosts,
+                onConfirm: { allowed in
+                    let offer = offerToInstall(for: listing)
+                    environment.extensions.prepareInstallPermissionReview(
+                        allowed: allowed,
+                        directoryHint: offer?.storeIdentifier
+                    )
+                    pendingPermissionListing = nil
+                    pendingCompatInstall = nil
+                    Task { await performInstall(listing) }
+                },
+                onCancel: {
+                    environment.extensions.clearPendingPermissionReview()
+                    pendingPermissionListing = nil
+                    pendingCompatInstall = nil
+                }
+            )
         }
     }
 
@@ -485,7 +510,28 @@ struct OrielStoreView: View {
             showCompatWarning = true
             return
         }
-        Task { await performInstall(listing) }
+        pendingPermissionListing = listing
+    }
+
+    private static func declaredPermissions(for listing: UnifiedStoreListing) -> [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+        for offer in listing.offers {
+            for permission in offer.permissions {
+                let key = permission.lowercased()
+                guard seen.insert(key).inserted else { continue }
+                result.append(permission)
+            }
+        }
+        return result
+    }
+
+    private static func hostPatterns(from permissions: [String]) -> [String] {
+        permissions.filter { looksLikeHostPattern($0) }
+    }
+
+    private static func looksLikeHostPattern(_ value: String) -> Bool {
+        value.contains("://") || value == "<all_urls>" || value.hasPrefix("*://")
     }
 
     @MainActor

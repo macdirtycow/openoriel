@@ -839,6 +839,9 @@ struct BrowserShellView: View {
         }
 
         Menu("Tab", systemImage: "square.on.square") {
+            Button("Search Tabs…") {
+                environment.showTabOverview = true
+            }
             Button("Duplicate Tab") {
                 environment.tabs.duplicateActiveTab()
                 environment.wireTabPrivacyHooks()
@@ -876,10 +879,10 @@ struct BrowserShellView: View {
             Button("Bookmarks") { environment.showBookmarks = true }
             Button("History") { environment.showHistory = true }
             Button("Downloads") { environment.showDownloads = true }
-            Button(environment.linkQueue.count == 0 ? "Open Later" : "Open Later (\(environment.linkQueue.count))") {
+            Button(environment.linkQueue.count == 0 ? "Reading List" : "Reading List (\(environment.linkQueue.count))") {
                 environment.showLinkQueue = true
             }
-            Button("Add Page to Open Later") {
+            Button("Add Page to Reading List") {
                 environment.enqueueCurrentPageForLater()
             }
             .disabled(tab.isShowingStartPage)
@@ -915,6 +918,9 @@ struct BrowserShellView: View {
         }
 
         Menu("Tab", systemImage: "square.on.square") {
+            Button("Search Tabs…") {
+                environment.showTabOverview = true
+            }
             Button("Duplicate Tab") {
                 environment.tabs.duplicateActiveTab()
                 environment.wireTabPrivacyHooks()
@@ -956,10 +962,10 @@ struct BrowserShellView: View {
             Button("Bookmarks") { environment.showBookmarks = true }
             Button("History") { environment.showHistory = true }
             Button("Downloads") { environment.showDownloads = true }
-            Button(environment.linkQueue.count == 0 ? "Open Later" : "Open Later (\(environment.linkQueue.count))") {
+            Button(environment.linkQueue.count == 0 ? "Reading List" : "Reading List (\(environment.linkQueue.count))") {
                 environment.showLinkQueue = true
             }
-            Button("Add Page to Open Later") {
+            Button("Add Page to Reading List") {
                 environment.enqueueCurrentPageForLater()
             }
             .disabled(tab.isShowingStartPage)

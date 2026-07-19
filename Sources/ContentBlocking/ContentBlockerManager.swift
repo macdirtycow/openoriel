@@ -80,11 +80,15 @@ final class ContentBlockerManager {
 
     private let store = WKContentRuleListStore.default()
     private let compileIdentifierPrefix = "oriel.rules.v7"
+    private let customListIdentifier = "oriel.rules.custom.v1"
+    private let customListFileName = "custom-content-rules.json"
+    private(set) var hasCustomFilterList = false
 
     func prepare() async {
         compiledLists = []
         listNames = []
         ruleCount = 0
+        hasCustomFilterList = false
 
         let names = discoverBundledListNames()
         // Load + validate large JSON off the main actor so launch stays responsive.
@@ -149,12 +153,50 @@ final class ContentBlockerManager {
         ruleCount = totalRules
         blockedHostHints = Array(Set(hints)).sorted()
         cachedProbeHosts = makeTrackerProbeHosts(limit: 500)
+
+        if let customData = try? Data(contentsOf: customRulesURL()), !customData.isEmpty {
+            do {
+                let customRules = try ContentRuleListValidator.validate(customData)
+                let json = String(data: customData, encoding: .utf8) ?? "[]"
+                let list = try await compile(json: json, identifier: customListIdentifier)
+                compiledLists.append(list)
+                listNames.append("custom")
+                ruleCount += customRules.count
+                blockedHostHints = Array(Set(blockedHostHints + ContentRuleListValidator.blockedHostHints(from: customRules))).sorted()
+                cachedProbeHosts = makeTrackerProbeHosts(limit: 500)
+                hasCustomFilterList = true
+            } catch {
+                errors.append("custom: \(error.localizedDescription)")
+            }
+        }
+
         isReady = !compiledLists.isEmpty
         lastError = isReady ? nil : (errors.last ?? ContentRuleValidationError.empty.errorDescription)
         if isReady, !loadedPrimary {
             lastError = "Using built-in fallback list (main lists failed to load)."
         }
         generation += 1
+    }
+
+    /// Import a Safari/WebKit content-blocker JSON array (EasyList-style converters OK).
+    func importCustomFilterList(_ data: Data) async throws {
+        _ = try ContentRuleListValidator.validate(data)
+        try data.write(to: customRulesURL(), options: .atomic)
+        await prepare()
+    }
+
+    func clearCustomFilterList() async {
+        try? FileManager.default.removeItem(at: customRulesURL())
+        hasCustomFilterList = false
+        await prepare()
+    }
+
+    private func customRulesURL() -> URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        let dir = base.appendingPathComponent("Oriel", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent(customListFileName)
     }
 
     func matchesBlockedHostHint(_ url: URL) -> Bool {

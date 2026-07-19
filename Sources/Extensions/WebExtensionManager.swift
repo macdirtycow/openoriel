@@ -35,12 +35,21 @@ final class WebExtensionManager {
     /// Applies Chrome/Firefox/Safari static themes from packages that include `theme`.
     weak var themeStore: ExtensionThemeStore?
 
+    /// Permissions the user allowed in the install review sheet (cleared after next load).
+    private var pendingAllowedPermissions: Set<String>?
+    /// Directory / store id hint for the install currently under review.
+    private var pendingInstallDirectoryHint: String?
+    /// Persisted per-directory denied permissions from install review.
+    private var deniedPermissionsByDirectory: [String: Set<String>] = [:]
+    private let deniedPermissionsFileName = "extension-denied-permissions.json"
+
     private var controllerStorage: AnyObject?
     private var hostStorage: AnyObject?
     private let fileManager = FileManager.default
     private let catalogName = "extensions-catalog.json"
 
     init() {
+        deniedPermissionsByDirectory = Self.loadDeniedPermissions(fileName: deniedPermissionsFileName)
         #if os(macOS)
         if #available(macOS 15.4, *) {
             bootstrapController()
@@ -123,6 +132,23 @@ final class WebExtensionManager {
     func isInstalledFromFirefoxAMO(slug: String) -> Bool {
         let key = slug.lowercased()
         return installedFirefoxSlugs.contains(key)
+    }
+
+    /// Remember which permissions the user allowed in the install review sheet.
+    /// `directoryHint` is the Chrome id, Firefox slug, or package folder name being installed.
+    func prepareInstallPermissionReview(allowed: [String], directoryHint: String?) {
+        pendingAllowedPermissions = Set(allowed)
+        pendingInstallDirectoryHint = directoryHint?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        if pendingInstallDirectoryHint?.isEmpty == true {
+            pendingInstallDirectoryHint = nil
+        }
+    }
+
+    func clearPendingPermissionReview() {
+        pendingAllowedPermissions = nil
+        pendingInstallDirectoryHint = nil
     }
 
     /// Best-effort: Safari import matched by bundle id or normalized display name.
@@ -288,8 +314,24 @@ final class WebExtensionManager {
                 let webExtension = try await WKWebExtension(resourceBaseURL: folder)
                 let context = WKWebExtensionContext(for: webExtension)
                 context.uniqueIdentifier = entry.directoryName
+                let applyPending = shouldApplyPendingReview(to: entry)
+                var deniedThisLoad = deniedPermissionsByDirectory[entry.directoryName] ?? []
                 for permission in webExtension.requestedPermissions {
-                    context.setPermissionStatus(.grantedExplicitly, for: permission)
+                    let name = Self.permissionName(permission)
+                    var deny = ExtensionCompatibility.blockedPermissions.contains(name)
+                    if deniedThisLoad.contains(name) { deny = true }
+                    if applyPending, let allowed = pendingAllowedPermissions, !allowed.contains(name) {
+                        deny = true
+                    }
+                    if deny {
+                        context.setPermissionStatus(.deniedExplicitly, for: permission)
+                        deniedThisLoad.insert(name)
+                    } else {
+                        context.setPermissionStatus(.grantedExplicitly, for: permission)
+                    }
+                }
+                if applyPending {
+                    deniedPermissionsByDirectory[entry.directoryName] = deniedThisLoad
                 }
                 for pattern in webExtension.requestedPermissionMatchPatterns {
                     context.setPermissionStatus(.grantedExplicitly, for: pattern)
@@ -321,6 +363,10 @@ final class WebExtensionManager {
 
         extensions = loaded.sorted {
             $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
+        }
+        if pendingAllowedPermissions != nil {
+            persistDeniedPermissions()
+            clearPendingPermissionReview()
         }
     }
 
@@ -785,6 +831,50 @@ final class WebExtensionManager {
         let url = extensionsDirectory.appendingPathComponent(catalogName)
         guard let data = try? JSONEncoder().encode(entries) else { return }
         try? data.write(to: url, options: .atomic)
+    }
+
+    @available(macOS 15.4, iOS 18.4, *)
+    private func shouldApplyPendingReview(to entry: CatalogEntry) -> Bool {
+        guard pendingAllowedPermissions != nil else { return false }
+        guard let hint = pendingInstallDirectoryHint, !hint.isEmpty else {
+            // No hint: apply only to the newest catalog entry (last install).
+            return entry.directoryName == catalogNewestDirectoryName()
+        }
+        if entry.directoryName.lowercased() == hint { return true }
+        if entry.chromeStoreID?.lowercased() == hint { return true }
+        if entry.firefoxSlug?.lowercased() == hint { return true }
+        return false
+    }
+
+    private func catalogNewestDirectoryName() -> String? {
+        loadCatalog().last?.directoryName
+    }
+
+    @available(macOS 15.4, iOS 18.4, *)
+    private static func permissionName(_ permission: WKWebExtension.Permission) -> String {
+        if let raw = Mirror(reflecting: permission).descendant("rawValue") as? String {
+            return raw
+        }
+        return String(describing: permission)
+    }
+
+    private static func loadDeniedPermissions(fileName: String) -> [String: Set<String>] {
+        guard let loaded = try? JSONFileStore.load([String: [String]].self, from: fileName) else {
+            return [:]
+        }
+        var result: [String: Set<String>] = [:]
+        for (key, values) in loaded {
+            result[key] = Set(values)
+        }
+        return result
+    }
+
+    private func persistDeniedPermissions() {
+        var payload: [String: [String]] = [:]
+        for (key, values) in deniedPermissionsByDirectory {
+            payload[key] = values.sorted()
+        }
+        try? JSONFileStore.save(payload, to: deniedPermissionsFileName)
     }
 }
 

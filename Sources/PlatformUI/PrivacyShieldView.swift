@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Privacy / Shields sheet — readable on iPhone, iPad, and Mac.
 struct PrivacyShieldView: View {
@@ -7,6 +8,8 @@ struct PrivacyShieldView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var isClearing = false
     @State private var clearMessage: String?
+    @State private var showFilterImporter = false
+    @State private var filterImportMessage: String?
 
     private var host: String? {
         let value = environment.activeTab?.navigation.url?.host
@@ -152,7 +155,7 @@ struct PrivacyShieldView: View {
         } header: {
             Text("Global shields")
         } footer: {
-            Text("Shields use Apple’s content blocker engine (like Safari). Oriel uses Safari’s real User-Agent so sites are less likely to show bot checks. Most web ads and many YouTube ads are blocked; some first-party stacks can still slip through.")
+            Text("Shields use Apple’s content blocker engine (like Safari). Oriel uses Safari’s real User-Agent so sites are less likely to show bot checks. This is not Brave Shields: there is no separate Tor/VPN stack, and some first-party ad scripts can still load.")
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -277,6 +280,24 @@ struct PrivacyShieldView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            Button("Import custom filter list…") {
+                showFilterImporter = true
+            }
+            if environment.contentBlocker.hasCustomFilterList {
+                Button("Remove custom filter list", role: .destructive) {
+                    Task {
+                        await environment.contentBlocker.clearCustomFilterList()
+                        filterImportMessage = "Custom filter list removed."
+                    }
+                }
+            }
+            if let filterImportMessage {
+                Text(filterImportMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             if let error = environment.contentBlocker.lastError {
                 Text(error)
                     .font(.footnote)
@@ -288,7 +309,35 @@ struct PrivacyShieldView: View {
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("Status")
+            Text("Filter engine")
+        } footer: {
+            Text("Import a WebKit content-blocker JSON array (Safari format). Adblock Plus / uBO lists need converting first.")
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .fileImporter(
+            isPresented: $showFilterImporter,
+            allowedContentTypes: [.json, .text],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                Task { await importFilterList(from: url) }
+            case .failure(let error):
+                filterImportMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func importFilterList(from url: URL) async {
+        let accessed = url.startAccessingSecurityScopedResource()
+        defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+        do {
+            let data = try Data(contentsOf: url)
+            try await environment.contentBlocker.importCustomFilterList(data)
+            filterImportMessage = "Custom filter list installed (\(environment.contentBlocker.ruleCount) total rules)."
+        } catch {
+            filterImportMessage = error.localizedDescription
         }
     }
 

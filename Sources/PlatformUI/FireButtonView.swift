@@ -22,7 +22,7 @@ struct FireButtonView: View {
                     Toggle("Browsing history", isOn: $options.history)
                     Toggle("Cookies & website data", isOn: $options.cookiesAndSiteData)
                     Toggle("Downloads list", isOn: $options.downloads)
-                    Toggle("Open Later queue", isOn: $options.openLaterQueue)
+                    Toggle("Reading List", isOn: $options.openLaterQueue)
                     Toggle("Site permissions", isOn: $options.sitePermissions)
                 }
 

@@ -420,19 +420,40 @@ final class AppEnvironment {
               !URLParser.isStartPage(url),
               let credential = await PasswordAutofillService.requestCredentials(for: url),
               let webView = tab.webView else { return }
-        let user = credential.user.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
-        let pass = credential.password.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
+        // Prefer JSON encoding so quotes/newlines in passwords cannot break the script.
+        guard
+            let userData = try? JSONEncoder().encode(credential.user),
+            let passData = try? JSONEncoder().encode(credential.password),
+            let userJSON = String(data: userData, encoding: .utf8),
+            let passJSON = String(data: passData, encoding: .utf8)
+        else { return }
         let script = """
         (function(){
-          var user = document.querySelector('input[type=email],input[type=text],input[name*=user i],input[name*=email i],input[autocomplete=username]');
-          var pass = document.querySelector('input[type=password]');
-          if (user) { user.focus(); user.value = '\(user)'; user.dispatchEvent(new Event('input',{bubbles:true})); }
-          if (pass) { pass.focus(); pass.value = '\(pass)'; pass.dispatchEvent(new Event('input',{bubbles:true})); }
-          return !!(user || pass);
+          var userValue = \(userJSON);
+          var passValue = \(passJSON);
+          function setValue(el, value) {
+            if (!el) return false;
+            el.focus();
+            var proto = window.HTMLInputElement && HTMLInputElement.prototype;
+            var desc = proto && Object.getOwnPropertyDescriptor(proto, 'value');
+            if (desc && desc.set) { desc.set.call(el, value); }
+            else { el.value = value; }
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+          }
+          var form = document.querySelector('form');
+          var scope = form || document;
+          var user = scope.querySelector('input[autocomplete="username"],input[autocomplete="email"],input[type="email"],input[name*="user" i],input[name*="email" i],input[id*="user" i],input[id*="email" i],input[type="text"]');
+          var pass = scope.querySelector('input[type="password"],input[autocomplete="current-password"],input[autocomplete="new-password"]');
+          var filledUser = setValue(user, userValue);
+          var filledPass = setValue(pass, passValue);
+          if (filledPass && pass) pass.focus();
+          else if (filledUser && user) user.focus();
+          return filledUser || filledPass;
         })();
         """
         webView.evaluateJavaScript(script, in: nil, in: .page) { _ in }
-        icloudSync.pushAll()
     }
 
     func installCurrentPageAsWebApp() async {

@@ -9,9 +9,9 @@ struct LinkQueueView: View {
             Group {
                 if environment.linkQueue.items.isEmpty {
                     ContentUnavailableView(
-                        "Queue is empty",
-                        systemImage: "tray",
-                        description: Text("Use Open Later on a link to save it here.")
+                        "Reading List is empty",
+                        systemImage: "text.book.closed",
+                        description: Text("Save pages with Add to Reading List, then open them here.")
                     )
                 } else {
                     List {
@@ -19,9 +19,16 @@ struct LinkQueueView: View {
                             HStack(spacing: 12) {
                                 FaviconImage(pageURL: item.url, size: 18)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(item.title)
-                                        .font(.body.weight(.medium))
-                                        .lineLimit(1)
+                                    HStack(spacing: 6) {
+                                        if item.isUnread {
+                                            Circle()
+                                                .fill(environment.settings.brandColor)
+                                                .frame(width: 7, height: 7)
+                                        }
+                                        Text(item.title)
+                                            .font(.body.weight(item.isUnread ? .semibold : .medium))
+                                            .lineLimit(1)
+                                    }
                                     Text(item.urlString)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -33,18 +40,29 @@ struct LinkQueueView: View {
                                 }
                                 .buttonStyle(.bordered)
                             }
-                            .swipeActions {
+                            .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {
                                     environment.linkQueue.remove(id: item.id)
                                 } label: {
                                     Label("Remove", systemImage: "trash")
                                 }
                             }
+                            .swipeActions(edge: .leading) {
+                                Button {
+                                    environment.linkQueue.toggleReader(id: item.id)
+                                } label: {
+                                    Label(
+                                        item.openInReader ? "Normal" : "Reader",
+                                        systemImage: "doc.plaintext"
+                                    )
+                                }
+                                .tint(environment.settings.brandColor)
+                            }
                         }
                     }
                 }
             }
-            .navigationTitle("Open Later")
+            .navigationTitle("Reading List")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -56,7 +74,7 @@ struct LinkQueueView: View {
                     Menu {
                         Button("Open All") { openAll() }
                             .disabled(environment.linkQueue.items.isEmpty)
-                        Button("Clear Queue", role: .destructive) {
+                        Button("Clear List", role: .destructive) {
                             environment.linkQueue.clear()
                         }
                         .disabled(environment.linkQueue.items.isEmpty)
@@ -70,8 +88,15 @@ struct LinkQueueView: View {
 
     private func open(_ item: QueuedLink) {
         guard let url = item.url else { return }
+        let preferReader = item.openInReader
+        environment.linkQueue.markRead(id: item.id)
         environment.linkQueue.remove(id: item.id)
         environment.openURLInNewTab(url)
+        if preferReader {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                environment.activeTab?.toggleReaderMode()
+            }
+        }
         dismiss()
     }
 
