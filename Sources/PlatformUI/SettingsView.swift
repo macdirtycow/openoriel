@@ -272,8 +272,7 @@ private struct AppearanceSettingsPage: View {
                 ForEach(BrowserEdition.allCases) { edition in
                     Button {
                         environment.extensionThemes.clearActive()
-                        settings.selectEdition(edition, applySuggestedLook: true)
-                        environment.icloudSync.noteLocalChange()
+                        environment.selectBrowserEdition(edition, applySuggestedLook: true)
                     } label: {
                         HStack(alignment: .top, spacing: 12) {
                             Image(systemName: edition.systemImage)

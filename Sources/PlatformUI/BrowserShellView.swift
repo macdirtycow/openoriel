@@ -14,23 +14,33 @@ struct BrowserShellView: View {
         let tab = environment.tabs.activeTab
 
         GeometryReader { proxy in
-            Group {
-                if let tab {
-                    #if os(macOS)
-                    macShell(tab: tab, environment: environment)
-                    #else
-                    if proxy.size.width >= Self.padChromeMinWidth {
-                        iPadShell(tab: tab, environment: environment)
+            ZStack(alignment: .bottomTrailing) {
+                Group {
+                    if let tab {
+                        #if os(macOS)
+                        macShell(tab: tab, environment: environment)
+                        #else
+                        if proxy.size.width >= Self.padChromeMinWidth {
+                            iPadShell(tab: tab, environment: environment)
+                        } else {
+                            iPhoneShell(tab: tab, environment: environment)
+                        }
+                        #endif
                     } else {
-                        iPhoneShell(tab: tab, environment: environment)
+                        ProgressView("Starting Oriel…")
+                            .accessibilityLabel("Starting Oriel")
                     }
-                    #endif
-                } else {
-                    ProgressView("Starting Oriel…")
-                        .accessibilityLabel("Starting Oriel")
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
+
+                if environment.showPulseCorner, environment.settings.edition.isPulse {
+                    PulseCornerView()
+                        .padding(12)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                        .zIndex(20)
                 }
             }
-            .frame(width: proxy.size.width, height: proxy.size.height)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: environment.showPulseCorner)
         }
         #if os(iOS)
         .background {
@@ -911,6 +921,12 @@ struct BrowserShellView: View {
             Button("Pulse", systemImage: "bolt.horizontal") {
                 environment.showPulsePerformance = true
             }
+            Button(environment.showPulseCorner ? "Hide Pulse Corner" : "Pulse Corner", systemImage: "rectangle.rightthird.inset.filled") {
+                environment.showPulseCorner.toggle()
+                if environment.showPulseCorner {
+                    environment.settings.pulseCornerEnabled = true
+                }
+            }
         }
         Button("Fire…", systemImage: "flame", role: .destructive) {
             environment.showFireButton = true
@@ -995,6 +1011,12 @@ struct BrowserShellView: View {
         if environment.settings.edition.isPulse {
             Button("Pulse", systemImage: "bolt.horizontal") {
                 environment.showPulsePerformance = true
+            }
+            Button(environment.showPulseCorner ? "Hide Pulse Corner" : "Pulse Corner", systemImage: "rectangle.rightthird.inset.filled") {
+                environment.showPulseCorner.toggle()
+                if environment.showPulseCorner {
+                    environment.settings.pulseCornerEnabled = true
+                }
             }
         }
         Button("Fire…", systemImage: "flame", role: .destructive) {
@@ -1224,7 +1246,7 @@ struct BrowserShellView: View {
         ZStack {
             BrowserWebView(
                 tab: tab,
-                contentRuleLists: environment.contentBlocker.compiledLists,
+                contentRuleLists: environment.contentBlocker.activeCompiledLists,
                 blockThirdPartyCookies: environment.privacy.blockThirdPartyCookies,
                 fingerprintingProtection: environment.privacy.fingerprintingProtection,
                 contentBlockingEnabled: environment.contentBlockingEnabled(for: tab),

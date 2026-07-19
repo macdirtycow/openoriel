@@ -11,6 +11,33 @@ struct WorkspacesView: View {
         NavigationStack {
             List {
                 Section {
+                    ForEach(WorkspacePreset.allCases) { preset in
+                        Button {
+                            environment.applyWorkspacePreset(preset)
+                            dismiss()
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: preset.systemImage)
+                                    .foregroundStyle(environment.settings.brandColor)
+                                    .frame(width: 28)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(preset.displayName)
+                                        .foregroundStyle(.primary)
+                                    Text(preset.subtitle)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Pulse presets")
+                } footer: {
+                    Text("Creates a workspace with starter tabs and Pulse performance defaults. Same privacy model as Classic Oriel.")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Section {
                     ForEach(environment.workspaces.workspaces) { workspace in
                         Button {
                             environment.switchWorkspace(id: workspace.id)

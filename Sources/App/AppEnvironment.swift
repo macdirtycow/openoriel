@@ -31,6 +31,8 @@ final class AppEnvironment {
     let installedWebApps: InstalledWebAppStore
     let workspaces: WorkspaceStore
     let defaultBrowser: DefaultBrowserService
+    let appIcon: AppIconService
+    let pulseAmbience: PulseAmbiencePlayer
 
     var showAbout = false
     var showTabOverview = false
@@ -54,6 +56,8 @@ final class AppEnvironment {
     var showWorkspaces = false
     var showPictureInPicturePicker = false
     var showPulsePerformance = false
+    /// Compact Pulse Corner overlay (GX-style control strip).
+    var showPulseCorner = false
     var useVerticalTabs = false
     /// When set, content shows this tab beside the active tab.
     var splitTabID: UUID?
@@ -124,6 +128,8 @@ final class AppEnvironment {
         self.installedWebApps = installedWebApps ?? InstalledWebAppStore()
         self.workspaces = workspaces ?? WorkspaceStore()
         self.defaultBrowser = defaultBrowser ?? DefaultBrowserService()
+        self.appIcon = AppIconService()
+        self.pulseAmbience = PulseAmbiencePlayer()
         resolvedSession.restorePreviousSession = resolvedSettings.restorePreviousSession
 
         let snapshot = resolvedSession.load()
@@ -194,7 +200,83 @@ final class AppEnvironment {
         )
         self.useVerticalTabs = UserDefaults.standard.bool(forKey: "oriel.verticalTabs")
 
-        Task { await resolvedBlocker.prepare() }
+        Task {
+            await resolvedBlocker.prepare()
+            syncPulseRuntimeFlags()
+        }
+        NotificationCenter.default.addObserver(
+            forName: ProcessInfo.powerStateDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.syncPulseRuntimeFlags()
+            }
+        }
+        if resolvedSettings.edition.isPulse, resolvedSettings.pulseCornerEnabled {
+            showPulseCorner = true
+        }
+        Task { await self.appIcon.applyForEdition(resolvedSettings.edition) }
+    }
+
+    /// Keep Data Saver / WebView pool / corner visibility aligned with Pulse + battery state.
+    func syncPulseRuntimeFlags() {
+        settings.refreshPulsePoolLimitPublic()
+        contentBlocker.setDataSaverEnabled(settings.effectiveDataSaver)
+        if settings.edition.isPulse, settings.pulseCornerEnabled {
+            // Don't auto-open over sheets; only ensure flag can be used.
+        } else {
+            showPulseCorner = false
+            if !settings.edition.isPulse {
+                pulseAmbience.stop()
+            }
+        }
+    }
+
+    func selectBrowserEdition(_ edition: BrowserEdition, applySuggestedLook: Bool) {
+        settings.selectEdition(edition, applySuggestedLook: applySuggestedLook)
+        showPulseCorner = edition.isPulse && settings.pulseCornerEnabled
+        syncPulseRuntimeFlags()
+        Task { await appIcon.applyForEdition(edition) }
+        icloudSync.noteLocalChange()
+    }
+
+    func applyWorkspacePreset(_ preset: WorkspacePreset) {
+        if preset.prefersPulse {
+            settings.selectEdition(.pulse, applySuggestedLook: true)
+            showPulseCorner = settings.pulseCornerEnabled
+        }
+        settings.pulseWebViewLimit = preset.webViewLimit
+        settings.pulseDataSaver = preset.dataSaver
+        settings.pulseAggressiveTabUnload = true
+        #if os(macOS)
+        setVerticalTabsEnabled(preset.verticalTabs)
+        #endif
+        Task { await appIcon.applyForEdition(settings.edition) }
+
+        let urls = preset.seedURLs
+        var snapshots: [SessionSnapshot.TabSnapshot] = []
+        for url in urls {
+            snapshots.append(
+                SessionSnapshot.TabSnapshot(
+                    id: UUID(),
+                    urlString: url.absoluteString,
+                    title: url.host ?? preset.displayName,
+                    isPrivate: false,
+                    isPinned: false
+                )
+            )
+        }
+        let seed = SessionSnapshot(
+            tabs: snapshots,
+            activeTabID: snapshots.first?.id,
+            groups: [],
+            savedAt: .now
+        )
+        let created = workspaces.create(name: preset.displayName, snapshot: seed)
+        switchWorkspace(id: created.id)
+        syncPulseRuntimeFlags()
+        icloudSync.noteLocalChange()
     }
 
     private var sessionPersistTask: Task<Void, Never>?

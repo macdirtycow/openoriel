@@ -33,7 +33,7 @@ struct PulsePerformanceView: View {
     private var formContent: some View {
         Form {
             Section {
-                Text("Oriel Pulse can limit how many live page engines stay in memory. This is not a system CPU or RAM governor like some desktop gaming browsers claim — WebKit does not expose that.")
+                Text("Oriel Pulse can limit live page engines, block images (Data Saver), react to Low Power Mode, and play local ambience. This is not a system CPU, RAM, or network governor — WebKit does not expose that.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -44,6 +44,7 @@ struct PulsePerformanceView: View {
                     get: { environment.settings.pulseWebViewLimit },
                     set: {
                         environment.settings.pulseWebViewLimit = $0
+                        environment.syncPulseRuntimeFlags()
                         environment.icloudSync.noteLocalChange()
                     }
                 )) {
@@ -56,6 +57,23 @@ struct PulsePerformanceView: View {
                     get: { environment.settings.pulseAggressiveTabUnload },
                     set: {
                         environment.settings.pulseAggressiveTabUnload = $0
+                        environment.syncPulseRuntimeFlags()
+                        environment.icloudSync.noteLocalChange()
+                    }
+                ))
+                Toggle("Data Saver (block images)", isOn: Binding(
+                    get: { environment.settings.pulseDataSaver },
+                    set: {
+                        environment.settings.pulseDataSaver = $0
+                        environment.syncPulseRuntimeFlags()
+                        environment.icloudSync.noteLocalChange()
+                    }
+                ))
+                Toggle("Battery Saver (follow Low Power Mode)", isOn: Binding(
+                    get: { environment.settings.pulseBatterySaver },
+                    set: {
+                        environment.settings.pulseBatterySaver = $0
+                        environment.syncPulseRuntimeFlags()
                         environment.icloudSync.noteLocalChange()
                     }
                 ))
@@ -69,8 +87,63 @@ struct PulsePerformanceView: View {
             } header: {
                 Text("Performance")
             } footer: {
-                Text("Lower engine counts free memory when you keep many tabs open. Active and protected tabs are kept.")
+                Text("Data Saver uses a WebKit content rule for images. Battery Saver tightens the engine cap when iOS/macOS Low Power Mode is on.")
                     .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Section {
+                Picker("Ambience", selection: Binding(
+                    get: { environment.pulseAmbience.track },
+                    set: { environment.pulseAmbience.select($0) }
+                )) {
+                    ForEach(PulseAmbiencePlayer.Track.allCases) { track in
+                        Text(track.displayName).tag(track)
+                    }
+                }
+                if environment.pulseAmbience.track != .off {
+                    Slider(value: Binding(
+                        get: { Double(environment.pulseAmbience.volume) },
+                        set: { environment.pulseAmbience.volume = Float($0) }
+                    ), in: 0...0.6)
+                }
+            } header: {
+                Text("Soundscape")
+            } footer: {
+                Text("Local procedural tones only — nothing is uploaded or streamed from a third party.")
+            }
+
+            Section {
+                Toggle("Show Pulse Corner", isOn: Binding(
+                    get: { environment.showPulseCorner },
+                    set: {
+                        environment.showPulseCorner = $0
+                        environment.settings.pulseCornerEnabled = $0
+                    }
+                ))
+                #if os(iOS)
+                if environment.appIcon.supportsAlternateIcons {
+                    Toggle("Pulse home-screen icon", isOn: Binding(
+                        get: { environment.appIcon.isPulseIconActive },
+                        set: { enabled in
+                            Task { await environment.appIcon.setPulseIcon(enabled) }
+                        }
+                    ))
+                }
+                #else
+                Toggle("Pulse Dock icon", isOn: Binding(
+                    get: { environment.appIcon.isPulseIconActive },
+                    set: { enabled in
+                        Task { await environment.appIcon.setPulseIcon(enabled) }
+                    }
+                ))
+                #endif
+                if let error = environment.appIcon.lastError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            } header: {
+                Text("Chrome")
             }
 
             Section {
@@ -91,16 +164,13 @@ struct PulsePerformanceView: View {
                 }
             } header: {
                 Text("Privacy HUD")
-            } footer: {
-                Text("Same Oriel privacy stack — Pulse only changes chrome and performance knobs.")
-                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Section {
                 Button("Switch back to Classic Oriel") {
-                    environment.settings.selectEdition(.classic, applySuggestedLook: true)
+                    environment.selectBrowserEdition(.classic, applySuggestedLook: true)
                     environment.extensionThemes.clearActive()
-                    environment.icloudSync.noteLocalChange()
+                    Task { await environment.appIcon.setPulseIcon(false) }
                     if showsDoneButton { dismiss() }
                 }
             }

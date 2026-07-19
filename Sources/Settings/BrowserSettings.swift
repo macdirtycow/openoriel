@@ -120,6 +120,21 @@ final class BrowserSettings {
         }
     }
 
+    /// Block image resources via a WebKit content rule (Data Saver).
+    var pulseDataSaver: Bool {
+        didSet { defaults.set(pulseDataSaver, forKey: pulseDataSaverKey) }
+    }
+
+    /// When Low Power Mode is on, auto-tighten Pulse limits.
+    var pulseBatterySaver: Bool {
+        didSet { defaults.set(pulseBatterySaver, forKey: pulseBatterySaverKey) }
+    }
+
+    /// Show the persistent Pulse Corner panel when Pulse is active.
+    var pulseCornerEnabled: Bool {
+        didSet { defaults.set(pulseCornerEnabled, forKey: pulseCornerEnabledKey) }
+    }
+
     var homepageURL: URL {
         if let url = URL(string: homepageURLString), url.scheme != nil {
             return url
@@ -208,14 +223,27 @@ final class BrowserSettings {
         refreshPulsePoolLimit()
     }
 
+    func refreshPulsePoolLimitPublic() {
+        refreshPulsePoolLimit()
+    }
+
     private func refreshPulsePoolLimit() {
         if edition.isPulse {
-            WebViewPool.shared.softLimit = pulseAggressiveTabUnload
-                ? pulseWebViewLimit
-                : max(pulseWebViewLimit, 10)
+            var limit = pulseAggressiveTabUnload ? pulseWebViewLimit : max(pulseWebViewLimit, 10)
+            if pulseBatterySaver, ProcessInfo.processInfo.isLowPowerModeEnabled {
+                limit = min(limit, 4)
+            }
+            WebViewPool.shared.softLimit = limit
         } else {
             WebViewPool.shared.softLimit = 12
         }
+    }
+
+    /// Effective data-saver flag (manual toggle, or battery auto when enabled).
+    var effectiveDataSaver: Bool {
+        guard edition.isPulse else { return false }
+        if pulseDataSaver { return true }
+        return pulseBatterySaver && ProcessInfo.processInfo.isLowPowerModeEnabled
     }
 
     func applyExtensionTheme(
@@ -259,6 +287,9 @@ final class BrowserSettings {
     private let editionKey = "oriel.browserEdition"
     private let pulseWebViewLimitKey = "oriel.pulseWebViewLimit"
     private let pulseAggressiveUnloadKey = "oriel.pulseAggressiveTabUnload"
+    private let pulseDataSaverKey = "oriel.pulseDataSaver"
+    private let pulseBatterySaverKey = "oriel.pulseBatterySaver"
+    private let pulseCornerEnabledKey = "oriel.pulseCornerEnabled"
     private let activeExtensionThemeKey = "oriel.activeExtensionThemeID"
     private let customAccentRGBKey = "oriel.customAccentRGB"
     private let customBackgroundRGBKey = "oriel.customBackgroundRGB"
@@ -331,6 +362,17 @@ final class BrowserSettings {
             self.pulseAggressiveTabUnload = true
         } else {
             self.pulseAggressiveTabUnload = defaults.bool(forKey: pulseAggressiveUnloadKey)
+        }
+        self.pulseDataSaver = defaults.bool(forKey: pulseDataSaverKey)
+        if defaults.object(forKey: pulseBatterySaverKey) == nil {
+            self.pulseBatterySaver = true
+        } else {
+            self.pulseBatterySaver = defaults.bool(forKey: pulseBatterySaverKey)
+        }
+        if defaults.object(forKey: pulseCornerEnabledKey) == nil {
+            self.pulseCornerEnabled = true
+        } else {
+            self.pulseCornerEnabled = defaults.bool(forKey: pulseCornerEnabledKey)
         }
         self.activeExtensionThemeID = defaults.string(forKey: activeExtensionThemeKey)
         self.customAccentRGB = Self.doubleArray(from: defaults, key: customAccentRGBKey)

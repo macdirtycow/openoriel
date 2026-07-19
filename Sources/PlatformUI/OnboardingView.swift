@@ -145,7 +145,7 @@ struct OnboardingView: View {
             VStack(spacing: 10) {
                 ForEach(BrowserEdition.allCases) { edition in
                     Button {
-                        environment.settings.selectEdition(edition, applySuggestedLook: true)
+                        environment.selectBrowserEdition(edition, applySuggestedLook: true)
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: edition.systemImage)

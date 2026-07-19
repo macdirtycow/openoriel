@@ -83,6 +83,8 @@ final class ContentBlockerManager {
     private let customListIdentifier = "oriel.rules.custom.v1"
     private let customListFileName = "custom-content-rules.json"
     private(set) var hasCustomFilterList = false
+    private(set) var dataSaverList: WKContentRuleList?
+    private var dataSaverEnabled = false
 
     func prepare() async {
         compiledLists = []
@@ -175,6 +177,25 @@ final class ContentBlockerManager {
         if isReady, !loadedPrimary {
             lastError = "Using built-in fallback list (main lists failed to load)."
         }
+        await compileDataSaverList()
+        generation += 1
+    }
+
+    /// Compile (once) a WebKit rule that blocks image resources for Data Saver.
+    private func compileDataSaverList() async {
+        let json = """
+        [{"trigger":{"url-filter":".*","resource-type":["image"]},"action":{"type":"block"}}]
+        """
+        do {
+            dataSaverList = try await compile(json: json, identifier: "\(compileIdentifierPrefix).data-saver")
+        } catch {
+            dataSaverList = nil
+        }
+    }
+
+    func setDataSaverEnabled(_ enabled: Bool) {
+        guard dataSaverEnabled != enabled else { return }
+        dataSaverEnabled = enabled
         generation += 1
     }
 
@@ -252,6 +273,18 @@ final class ContentBlockerManager {
         for list in compiledLists {
             ucc.add(list)
         }
+        if dataSaverEnabled, let dataSaverList {
+            ucc.add(dataSaverList)
+        }
+    }
+
+    /// Lists currently intended for attachment (bundled + optional data saver).
+    var activeCompiledLists: [WKContentRuleList] {
+        var lists = compiledLists
+        if dataSaverEnabled, let dataSaverList {
+            lists.append(dataSaverList)
+        }
+        return lists
     }
 
     /// Prefer EasyList → EasyPrivacy → cosmetic → YouTube; fallback last.

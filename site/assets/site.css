@@ -433,6 +433,58 @@ a:hover {
   transform: none;
 }
 
+.pulse-band {
+  background:
+    radial-gradient(900px 420px at 12% 20%, rgba(51, 235, 224, 0.12), transparent 55%),
+    radial-gradient(700px 360px at 90% 80%, rgba(235, 71, 158, 0.10), transparent 50%),
+    linear-gradient(180deg, #10141f 0%, #161b28 100%);
+  color: #e8eef5;
+}
+
+.pulse-band h2,
+.pulse-band p,
+.pulse-band .note,
+.pulse-band .pulse-kicker {
+  color: inherit;
+}
+
+.pulse-band .note {
+  opacity: 0.75;
+}
+
+.pulse-kicker {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #33ebe0;
+}
+
+.pulse-points {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.pulse-points li {
+  padding-left: 1.1rem;
+  position: relative;
+}
+
+.pulse-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #33ebe0, #eb479e);
+}
+
 @media (max-width: 720px) {
   .nav-links a:not(:last-child) {
     display: none;
