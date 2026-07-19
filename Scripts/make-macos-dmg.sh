@@ -17,14 +17,14 @@ VOL_NAME="Oriel"
 DMG_NAME="Oriel-${MARKETING}-${BUILD}-macOS.dmg"
 DMG_PATH="$OUT_DIR/$DMG_NAME"
 
-echo "→ Building Oriel ${MARKETING} (${BUILD}) for macOS…"
+echo "-> Building Oriel ${MARKETING} (${BUILD}) for macOS..."
 
 if command -v xcodegen >/dev/null 2>&1; then
   xcodegen generate -q
 fi
 
-rm -rf "$DERIVED" "$OUT_DIR"
-mkdir -p "$STAGE" "$OUT_DIR"
+rm -rf "${DERIVED}" "${OUT_DIR}"
+mkdir -p "${STAGE}" "${OUT_DIR}"
 
 # Ad-hoc sign so the binary is runnable; notarization can be added later with release secrets.
 xcodebuild \
@@ -48,25 +48,25 @@ if [[ -z "$APP" || ! -d "$APP" ]]; then
   exit 1
 fi
 
-echo "→ Staging DMG contents…"
-ditto "$APP" "$STAGE/Oriel.app"
-ln -sf /Applications "$STAGE/Applications"
+echo "-> Staging DMG contents..."
+ditto "${APP}" "${STAGE}/Oriel.app"
+ln -sf /Applications "${STAGE}/Applications"
 
-echo "→ Creating $DMG_NAME…"
-rm -f "$DMG_PATH"
+echo "-> Creating ${DMG_NAME}..."
+rm -f "${DMG_PATH}"
 hdiutil create \
-  -volname "$VOL_NAME" \
-  -srcfolder "$STAGE" \
+  -volname "${VOL_NAME}" \
+  -srcfolder "${STAGE}" \
   -ov \
   -format UDZO \
   -imagekey zlib-level=9 \
-  "$DMG_PATH" >/dev/null
+  "${DMG_PATH}" >/dev/null
 
-rm -rf "$STAGE"
+rm -rf "${STAGE}"
 
-shasum -a 256 "$DMG_PATH" | tee "$DMG_PATH.sha256"
+shasum -a 256 "${DMG_PATH}" | tee "${DMG_PATH}.sha256"
 
 echo ""
-echo "✓ DMG ready: $DMG_PATH"
+echo "OK: DMG ready: ${DMG_PATH}"
 echo "  Open the DMG and drag Oriel into Applications."
-echo "  Unsigned / ad-hoc builds: right-click Oriel → Open the first time (Gatekeeper)."
+echo "  Unsigned / ad-hoc builds: right-click Oriel -> Open the first time (Gatekeeper)."
