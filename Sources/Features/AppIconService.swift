@@ -34,8 +34,8 @@ final class AppIconService {
         preferredIconName == "AppIconPulse"
     }
 
-    func applyForEdition(_ edition: BrowserEdition) {
-        Task { await setPulseIcon(edition.isPulse) }
+    func applyForEdition(_ edition: BrowserEdition) async {
+        await setPulseIcon(edition.isPulse)
     }
 
     func setPulseIcon(_ enabled: Bool) async {
@@ -52,10 +52,12 @@ final class AppIconService {
         guard UIApplication.shared.alternateIconName != name else { return }
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             UIApplication.shared.setAlternateIconName(name) { error in
-                if let error {
-                    self.lastError = error.localizedDescription
+                Task { @MainActor in
+                    if let error {
+                        self.lastError = error.localizedDescription
+                    }
+                    cont.resume()
                 }
-                cont.resume()
             }
         }
         #elseif os(macOS)

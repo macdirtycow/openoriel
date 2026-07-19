@@ -1219,6 +1219,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Oriel;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Oriel needs camera access when a website requests it.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © inveil.net";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Oriel needs location access when a website requests it.";
@@ -1234,8 +1235,8 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/build/oriel-engine";
 				MARKETING_VERSION = 1.0.0;
-				"OTHER_CFLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF=1";
-				"OTHER_CPLUSPLUSFLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF=1 -std=c++17";
+				"OTHER_CFLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF=1 -Wno-comma";
+				"OTHER_CPLUSPLUSFLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF=1 -std=c++17 -Wno-comma";
 				"OTHER_LDFLAGS[sdk=macosx*]" = "$(inherited) -lcef_dll_wrapper -lc++ -framework AppKit -framework CoreFoundation";
 				"OTHER_SWIFT_FLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF";
 				PRODUCT_BUNDLE_IDENTIFIER = net.inveil.oriel;
@@ -1318,6 +1319,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Oriel;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Oriel needs camera access when a website requests it.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © inveil.net";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Oriel needs location access when a website requests it.";
@@ -1333,8 +1335,8 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/build/oriel-engine";
 				MARKETING_VERSION = 1.0.0;
-				"OTHER_CFLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF=1";
-				"OTHER_CPLUSPLUSFLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF=1 -std=c++17";
+				"OTHER_CFLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF=1 -Wno-comma";
+				"OTHER_CPLUSPLUSFLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF=1 -std=c++17 -Wno-comma";
 				"OTHER_LDFLAGS[sdk=macosx*]" = "$(inherited) -lcef_dll_wrapper -lc++ -framework AppKit -framework CoreFoundation";
 				"OTHER_SWIFT_FLAGS[sdk=macosx*]" = "$(inherited) -DORIEL_HAS_CEF";
 				PRODUCT_BUNDLE_IDENTIFIER = net.inveil.oriel;

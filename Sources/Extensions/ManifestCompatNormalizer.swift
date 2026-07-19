@@ -192,7 +192,7 @@ enum ManifestCompatNormalizer {
         ]
         for url in preferred where fileManager.fileExists(atPath: url.path) {
             seen.insert(url.standardizedFileURL.path)
-            try? normalize(at: url)
+            _ = try? normalize(at: url)
         }
         guard let enumerator = fileManager.enumerator(
             at: packageRoot,
@@ -203,7 +203,7 @@ enum ManifestCompatNormalizer {
             let path = fileURL.standardizedFileURL.path
             guard !seen.contains(path) else { continue }
             seen.insert(path)
-            try? normalize(at: fileURL)
+            _ = try? normalize(at: fileURL)
         }
     }
 }

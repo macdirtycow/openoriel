@@ -103,6 +103,7 @@ targets:
       INFOPLIST_KEY_NSMicrophoneUsageDescription: "Oriel needs microphone access when a website requests it."
       INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Oriel needs location access when a website requests it."
       INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+      INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
       TARGETED_DEVICE_FAMILY: "1,2"
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
@@ -114,8 +115,8 @@ targets:
       # Mac Oriel Engine (CEF/Blink) — requires Scripts/enable-cef-macos.sh once.
       "SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=macosx*]": "$(inherited) ORIEL_HAS_CEF"
       "OTHER_SWIFT_FLAGS[sdk=macosx*]": "$(inherited) -DORIEL_HAS_CEF"
-      "OTHER_CFLAGS[sdk=macosx*]": "$(inherited) -DORIEL_HAS_CEF=1"
-      "OTHER_CPLUSPLUSFLAGS[sdk=macosx*]": "$(inherited) -DORIEL_HAS_CEF=1 -std=c++17"
+      "OTHER_CFLAGS[sdk=macosx*]": "$(inherited) -DORIEL_HAS_CEF=1 -Wno-comma"
+      "OTHER_CPLUSPLUSFLAGS[sdk=macosx*]": "$(inherited) -DORIEL_HAS_CEF=1 -std=c++17 -Wno-comma"
       "HEADER_SEARCH_PATHS[sdk=macosx*]": "$(inherited) $(SRCROOT)/Vendor/CEF"
       "LIBRARY_SEARCH_PATHS[sdk=macosx*]": "$(inherited) $(SRCROOT)/build/oriel-engine"
       "OTHER_LDFLAGS[sdk=macosx*]": "$(inherited) -lcef_dll_wrapper -lc++ -framework AppKit -framework CoreFoundation"

@@ -301,7 +301,7 @@ final class WebExtensionManager {
             try? controller.unload(context)
         }
 
-        var catalog = dedupeCatalog(loadCatalog())
+        let catalog = dedupeCatalog(loadCatalog())
         saveCatalog(catalog)
         var loaded: [InstalledExtensionInfo] = []
 

@@ -57,7 +57,9 @@ enum ChromiumNativeHost {
             configuration: config
         ) { _, error in
             if error != nil {
-                _ = ChromiumEngineBridge.openInSystemChromium(url)
+                Task { @MainActor in
+                    _ = ChromiumEngineBridge.openInSystemChromium(url)
+                }
             }
         }
         return true

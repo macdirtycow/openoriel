@@ -8,13 +8,16 @@ struct CefWebHostView: NSViewRepresentable {
     var onDownload: (URL, String?) -> Void
 
     @MainActor
-    final class Coordinator: NSObject, OrielCEFHostDelegate {
+    final class Coordinator: NSObject {
         var parent: CefWebHostView
         var host: OrielCEFHost?
         var lastLoaded: URL?
+        let delegateProxy = CEFDelegateProxy()
 
         init(_ parent: CefWebHostView) {
             self.parent = parent
+            super.init()
+            delegateProxy.coordinator = self
         }
 
         func bindHooks() {
@@ -32,24 +35,33 @@ struct CefWebHostView: NSViewRepresentable {
             parent.tab.cefReload = nil
             parent.tab.cefStop = nil
         }
+    }
+
+    /// ObjC CEF callbacks arrive off the Swift concurrency domain — hop to MainActor.
+    final class CEFDelegateProxy: NSObject, OrielCEFHostDelegate {
+        weak var coordinator: Coordinator?
 
         func cefHostDidChangeState() {
-            guard let host else { return }
-            if let url = host.url {
-                parent.tab.navigation.url = url
-                parent.tab.navigation.syncAddressBarFromURL()
+            Task { @MainActor in
+                guard let coordinator, let host = coordinator.host else { return }
+                if let url = host.url {
+                    coordinator.parent.tab.navigation.url = url
+                    coordinator.parent.tab.navigation.syncAddressBarFromURL()
+                }
+                let title = host.title
+                if !title.isEmpty {
+                    coordinator.parent.tab.navigation.title = title
+                }
+                coordinator.parent.tab.navigation.isLoading = host.isLoading
+                coordinator.parent.tab.navigation.canGoBack = host.canGoBack
+                coordinator.parent.tab.navigation.canGoForward = host.canGoForward
             }
-            let title = host.title
-            if !title.isEmpty {
-                parent.tab.navigation.title = title
-            }
-            parent.tab.navigation.isLoading = host.isLoading
-            parent.tab.navigation.canGoBack = host.canGoBack
-            parent.tab.navigation.canGoForward = host.canGoForward
         }
 
         func cefHostDidStartDownload(_ url: URL, suggestedName name: String) {
-            parent.onDownload(url, name)
+            Task { @MainActor in
+                coordinator?.parent.onDownload(url, name)
+            }
         }
     }
 
@@ -62,7 +74,7 @@ struct CefWebHostView: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         MainActor.assumeIsolated {
             let host = OrielCEFHost(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
-            host.delegate = context.coordinator
+            host.delegate = context.coordinator.delegateProxy
             context.coordinator.host = host
             context.coordinator.bindHooks()
             sync(host: host, coordinator: context.coordinator)
