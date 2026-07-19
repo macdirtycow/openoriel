@@ -595,6 +595,14 @@ private struct AccountsSettingsPage: View {
                 Button("Autofill Password for This Site") {
                     Task { await environment.autofillPasswordForActivePage() }
                 }
+                Button("Password Vault…") {
+                    environment.showPasswordVault = true
+                }
+                #if os(macOS)
+                Button("Mac Governors…") {
+                    environment.showMacGovernors = true
+                }
+                #endif
                 Button("Workspaces…") {
                     environment.showWorkspaces = true
                 }
@@ -605,7 +613,7 @@ private struct AccountsSettingsPage: View {
                 ))
                 #endif
             } footer: {
-                Text("iCloud Sync mirrors bookmarks, Reading List, history, open tabs, and appearance. Passwords use the system Keychain.")
+                Text("iCloud Sync mirrors bookmarks, Reading List, history, open tabs, and appearance. The Password Vault is encrypted on this device; iCloud Keychain remains available via Autofill.")
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

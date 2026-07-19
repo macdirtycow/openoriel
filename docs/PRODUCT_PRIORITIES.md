@@ -25,8 +25,8 @@ Work this order. Do not skip ahead for polish or marketing until the layer above
 
 **Ship status**
 - iCloud KVS: bookmarks, settings, history (cap 200), open-tab session, Open Later.
-- Passwords: system Keychain autofill picker only (no Oriel password DB).
-- Next: bookmark tombstones, “tabs from other devices” UI, tighten autofill injection.
+- Passwords: system Keychain autofill **and** optional encrypted Oriel Password Vault (AES-GCM, Keychain-wrapped key).
+- Next: tighten autofill injection; optional vault sync is intentionally out of scope for KVS.
 
 ## 3. Privacy
 

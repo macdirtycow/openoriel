@@ -153,7 +153,17 @@ struct BrowserShellView: View {
                 .orielSheetChrome()
                 .orielTheming(settings: environment.settings)
         }
+        .sheet(isPresented: $environment.showMacGovernors) {
+            MacGovernorsView()
+                .orielSheetChrome()
+                .orielTheming(settings: environment.settings)
+        }
         #endif
+        .sheet(isPresented: $environment.showPasswordVault) {
+            PasswordVaultView()
+                .orielSheetChrome()
+                .orielTheming(settings: environment.settings)
+        }
         .sheet(isPresented: $environment.showTranslate) {
             TranslatePageView()
                 .orielSheetChrome()
@@ -980,7 +990,13 @@ struct BrowserShellView: View {
         Button("Chromium…", systemImage: "cpu") {
             environment.showChromiumFeatures = true
         }
+        Button("Mac Governors…", systemImage: "gauge.with.dots.needle.33percent") {
+            environment.showMacGovernors = true
+        }
         #endif
+        Button("Password Vault…", systemImage: "key.fill") {
+            environment.showPasswordVault = true
+        }
         if environment.settings.edition.isPulse {
             Button("Pulse", systemImage: "square.split.2x2") {
                 environment.showPulsePerformance = true
@@ -1076,7 +1092,13 @@ struct BrowserShellView: View {
         Button("Chromium…", systemImage: "cpu") {
             environment.showChromiumFeatures = true
         }
+        Button("Mac Governors…", systemImage: "gauge.with.dots.needle.33percent") {
+            environment.showMacGovernors = true
+        }
         #endif
+        Button("Password Vault…", systemImage: "key.fill") {
+            environment.showPasswordVault = true
+        }
         if environment.settings.edition.isPulse {
             Button("Pulse", systemImage: "square.split.2x2") {
                 environment.showPulsePerformance = true
@@ -1233,6 +1255,14 @@ struct BrowserShellView: View {
             Task { await environment.autofillPasswordForActivePage() }
         }
         .disabled(tab.isShowingStartPage)
+        Button("Password Vault…") {
+            environment.showPasswordVault = true
+        }
+        #if os(macOS)
+        Button("Mac Governors…") {
+            environment.showMacGovernors = true
+        }
+        #endif
         Button("Hide Element…") {
             tab.startElementPicker()
         }

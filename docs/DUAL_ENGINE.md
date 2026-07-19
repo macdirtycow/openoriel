@@ -20,8 +20,17 @@ Two tabs can differ at the same time: Tab A on `meet.google.com` → Chromium Co
 | Platform | Allowed engines | Oriel behavior |
 |----------|-----------------|----------------|
 | **iPhone / iPad** | **WebKit only** | Always WebKit. |
-| **Mac** | Smart / WebKit / Chromium Compatible / Native | Smart is the default. Native needs a linked CEF framework later. |
+| **Mac** | Smart / WebKit / Chromium Compatible / Native | Smart is the default. |
 
-## Honesty
+## Chromium Native (Mac)
 
-“Chromium Compatible” is **not** Blink — WebKit still paints, with Chrome UA + Client Hints. Hand-off to system Chrome/Arc/Brave/Edge is available when a real Chromium process is required.
+| Mode | When | What runs |
+|------|------|-----------|
+| **Embedded CEF** | `Chromium Embedded Framework` found in the app or `~/Library/Application Support/Oriel/CEF/` | In-app Blink hosting (install via `Scripts/fetch-cef-macos.sh`) |
+| **Managed Chromium** | No CEF yet, but Chrome/Brave/Edge/Arc installed | Real Chromium process in an app-mode window |
+
+“Chromium Compatible” remains **WebKit paint + Chrome UA/Client Hints**.
+
+## Mac governors
+
+CPU / RAM governors throttle page timers and cap live `WKWebView`s under memory pressure. They are real Oriel-side controls — not a fake OS CPU% widget and not a kernel quota.

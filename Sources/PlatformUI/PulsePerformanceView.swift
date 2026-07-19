@@ -225,7 +225,7 @@ struct PulsePerformanceView: View {
             } header: {
                 Text("Shortcuts")
             } footer: {
-                Text("GX-style governors for CPU/RAM/network are not possible with WebKit. These routes are the honest substitutes.")
+                Text("GX-style kernel CPU/RAM gauges are not available through WebKit. On Mac, use Mac Governors for real timer throttle + memory-pressure hibernate. These Pulse routes remain the honest WebKit substitutes.")
                     .fixedSize(horizontal: false, vertical: true)
             }
 

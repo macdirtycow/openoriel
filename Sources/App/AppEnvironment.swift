@@ -35,6 +35,8 @@ final class AppEnvironment {
     let pulseAmbience: PulseAmbiencePlayer
     let chromiumPolicy: ChromiumSitePolicy
     let siteZoom: SiteZoomStore
+    let passwordVault: PasswordVaultStore
+    let macGovernors: MacPerformanceGovernor
 
     var showAbout = false
     var showTabOverview = false
@@ -62,6 +64,8 @@ final class AppEnvironment {
     var showPulseCorner = false
     /// Mac Chromium dual-engine features sheet.
     var showChromiumFeatures = false
+    var showPasswordVault = false
+    var showMacGovernors = false
     var useVerticalTabs = false
     /// When set, content shows this tab beside the active tab.
     var splitTabID: UUID?
@@ -139,6 +143,8 @@ final class AppEnvironment {
         self.pulseAmbience = PulseAmbiencePlayer()
         self.chromiumPolicy = ChromiumSitePolicy()
         self.siteZoom = SiteZoomStore()
+        self.passwordVault = PasswordVaultStore()
+        self.macGovernors = MacPerformanceGovernor()
         resolvedSession.restorePreviousSession = resolvedSettings.restorePreviousSession
 
         let snapshot = resolvedSession.load()
@@ -177,6 +183,7 @@ final class AppEnvironment {
 
         wireTabPrivacyHooks()
         persistSessionNow()
+        macGovernors.attach(environment: self)
         resolvedBookmarks.onDidChange = { [weak self] in
             self?.icloudSync.noteLocalChange()
         }
@@ -573,21 +580,34 @@ final class AppEnvironment {
             item.onResolveEngine = { [weak self] tab, url in
                 self?.applyResolvedEngine(to: tab, host: url?.host)
             }
-            item.shouldHandOffToSystemChromium = { [weak self] url in
-                guard let self else { return false }
+            item.shouldHandOffToSystemChromium = { [weak self, weak item] url in
+                guard let self, let item else { return false }
+                let resolved = self.resolvedEngine(for: item, host: url.host)
+                if resolved == .chromiumNative, ChromiumNativeHost.prefersManagedNativeWindows {
+                    return true
+                }
                 return RenderingEnginePolicy.shouldHandOffToSystemChromium(
                     host: url.host,
                     policy: self.chromiumPolicy
                 )
             }
-            item.onHandOffToSystemChromium = { url in
-                _ = ChromiumEngineBridge.openInSystemChromium(url)
+            item.onHandOffToSystemChromium = { [weak self, weak item] url in
+                guard let self else { return }
+                let resolved = self.resolvedEngine(for: item, host: url.host)
+                if resolved == .chromiumNative {
+                    _ = ChromiumNativeHost.openManagedNativeWindow(url)
+                } else {
+                    _ = ChromiumEngineBridge.openInSystemChromium(url)
+                }
             }
             item.siteZoomProvider = { [weak self] host in
                 self?.siteZoom.zoom(forHost: host) ?? 1.0
             }
             item.onZoomChanged = { [weak self] host, factor in
                 self?.siteZoom.setZoom(factor, forHost: host)
+            }
+            item.onPageEnhanced = { [weak self] tab in
+                self?.macGovernors.applyCPUThrottle(to: tab.webView)
             }
             item.shouldUpgradeHTTPS = { [weak self] url in
                 guard let self else { return true }
@@ -631,15 +651,47 @@ final class AppEnvironment {
     }
 
     func autofillPasswordForActivePage() async {
+        // Prefer Oriel vault when unlocked / unlockable.
+        if passwordVault.isEnabled {
+            if await autofillFromVaultForActivePage() {
+                return
+            }
+        }
         guard let tab = activeTab,
               let url = tab.navigation.url,
               !URLParser.isStartPage(url),
               let credential = await PasswordAutofillService.requestCredentials(for: url),
               let webView = tab.webView else { return }
-        // Prefer JSON encoding so quotes/newlines in passwords cannot break the script.
+        await fillCredentials(user: credential.user, password: credential.password, into: webView)
+        flashStatus("Filled from Keychain")
+    }
+
+    @discardableResult
+    func autofillFromVaultForActivePage() async -> Bool {
+        guard passwordVault.isEnabled else { return false }
+        if !passwordVault.isUnlocked {
+            let ok = await passwordVault.unlock(reason: "Unlock vault to fill a password")
+            guard ok else { return false }
+        }
+        guard let tab = activeTab,
+              let host = tab.navigation.url?.host,
+              let match = passwordVault.credentials(matchingHost: host).first else {
+            return false
+        }
+        await fillVaultCredential(match)
+        return true
+    }
+
+    func fillVaultCredential(_ credential: VaultCredential) async {
+        guard let tab = activeTab, let webView = tab.webView else { return }
+        await fillCredentials(user: credential.username, password: credential.password, into: webView)
+        flashStatus("Filled “\(credential.username)” for \(credential.displayHost)")
+    }
+
+    private func fillCredentials(user: String, password: String, into webView: WKWebView) async {
         guard
-            let userData = try? JSONEncoder().encode(credential.user),
-            let passData = try? JSONEncoder().encode(credential.password),
+            let userData = try? JSONEncoder().encode(user),
+            let passData = try? JSONEncoder().encode(password),
             let userJSON = String(data: userData, encoding: .utf8),
             let passJSON = String(data: passData, encoding: .utf8)
         else { return }
@@ -669,7 +721,11 @@ final class AppEnvironment {
           return filledUser || filledPass;
         })();
         """
-        webView.evaluateJavaScript(script, in: nil, in: .page) { _ in }
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            webView.evaluateJavaScript(script, in: nil, in: .page) { _ in
+                cont.resume()
+            }
+        }
     }
 
     func installCurrentPageAsWebApp() async {

@@ -8,9 +8,9 @@ import AppKit
 /// Today Oriel always paints with WebKit; this type records intent and can open system Chrome.
 @MainActor
 enum ChromiumEngineBridge {
-    /// True when a native Chromium framework is present (future builds).
+    /// True when a native Chromium framework is present for embedded Native tabs.
     static var isNativeFrameworkLinked: Bool {
-        RenderingEnginePolicy.chromiumNativeStatus == .available
+        ChromiumNativeHost.isEmbeddedFrameworkAvailable
     }
 
     private static let candidateBundleIDs = [
