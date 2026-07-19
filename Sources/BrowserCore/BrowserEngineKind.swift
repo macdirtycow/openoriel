@@ -186,6 +186,62 @@ enum RenderingEnginePolicy {
         #endif
     }
 
+    /// Short, honest reason for the concrete engine Smart / policy resolved to.
+    static func resolveReason(
+        global: BrowserEngineKind,
+        tabOverride: BrowserEngineKind?,
+        host: String?,
+        policy: ChromiumSitePolicy,
+        concrete: BrowserEngineKind
+    ) -> String {
+        #if os(iOS)
+        return "iPhone and iPad always use WebKit."
+        #else
+        if let tabOverride {
+            return tabOverride == .smart
+                ? "This tab follows Smart for \(host ?? "this page")."
+                : "This tab is locked to \(concrete.displayName)."
+        }
+        switch policy.preference(forHost: host) {
+        case .forceWebKit:
+            return "Site override keeps this host on WebKit."
+        case .forceChromiumCompatible:
+            return "Site override uses Chromium Compatible (Chrome identity on WebKit)."
+        case .openInSystemChrome:
+            return "Site preference suggests system Chromium for this host."
+        case .followDefault:
+            break
+        }
+        switch global {
+        case .smart:
+            if ChromiumAutoSiteList.prefersWebKitIdentity(host) {
+                return "Smart → WebKit (Apple / captcha-sensitive host)."
+            }
+            if ChromiumAutoSiteList.matches(host) {
+                return "Smart → Chromium Compatible (stubborn web app)."
+            }
+            return "Smart → WebKit for this host."
+        case .webkit:
+            if concrete == .chromiumCompatibility {
+                return "WebKit preferred, but auto-upgraded a stubborn host to Compatible."
+            }
+            return "Settings: WebKit for every tab."
+        case .chromiumCompatibility:
+            if concrete == .webkit {
+                return "Compatible preferred, but this host stays on WebKit."
+            }
+            return "Settings: Chromium Compatible (not Blink)."
+        case .chromiumNative:
+            if concrete == .webkit {
+                return "Native preferred, but this host stays on WebKit."
+            }
+            return concrete == .chromiumNative
+                ? "Settings: Chromium Native."
+                : "Native requested; running Compatible until CEF is installed."
+        }
+        #endif
+    }
+
     static func shouldHandOffToSystemChromium(host: String?, policy: ChromiumSitePolicy) -> Bool {
         #if os(macOS)
         return policy.preference(forHost: host) == .openInSystemChrome

@@ -59,23 +59,55 @@ final class AppIconService {
             }
         }
         #elseif os(macOS)
-        if enabled, let image = NSImage(named: "AppIconPulse") ?? Self.bundledPulseIcon() {
-            NSApplication.shared.applicationIconImage = image
-        } else if let primary = NSImage(named: "AppIcon") {
+        if enabled {
+            if let image = Self.bestPulseDockImage() {
+                NSApplication.shared.applicationIconImage = image
+            } else {
+                lastError = "Pulse Dock icon asset missing."
+            }
+        } else if let primary = Self.bestClassicDockImage() {
             NSApplication.shared.applicationIconImage = primary
         } else {
+            // Relinquish override so the bundle AppIcon returns.
             NSApplication.shared.applicationIconImage = nil
         }
         #endif
     }
 
     #if os(macOS)
-    private static func bundledPulseIcon() -> NSImage? {
-        if let url = Bundle.main.url(forResource: "AppIconPulse", withExtension: "png"),
-           let image = NSImage(contentsOf: url) {
+    /// Prefer large catalog / imageset assets — never the tiny AlternateIcons IPA sidecars.
+    private static func bestPulseDockImage() -> NSImage? {
+        let names = ["AppIconPulse", "OrielMarkPulse"]
+        for name in names {
+            if let image = NSImage(named: name), image.size.width >= 128 {
+                return image
+            }
+        }
+        for name in ["mac512@2x", "mac512", "Icon-1024", "AppIconPulse"] {
+            if let url = Bundle.main.url(forResource: name, withExtension: "png"),
+               let image = NSImage(contentsOf: url),
+               image.size.width >= 64 {
+                return image
+            }
+        }
+        // Last resort: any named Pulse mark (even if small).
+        return NSImage(named: "OrielMarkPulse") ?? NSImage(named: "AppIconPulse")
+    }
+
+    private static func bestClassicDockImage() -> NSImage? {
+        if let image = NSImage(named: "AppIcon"), image.size.width >= 128 {
             return image
         }
-        return nil
+        if let image = NSImage(named: "OrielMark"), image.size.width >= 64 {
+            return image
+        }
+        for name in ["mac512@2x", "mac512", "AppIcon-1024", "AppIcon"] {
+            if let url = Bundle.main.url(forResource: name, withExtension: "png"),
+               let image = NSImage(contentsOf: url) {
+                return image
+            }
+        }
+        return NSImage(named: "AppIcon") ?? NSImage(named: "OrielMark")
     }
     #endif
 }

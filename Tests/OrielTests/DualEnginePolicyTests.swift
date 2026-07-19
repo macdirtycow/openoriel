@@ -51,4 +51,18 @@ final class DualEnginePolicyTests: XCTestCase {
             XCTAssertFalse(paper.displayName.isEmpty)
         }
     }
+
+    @MainActor
+    func testResolveReasonMentionsWebKitOnIOS() {
+        #if os(iOS)
+        let reason = RenderingEnginePolicy.resolveReason(
+            global: .webkit,
+            tabOverride: nil,
+            host: "example.com",
+            policy: ChromiumSitePolicy(),
+            concrete: .webkit
+        )
+        XCTAssertTrue(reason.localizedCaseInsensitiveContains("WebKit"))
+        #endif
+    }
 }

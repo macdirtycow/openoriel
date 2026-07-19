@@ -48,7 +48,9 @@ Kandidaten:
 **Ship status**
 - Install paths for Chrome / Firefox / Safari Web Extensions + themes exist.
 - Claim must stay honest: WebKit API ≠ full Chromium/Gecko; legacy Safari App Extensions unsupported.
-- Reader Mode exists; Reader Hub does not yet.
+- Reader Mode exists; **Reader Hub** ships (Reading List with Reader-first open + Continue in Reader).
+- **Site Passport** packages per-site engine / zoom / mute / Shields in one sheet.
+- Mac **Smart engine chip** shows why WebKit vs Compatible was chosen.
 
 ## 5. Polish
 

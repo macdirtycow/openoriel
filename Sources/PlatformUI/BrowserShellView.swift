@@ -54,10 +54,16 @@ struct BrowserShellView: View {
                 if environment.showPulseCorner, environment.settings.edition.isPulse {
                     PulseCornerView()
                         .padding(12)
+                        .frame(
+                            maxWidth: min(296, proxy.size.width),
+                            maxHeight: max(240, proxy.size.height - 8),
+                            alignment: .bottomTrailing
+                        )
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                         .zIndex(20)
                 }
             }
+            .clipped()
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: environment.showPulseCorner)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: environment.statusBanner)
         }
@@ -134,6 +140,16 @@ struct BrowserShellView: View {
         }
         .sheet(isPresented: $environment.showLinkQueue) {
             LinkQueueView()
+                .orielSheetChrome()
+                .orielTheming(settings: environment.settings)
+        }
+        .sheet(isPresented: $environment.showRecentlyClosed) {
+            RecentlyClosedView()
+                .orielSheetChrome()
+                .orielTheming(settings: environment.settings)
+        }
+        .sheet(isPresented: $environment.showSitePassport) {
+            SitePassportView()
                 .orielSheetChrome()
                 .orielTheming(settings: environment.settings)
         }
@@ -580,6 +596,9 @@ struct BrowserShellView: View {
                         .frame(minWidth: 240, idealWidth: 560, maxWidth: 760)
                     }
                     ToolbarItemGroup(placement: .primaryAction) {
+                        #if os(macOS)
+                        SmartEngineChip(tab: tab)
+                        #endif
                         ProfileSwitcherControl(style: .icon)
 
                         Button {
@@ -698,6 +717,10 @@ struct BrowserShellView: View {
                 tab.submitAddressBar()
             }
             .frame(maxWidth: .infinity)
+
+            #if os(macOS)
+            SmartEngineChip(tab: tab)
+            #endif
 
             Button {
                 environment.showTabOverview = true
@@ -932,6 +955,14 @@ struct BrowserShellView: View {
                 environment.wireTabPrivacyHooks()
             }
             Button("Close Tab") { environment.tabs.closeActiveTab() }
+            Button("Close Other Tabs") {
+                environment.tabs.closeOtherTabs(keeping: tab.id)
+            }
+            .disabled(environment.tabs.tabs.count < 2)
+            Button("Close Tabs to the Right") {
+                environment.tabs.closeTabsToTheRight(of: tab.id)
+            }
+            .disabled(environment.tabs.tabs.last?.id == tab.id || environment.tabs.tabs.count < 2)
             Button(tab.isPinned ? "Unpin Tab" : "Pin Tab") {
                 environment.tabs.togglePin(id: tab.id)
             }
@@ -940,6 +971,14 @@ struct BrowserShellView: View {
                 environment.wireTabPrivacyHooks()
             }
             .disabled(!environment.tabs.canRestoreClosedTab)
+            Button(
+                environment.tabs.closedTabs.isEmpty
+                    ? "Recently Closed"
+                    : "Recently Closed (\(environment.tabs.closedTabs.count))"
+            ) {
+                environment.showRecentlyClosed = true
+            }
+            .disabled(environment.tabs.closedTabs.isEmpty)
         }
 
         Divider()
@@ -964,7 +1003,7 @@ struct BrowserShellView: View {
             Button("Bookmarks") { environment.showBookmarks = true }
             Button("History") { environment.showHistory = true }
             Button("Downloads") { environment.showDownloads = true }
-            Button(environment.linkQueue.count == 0 ? "Reading List" : "Reading List (\(environment.linkQueue.count))") {
+            Button(environment.linkQueue.count == 0 ? "Reader Hub" : "Reader Hub (\(environment.linkQueue.count))") {
                 environment.showLinkQueue = true
             }
             Button("Add Page to Reading List") {
@@ -1033,6 +1072,14 @@ struct BrowserShellView: View {
                 environment.wireTabPrivacyHooks()
             }
             Button("Close Tab") { environment.tabs.closeActiveTab() }
+            Button("Close Other Tabs") {
+                environment.tabs.closeOtherTabs(keeping: tab.id)
+            }
+            .disabled(environment.tabs.tabs.count < 2)
+            Button("Close Tabs to the Right") {
+                environment.tabs.closeTabsToTheRight(of: tab.id)
+            }
+            .disabled(environment.tabs.tabs.last?.id == tab.id || environment.tabs.tabs.count < 2)
             Button(tab.isPinned ? "Unpin Tab" : "Pin Tab") {
                 environment.tabs.togglePin(id: tab.id)
             }
@@ -1041,6 +1088,14 @@ struct BrowserShellView: View {
                 environment.wireTabPrivacyHooks()
             }
             .disabled(!environment.tabs.canRestoreClosedTab)
+            Button(
+                environment.tabs.closedTabs.isEmpty
+                    ? "Recently Closed"
+                    : "Recently Closed (\(environment.tabs.closedTabs.count))"
+            ) {
+                environment.showRecentlyClosed = true
+            }
+            .disabled(environment.tabs.closedTabs.isEmpty)
         }
 
         Divider()
@@ -1069,7 +1124,7 @@ struct BrowserShellView: View {
             Button("Bookmarks") { environment.showBookmarks = true }
             Button("History") { environment.showHistory = true }
             Button("Downloads") { environment.showDownloads = true }
-            Button(environment.linkQueue.count == 0 ? "Reading List" : "Reading List (\(environment.linkQueue.count))") {
+            Button(environment.linkQueue.count == 0 ? "Reader Hub" : "Reader Hub (\(environment.linkQueue.count))") {
                 environment.showLinkQueue = true
             }
             Button("Add Page to Reading List") {
@@ -1140,6 +1195,10 @@ struct BrowserShellView: View {
         .disabled(tab.isShowingStartPage)
         Button(tab.isReaderMode ? "Exit Reader Mode" : "Reader Mode") {
             tab.toggleReaderMode()
+        }
+        .disabled(tab.isShowingStartPage)
+        Button("Site Passport…") {
+            environment.showSitePassport = true
         }
         .disabled(tab.isShowingStartPage)
         Button(environment.isSplitViewActive ? "Close Split View" : "Open Split View") {

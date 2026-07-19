@@ -151,6 +151,35 @@ final class TabManager {
         return createTab(url: record.url, isPrivate: false, select: true)
     }
 
+    /// Restore a specific entry from the Recently Closed list (by stack index).
+    @discardableResult
+    func restoreClosedTab(at index: Int) -> BrowserTab? {
+        guard closedTabs.indices.contains(index) else { return nil }
+        let record = closedTabs.remove(at: index)
+        return createTab(url: record.url, isPrivate: false, select: true)
+    }
+
+    func clearClosedTabs() {
+        closedTabs.removeAll()
+    }
+
+    /// Close every tab except the given one (pinned tabs are also closed — match Chrome/Safari menus).
+    func closeOtherTabs(keeping id: UUID) {
+        let ids = tabs.map(\.id).filter { $0 != id }
+        for tabID in ids {
+            closeTab(id: tabID)
+        }
+    }
+
+    /// Close tabs to the right of `id` in the current strip order (unpinned + pinned order).
+    func closeTabsToTheRight(of id: UUID) {
+        guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
+        let ids = tabs.suffix(from: index + 1).map(\.id)
+        for tabID in ids {
+            closeTab(id: tabID)
+        }
+    }
+
     func closeActiveTab() {
         guard let id = activeTabID else { return }
         closeTab(id: id)

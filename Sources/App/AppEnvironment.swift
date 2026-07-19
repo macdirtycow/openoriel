@@ -54,6 +54,8 @@ final class AppEnvironment {
     /// Hosts already tipped this session (“Keep browsing” / opened Oriel Store).
     private(set) var orielStoreTipSeenHosts: Set<String> = []
     var showLinkQueue = false
+    var showRecentlyClosed = false
+    var showSitePassport = false
     var showFireButton = false
     var showTranslate = false
     var showProfiles = false
@@ -276,6 +278,18 @@ final class AppEnvironment {
             tabOverride: tab?.engineOverride,
             host: resolvedHost,
             policy: chromiumPolicy
+        )
+    }
+
+    func engineReason(for tab: BrowserTab?, host: String? = nil) -> String {
+        let resolvedHost = host ?? tab?.navigation.url?.host
+        let concrete = resolvedEngine(for: tab, host: resolvedHost)
+        return RenderingEnginePolicy.resolveReason(
+            global: settings.preferredEngine,
+            tabOverride: tab?.engineOverride,
+            host: resolvedHost,
+            policy: chromiumPolicy,
+            concrete: concrete
         )
     }
 

@@ -6,10 +6,11 @@ import UIKit
 #endif
 
 /// Toolbar / chrome Oriel mark — branded asset (AppIcon cannot be loaded by name on iOS).
+/// Always follows Classic vs Pulse edition; never borrows the live Dock / home-screen icon.
 struct OrielMark: View {
     @Environment(AppEnvironment.self) private var environment
     var size: CGFloat = 22
-    /// When set, overrides the active edition (previews / onboarding).
+    /// When set, overrides the active edition (previews / onboarding / start page).
     var forcePulse: Bool? = nil
 
     private var isPulse: Bool {
@@ -20,7 +21,7 @@ struct OrielMark: View {
         #if os(iOS)
         return UIImage(named: "OrielMark") != nil
         #elseif os(macOS)
-        return NSImage(named: "OrielMark") != nil || NSApplication.shared.applicationIconImage != nil
+        return NSImage(named: "OrielMark") != nil
         #else
         return false
         #endif
@@ -48,33 +49,20 @@ struct OrielMark: View {
                     drawnPulseMark
                 }
             } else if hasClassicMarkAsset {
-                #if os(macOS)
-                if NSImage(named: "OrielMark") != nil {
-                    Image("OrielMark")
-                        .resizable()
-                        .interpolation(.high)
-                        .aspectRatio(contentMode: .fit)
-                } else if let icon = Self.macToolbarIcon(pointSize: size) {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .interpolation(.high)
-                        .aspectRatio(contentMode: .fit)
-                } else {
-                    drawnMark
-                }
-                #else
                 Image("OrielMark")
                     .resizable()
                     .interpolation(.high)
                     .aspectRatio(contentMode: .fit)
-                #endif
             } else {
                 drawnMark
             }
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size * 0.22, style: .continuous))
+        // Force a fresh identity when edition flips so SwiftUI cannot reuse the wrong asset.
+        .id(isPulse ? "oriel-mark-pulse" : "oriel-mark-classic")
         .accessibilityHidden(true)
+        .accessibilityLabel(isPulse ? "Oriel Pulse mark" : "Oriel mark")
     }
 
     /// Matches `site/assets/oriel-mark.svg` / AppIcon window panes — never a letter “O”.
@@ -127,7 +115,6 @@ struct OrielMark: View {
             RoundedRectangle(cornerRadius: size * 0.16, style: .continuous)
                 .fill(well)
                 .padding(size * 0.09)
-            // Four panes
             VStack(spacing: gap) {
                 HStack(spacing: gap) {
                     RoundedRectangle(cornerRadius: size * 0.055, style: .continuous)
@@ -149,7 +136,6 @@ struct OrielMark: View {
                 }
             }
             .padding(inset)
-            // Mullions
             RoundedRectangle(cornerRadius: bar / 2, style: .continuous)
                 .fill(steel)
                 .frame(width: bar)
@@ -163,27 +149,6 @@ struct OrielMark: View {
                 .padding(max(1, size * 0.018))
         }
     }
-
-    #if os(macOS)
-    private static func macToolbarIcon(pointSize: CGFloat) -> NSImage? {
-        guard let source = NSApplication.shared.applicationIconImage else { return nil }
-        guard source.size.width > 0, source.size.height > 0 else { return nil }
-        let pixel = max(16, Int((pointSize * 2).rounded()))
-        let targetSize = NSSize(width: pixel, height: pixel)
-        let image = NSImage(size: targetSize)
-        image.lockFocus()
-        NSGraphicsContext.current?.imageInterpolation = .high
-        source.draw(
-            in: NSRect(origin: .zero, size: targetSize),
-            from: NSRect(origin: .zero, size: source.size),
-            operation: .copy,
-            fraction: 1
-        )
-        image.unlockFocus()
-        image.isTemplate = false
-        return image
-    }
-    #endif
 }
 
 /// Brave-style Oriel Shields control: app icon, default on, click to toggle, context menu for details.
@@ -226,6 +191,9 @@ struct OrielShieldButton: View {
             }
             Button("Shield settings…") {
                 environment.showPrivacyShield = true
+            }
+            Button("Site Passport…") {
+                environment.showSitePassport = true
             }
             if environment.settings.edition.isPulse {
                 Button("Pulse performance…") {

@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		031CD0495C873598AF6F38C4 /* NavigationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C223CB51AB8532708D4195C6 /* NavigationPolicy.swift */; };
 		03655CFDC6FBB813A10A6133 /* MacGovernorsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D0D8BA0D305603082109C3 /* MacGovernorsView.swift */; };
+		651AB213CF0F4177B72780F2 /* SmartEngineChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33ABE67D9264E15AA7FBC39 /* SmartEngineChip.swift */; };
+		8F37BC77082744A29AB34D5C /* SitePassportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE8A39B347E44A590CA69FB /* SitePassportView.swift */; };
+		92FEBC6FC05B491CBCACDA8D /* RecentlyClosedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13832D155C844381B4252167 /* RecentlyClosedView.swift */; };
 		03A58F71719329648F6B3590 /* Phase4FeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80B0019A1802BBCD08249E2 /* Phase4FeatureTests.swift */; };
 		062CFFBE06CF8D1B9D60EAAD /* StartPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137A3D8074BF71FCA60476D1 /* StartPageView.swift */; };
 		074B4CC3C2670D865A3103CE /* ChromiumNativeHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76FFE6CABAB9AAC5A228C396 /* ChromiumNativeHost.swift */; };
@@ -210,6 +213,9 @@
 		03C2BA1CA17C36F4696A6FFA /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		04E71E92ED9AC72D87C237EB /* ProfileSwitcherControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSwitcherControl.swift; sourceTree = "<group>"; };
 		05D0D8BA0D305603082109C3 /* MacGovernorsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacGovernorsView.swift; sourceTree = "<group>"; };
+		F33ABE67D9264E15AA7FBC39 /* SmartEngineChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartEngineChip.swift; sourceTree = "<group>"; };
+		4EE8A39B347E44A590CA69FB /* SitePassportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SitePassportView.swift; sourceTree = "<group>"; };
+		13832D155C844381B4252167 /* RecentlyClosedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentlyClosedView.swift; sourceTree = "<group>"; };
 		092239664755EDC7A6047129 /* oriel-ads-2.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "oriel-ads-2.json"; sourceTree = "<group>"; };
 		0AA43A2E565A0824FEA3EFC5 /* Data+Serialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Serialization.swift"; sourceTree = "<group>"; };
 		0C214503B2A56B0F0ED48CF0 /* PulsePerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulsePerformanceView.swift; sourceTree = "<group>"; };
@@ -737,6 +743,9 @@
 				83AC3BB6323513845985F125 /* HistoryView.swift */,
 				6BE95EFA41B2F3C82255E31F /* LinkQueueView.swift */,
 				05D0D8BA0D305603082109C3 /* MacGovernorsView.swift */,
+				F33ABE67D9264E15AA7FBC39 /* SmartEngineChip.swift */,
+				4EE8A39B347E44A590CA69FB /* SitePassportView.swift */,
+				13832D155C844381B4252167 /* RecentlyClosedView.swift */,
 				899DAF18D972B3BA4A1EA5EC /* NavigationControlsView.swift */,
 				03C2BA1CA17C36F4696A6FFA /* OnboardingView.swift */,
 				964B007F398281F78B5719E7 /* OrielLayout.swift */,
@@ -972,6 +981,9 @@
 				B6F31BBEFE3A71309253DE09 /* LinkQueueStore.swift in Sources */,
 				5435FDB81F50EB04C50F8A42 /* LinkQueueView.swift in Sources */,
 				03655CFDC6FBB813A10A6133 /* MacGovernorsView.swift in Sources */,
+				651AB213CF0F4177B72780F2 /* SmartEngineChip.swift in Sources */,
+				8F37BC77082744A29AB34D5C /* SitePassportView.swift in Sources */,
+				92FEBC6FC05B491CBCACDA8D /* RecentlyClosedView.swift in Sources */,
 				E1CE158E5876953362B30FA1 /* MacPerformanceGovernor.swift in Sources */,
 				735F2A3D2988BD4E17EDCCF4 /* ManifestCompatNormalizer.swift in Sources */,
 				31CD8FE1951535233E663D49 /* NavigationControlsView.swift in Sources */,
@@ -1123,7 +1135,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 63;
+				CURRENT_PROJECT_VERSION = 64;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1156,7 +1168,7 @@
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 63;
+				CURRENT_PROJECT_VERSION = 64;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1243,7 +1255,7 @@
 				CODE_SIGN_ENTITLEMENTS = Oriel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 63;
+				CURRENT_PROJECT_VERSION = 64;
 				DEVELOPMENT_TEAM = 2PP6UH4PWA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1311,7 +1323,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 63;
+				CURRENT_PROJECT_VERSION = 64;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;

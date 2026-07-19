@@ -37,7 +37,7 @@ struct PulseCornerView: View {
             .padding(16)
         }
         .frame(width: 272)
-        .frame(maxHeight: 520)
+        .frame(maxHeight: .infinity, alignment: .top)
         .background {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(EditionBranding.pulseNavy.opacity(0.92))

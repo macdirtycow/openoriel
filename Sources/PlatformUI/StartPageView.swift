@@ -193,6 +193,7 @@ struct StartPageView: View {
                 .padding(.horizontal, isWide ? OrielLayout.startPageGutterRegular : OrielLayout.startPageGutterCompact)
                 .frame(maxWidth: isWide ? OrielLayout.startPageMaxWidthRegular : OrielLayout.startPageMaxWidthCompact)
                 .frame(maxWidth: .infinity)
+                .clipped()
                 .opacity(appeared || reduceMotion ? 1 : 0)
                 .offset(y: appeared || reduceMotion ? 0 : 10)
             }
@@ -256,19 +257,19 @@ struct StartPageView: View {
     private var brandBlock: some View {
         VStack(spacing: isPulseEdition ? (isWide ? 18 : 16) : (isWide ? 0 : 12)) {
             if isPulseEdition {
-                OrielMark(size: isWide ? 72 : 64)
+                OrielMark(size: isWide ? 72 : 64, forcePulse: true)
                     .scaleEffect(appeared || reduceMotion ? 1 : 0.92)
                     .opacity(appeared || reduceMotion ? 1 : 0)
                 brandCopy(alignment: .center)
             } else if isWide {
                 HStack(spacing: 16) {
-                    OrielMark(size: 48)
+                    OrielMark(size: 48, forcePulse: false)
                         .shadow(color: accent.opacity(0.16), radius: 14, y: 5)
                     brandCopy(alignment: .leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } else {
-                OrielMark(size: 52)
+                OrielMark(size: 52, forcePulse: false)
                     .shadow(color: accent.opacity(0.16), radius: 16, y: 6)
                 brandCopy(alignment: .center)
             }
@@ -286,9 +287,11 @@ struct StartPageView: View {
                     .tracking(EditionBranding.pulseEyebrowTracking)
                     .foregroundStyle(EditionBranding.pulseSteel.opacity(0.9))
                 Text("Pulse")
-                    .font(EditionBranding.productTitleFont(for: edition, size: isWide ? 44 : 38))
+                    .font(EditionBranding.productTitleFont(for: edition, size: isWide ? 40 : 34))
                     .tracking(EditionBranding.productTitleTracking(for: edition))
                     .foregroundStyle(.primary)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
             } else {
                 Text(EditionBranding.productName(for: edition))
                     .font(EditionBranding.productTitleFont(for: edition, size: isWide ? 34 : 30))
@@ -352,6 +355,8 @@ struct StartPageView: View {
             pulseUtilityLink("Settings") { environment.showSettings = true }
             pulseUtilityDivider
             pulseUtilityLink("Shields") { environment.showPrivacyShield = true }
+            pulseUtilityDivider
+            pulseUtilityLink("Reader") { environment.showLinkQueue = true }
             pulseUtilityDivider
             pulseUtilityLink("Controls") { environment.showPulsePerformance = true }
             pulseUtilityDivider
