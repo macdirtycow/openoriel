@@ -252,11 +252,17 @@ enum ChromeWebStoreBridge {
         if (api) return api.isChromeInstalledLabel(t);
         return false;
       }
+      function isRemoveChromeLabel(t) {
+        var api = i18n();
+        if (api && api.isChromeRemoveLabel) return api.isChromeRemoveLabel(t);
+        t = normalizeLabel(t);
+        return /verwijderen uit chrome|remove from chrome|aus chrome entfernen|supprimer de chrome|quitar de chrome/i.test(t);
+      }
       function L(key) {
         var api = i18n();
         return api ? api.t(key) : ({
           add: 'Add to Oriel', addTheme: 'Add theme to Oriel', installing: 'Installing…',
-          installed: 'Installed in Oriel',
+          installed: 'Installed in Oriel', remove: 'Remove from Oriel',
           tipChrome: 'Oriel can install this extension on iPhone and iPad — tap Add to Oriel.'
         })[key] || key;
       }
@@ -275,13 +281,13 @@ enum ChromeWebStoreBridge {
           var leaf = kids[i];
           if (leaf.childElementCount > 0) continue;
           var t = normalizeLabel(leaf.textContent);
-          if (isInstallChromeLabel(t) || isInstalledChromeLabel(t)) {
+          if (isInstallChromeLabel(t) || isInstalledChromeLabel(t) || isRemoveChromeLabel(t)) {
             leaf.textContent = label;
             return true;
           }
         }
         var whole = normalizeLabel(el.textContent);
-        if (isInstallChromeLabel(whole) || isInstalledChromeLabel(whole)) {
+        if (isInstallChromeLabel(whole) || isInstalledChromeLabel(whole) || isRemoveChromeLabel(whole)) {
           el.textContent = label;
           return true;
         }
@@ -292,6 +298,7 @@ enum ChromeWebStoreBridge {
         var pageInstalled = !!(pageID && isInstalled(pageID));
         var addLabel = L('add');
         var installedLabel = L('installed');
+        var removeLabel = L('remove');
         var nodes = document.querySelectorAll(
           'button, a, div[role="button"], span[role="button"], [jsname], [data-test-id], [aria-label]'
         );
@@ -302,18 +309,22 @@ enum ChromeWebStoreBridge {
           var title = normalizeLabel(el.getAttribute('title'));
           var text = normalizeLabel(el.textContent);
           var targetLabel = null;
+          var looksRemove = isRemoveChromeLabel(text) || isRemoveChromeLabel(aria) || isRemoveChromeLabel(title)
+            || text === removeLabel || aria === removeLabel;
           var looksInstall = isInstallChromeLabel(text) || isInstallChromeLabel(aria) || isInstallChromeLabel(title)
             || text === addLabel || aria === addLabel;
           var looksInstalled = isInstalledChromeLabel(text) || isInstalledChromeLabel(aria) || isInstalledChromeLabel(title)
             || text === installedLabel || aria === installedLabel;
-          if (looksInstall || looksInstalled) {
+          if (looksRemove) {
+            targetLabel = removeLabel;
+          } else if (looksInstall || looksInstalled) {
             targetLabel = (pageInstalled || looksInstalled) ? installedLabel : addLabel;
           }
           if (!targetLabel) continue;
-          if (aria && (isInstallChromeLabel(aria) || isInstalledChromeLabel(aria))) {
+          if (aria && (looksRemove || isInstallChromeLabel(aria) || isInstalledChromeLabel(aria) || isRemoveChromeLabel(aria))) {
             el.setAttribute('aria-label', targetLabel);
           }
-          if (title && (isInstallChromeLabel(title) || isInstalledChromeLabel(title))) {
+          if (title && (looksRemove || isInstallChromeLabel(title) || isInstalledChromeLabel(title) || isRemoveChromeLabel(title))) {
             el.setAttribute('title', targetLabel);
           }
           rewriteTextNodeOrLeaf(el, targetLabel);
@@ -352,17 +363,20 @@ enum ChromeWebStoreBridge {
         var title = normalizeLabel(el.getAttribute('title'));
         var addLabel = L('add');
         var installedLabel = L('installed');
-        var isOriel = label === addLabel || label === installedLabel
-          || aria === addLabel || /oriel/i.test(label) || /oriel/i.test(aria);
+        var removeLabel = L('remove');
+        var looksRemove = isRemoveChromeLabel(label) || isRemoveChromeLabel(aria) || isRemoveChromeLabel(title)
+          || label === removeLabel || aria === removeLabel;
+        var isOriel = label === addLabel || label === installedLabel || label === removeLabel
+          || aria === addLabel || aria === removeLabel || /oriel/i.test(label) || /oriel/i.test(aria);
         var isChromeCTA = isInstallChromeLabel(label) || isInstallChromeLabel(aria) || isInstallChromeLabel(title);
-        if (!isOriel && !isChromeCTA) return;
+        if (!isOriel && !isChromeCTA && !looksRemove) return;
         if (Math.max(label.length, aria.length) > 72) return;
         var id = idFromPath();
         if (!id) return;
         event.preventDefault();
         event.stopPropagation();
         if (event.stopImmediatePropagation) event.stopImmediatePropagation();
-        if (isInstalled(id)) openManage();
+        if (looksRemove || isInstalled(id)) openManage();
         else postInstall(id);
       }
 

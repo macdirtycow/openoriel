@@ -156,6 +156,7 @@ enum FirefoxAddonsBridge {
         var api = i18n();
         return api ? api.t(key) : ({
           add: 'Add to Oriel', addTheme: 'Add theme to Oriel', installing: 'Installing…',
+          installed: 'Installed in Oriel', remove: 'Remove from Oriel',
           tipFirefox: 'Oriel can install this Firefox add-on on iPhone and iPad — tap Add to Oriel.'
         })[key] || key;
       }
@@ -195,23 +196,32 @@ enum FirefoxAddonsBridge {
         }
       }
 
+      function isRemoveFirefoxLabel(t) {
+        var api = i18n();
+        if (api && api.isFirefoxRemoveLabel) return api.isFirefoxRemoveLabel(t);
+        return /remove|verwijderen|entfernen|supprimer|quitar/i.test(t || '') && /firefox|oriel/i.test(t || '');
+      }
       function relabel() {
         var slug = slugFromPath();
         if (!slug) return;
         var pageInstalled = isFirefoxInstalled(slug);
         var addLabel = L('add');
         var installedLabel = L('installed');
+        var removeLabel = L('remove');
         var buttons = document.querySelectorAll(
           'button, a, .InstallButtonWrapper a, .AMInstallButton-button, [class*="InstallButton"], [aria-label]'
         );
         buttons.forEach(function (el) {
           var text = normalizeLabel(el.textContent);
           var aria = normalizeLabel(el.getAttribute('aria-label'));
+          var looksRemove = isRemoveFirefoxLabel(text) || isRemoveFirefoxLabel(aria)
+            || text === removeLabel || aria === removeLabel;
           var looks = isFirefoxInstallLabel(text) || isFirefoxInstallLabel(aria)
             || text === addLabel || aria === addLabel
-            || text === installedLabel || aria === installedLabel;
+            || text === installedLabel || aria === installedLabel
+            || looksRemove;
           if (!looks) return;
-          var label = pageInstalled ? installedLabel : orielLabelFor(text || aria);
+          var label = looksRemove ? removeLabel : (pageInstalled ? installedLabel : orielLabelFor(text || aria));
           if (el.childElementCount === 0) {
             el.textContent = label;
           } else {

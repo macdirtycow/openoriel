@@ -29,7 +29,7 @@ The store often shows **“not compatible with a phone”** when it sees a mobil
 2. **Desktop content mode** (`preferredContentMode = .desktop`) on iOS navigations to CWS.
 3. **JS spoof** of `navigator.userAgent` / `userAgentData` / `platform` / `maxTouchPoints`.
 4. **Hide** phone-incompatibility banners.
-5. **Rewrite** the native store CTA to localized **Add to Oriel** / **Installed in Oriel** (no extra floating FAB).
+5. **Rewrite** the native store CTA to localized **Add to Oriel** / **Installed in Oriel** / **Remove from Oriel** (e.g. NL *Verwijderen uit Oriel*) — no extra floating FAB.
 6. **Multilingual** (`StoreBridgeI18n`): 60+ locales for CTA detection and Oriel labels.
 7. **Installed state**: Oriel injects Chrome store IDs + Firefox AMO slugs into the page on **macOS, iOS, and iPadOS** — including **theme-only** packages.
 
@@ -42,7 +42,7 @@ AMO often shows **“You’ll need Firefox…”** / Download Firefox when it do
 1. **Desktop Firefox HTTP UA** for `addons.mozilla.org` only.
 2. **Desktop content mode** on iOS navigations to AMO.
 3. **JS spoof** + `InstallTrigger` stub at document-start.
-4. **Hide** download-Firefox banners; floating **Add to Oriel** + tip; relabel install controls.
+4. **Hide** download-Firefox banners; relabel the native install control to **Add to Oriel** (no floating FAB).
 5. Same shared **`StoreBridgeI18n`** catalog for localized Firefox CTAs and Oriel labels.
 
 ## Built-in compat (`ManifestCompatNormalizer`)

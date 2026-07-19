@@ -27,6 +27,10 @@ final class StoreBridgeI18nTests: XCTestCase {
         XCTAssertTrue(src.contains("Ajouter à Oriel"))
         XCTAssertTrue(src.contains("添加至 Oriel") || src.contains("加到 Oriel"))
         XCTAssertTrue(src.contains("Geïnstalleerd in Oriel") || src.contains("installed:"))
+        XCTAssertTrue(src.contains("Verwijderen uit Oriel"))
+        XCTAssertTrue(src.contains("Remove from Oriel"))
+        XCTAssertTrue(src.contains("Aus Oriel entfernen"))
+        XCTAssertTrue(src.contains("isChromeRemoveLabel"))
     }
 
     func testBridgesConsumeSharedI18n() {
