@@ -1,38 +1,53 @@
 # Oriel marketing site
 
-Static landing page for [openoriel.com](https://openoriel.com) (Cloudflare Pages).
+Static landing page for [openoriel.com](https://openoriel.com), hosted on the **Qadbak VPS** (nginx → domain `public_html`), usually behind Cloudflare orange-cloud.
 
-## What it covers
+## Deploy (Qadbak)
 
-- Classic / Pulse editions
-- Smart dual engine on Mac (WebKit + Chromium Compatible / Oriel Engine Blink via bundled CEF)
-- Password Vault, Mac governors, everyday page tools
-- Privacy and tracking controls (Shields + Fire)
-- Platforms (iPhone, iPad, Mac)
-- Download via latest GitHub Release (unsigned IPA + macOS DMG)
+### A — rsync from Mac (same pattern as inveil / mareades)
 
-## Layout (one job per section)
+```bash
+# Default: root@158.220.85.245:/home/openoriel/public_html
+bash Scripts/deploy-site-qadbak.sh
+```
 
-1. **Hero** — brand + one CTA
-2. **Download** — latest release assets
-3. **Editions** — Classic vs Pulse
-4. **Pulse** — vermillion signal on obsidian
-5. **Features** — everyday + Mac power tools
-6. **Engines** — honest Smart / Compatible / Native story
-7. **Privacy** — Shields + vault notes
-8. **Platforms** — iOS / iPadOS / macOS
-9. **Open source** — GitHub
-10. **Footer**
+If the unix user / webroot differs:
 
-## Deploy
+```bash
+ORIEL_SITE_HOST=root@158.220.85.245 \
+ORIEL_SITE_ROOT=/home/YOURUSER/public_html \
+  bash Scripts/deploy-site-qadbak.sh
+```
 
-Publish the `site/` folder to Cloudflare Pages (or any static host). If the project is linked to this GitHub repo with root `site/`, pushes to `main` redeploy automatically.
+Or find the root on the VPS:
 
-Download buttons hit:
+```bash
+grep -E 'root |server_name' /etc/nginx/sites-enabled/*openoriel*
+# or
+cat /opt/qadbak/data/domain-config/openoriel.com/website.json
+```
 
-`https://api.github.com/repos/Ventspew/openoriel/releases/latest`
+### B — Panel zip upload
 
-and prefer **PKG**, then DMG, then IPA when those assets exist.
+1. Use `~/Desktop/openoriel-site-upload.zip` (or rebuild: `cd site && zip -r ~/Desktop/openoriel-site-upload.zip . -x '*.DS_Store' -x 'README.md'`)
+2. Qadbak → **openoriel.com** → **Files** → `public_html`
+3. Enable **Overwrite**, upload, extract **in** `public_html` (not a subfolder)
+
+Expected layout:
+
+```
+public_html/
+  index.html
+  assets/
+    site.css
+    site.js
+    oriel-mark.svg
+    oriel-pulse-mark.svg
+    favicon.svg
+    hero.jpg
+```
+
+4. Cloudflare → **Caching → Purge Everything** for `openoriel.com`, then hard refresh.
 
 ## Local preview
 
@@ -41,3 +56,7 @@ cd site
 python3 -m http.server 8080
 # open http://localhost:8080
 ```
+
+## Downloads
+
+Buttons hit `https://api.github.com/repos/Ventspew/openoriel/releases/latest` and prefer **PKG**, then DMG, then IPA.
