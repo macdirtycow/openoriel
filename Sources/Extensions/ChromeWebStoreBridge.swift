@@ -90,7 +90,9 @@ enum ChromeWebStoreBridge {
       }
       window.__orielPostInstall = postInstall;
 
-      // Spoof desktop Chrome so CWS does not serve “not compatible with a phone”.
+      // Spoof desktop Chrome *APIs / navigator* so install CTAs appear.
+      // Layout stays phone-width via StoreReadableLayout (CWS .IqBfM min-width override)
+      // + iOS preferredContentMode=.mobile — do not set customUserAgent to Chrome desktop.
       var desktopUA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
       try {
         Object.defineProperty(navigator, 'userAgent', { configurable: true, get: function () { return desktopUA; } });

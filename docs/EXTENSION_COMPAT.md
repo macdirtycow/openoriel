@@ -28,7 +28,7 @@ The store often shows **“not compatible with a phone”** when it sees a mobil
 1. **Mobile Safari UA** for store **page browsing** (readable). Desktop Chrome UA is used only for **CRX downloads**.
 2. **`preferredContentMode = .mobile`** on iOS unless the user explicitly taps Request Desktop Website — never auto-desktop for normal sites.
 3. **JS spoof** of `navigator.userAgent` / `userAgentData` / `platform` / `maxTouchPoints` so install UI stays available.
-4. **Readable layout** CSS/viewport (`StoreReadableLayout`) on CWS/AMO only.
+4. **Readable layout** (`StoreReadableLayout`) on CWS/AMO only — kills CWS’s `.IqBfM { min-width: 1249px/1280px }` desktop shell, locks `viewport=device-width`, and re-applies after SPA class swaps. Other sites are untouched.
 5. **Hide** phone-incompatibility banners.
 6. **Rewrite** the native store CTA to localized **Add to Oriel** / **Installed in Oriel** / **Remove from Oriel** — no extra floating FAB.
 7. **Multilingual** (`StoreBridgeI18n`): 60+ locales for CTA detection and Oriel labels.

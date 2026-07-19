@@ -1,7 +1,11 @@
 import Foundation
 
-/// Injects a compact, readable layout for Chrome Web Store / Firefox AMO on iPhone & iPad.
-/// Desktop “Request Desktop Website” is NOT used; install spoofing stays in the store bridges.
+/// Forces a readable, phone/tablet-width layout on Chrome Web Store / Firefox AMO.
+///
+/// CWS ships a desktop shell (`.IqBfM { min-width: 1249px }` / `1280px`) that stays
+/// tiny when WebKit is in desktop mode or when the JS install spoof makes the SPA
+/// treat the client as desktop Chrome. We keep install spoofing in the store bridges
+/// and only reflow **store hosts** — never other sites.
 enum StoreReadableLayout {
     static let userScriptSource = #"""
     (function () {
@@ -17,46 +21,130 @@ enum StoreReadableLayout {
       if (!isCWS && !isAMO) return;
       window.__orielStoreReadableLayout = true;
 
+      var VIEWPORT =
+        'width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover';
+
       function ensureViewport() {
         var head = document.head || document.documentElement;
         var meta = document.querySelector('meta[name="viewport"]');
         if (!meta) {
           meta = document.createElement('meta');
           meta.setAttribute('name', 'viewport');
-          head.appendChild(meta);
+          head.insertBefore(meta, head.firstChild);
         }
-        // Device-width keeps the store readable; do not lock to a 1200px desktop canvas.
-        meta.setAttribute(
-          'content',
-          'width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover'
-        );
+        if (meta.getAttribute('content') !== VIEWPORT) {
+          meta.setAttribute('content', VIEWPORT);
+        }
+      }
+
+      function cwsCSS() {
+        return [
+          /* CWS desktop shell — default is min-width:1249px / 1280px */
+          'html.IqBfM, body.IqBfM, .IqBfM {',
+          '  min-width: 0 !important;',
+          '  width: 100% !important;',
+          '  max-width: 100% !important;',
+          '}',
+          'html, body {',
+          '  min-width: 0 !important;',
+          '  max-width: 100vw !important;',
+          '  overflow-x: hidden !important;',
+          '  -webkit-text-size-adjust: 100% !important;',
+          '  text-size-adjust: 100% !important;',
+          '}',
+          /* Detail / browse canvases that assume a wide desktop grid */
+          '.yHWa2, .kFwPee, main, [role="main"], #main {',
+          '  min-width: 0 !important;',
+          '  max-width: 100% !important;',
+          '  width: 100% !important;',
+          '  box-sizing: border-box !important;',
+          '}',
+          '@media screen and (max-width: 900px) {',
+          '  .IqBfM, .IqBfM * { max-width: 100vw; }',
+          '  .IqBfM { padding-left: 12px !important; padding-right: 12px !important; }',
+          '  .kFwPee { padding-top: 12px !important; }',
+          '  img, video, canvas, svg { max-width: 100% !important; height: auto !important; }',
+          '  /* Stack wide desktop rows */',
+          '  .IqBfM [style*="display: flex"], .IqBfM [style*="display:flex"] {',
+          '    flex-wrap: wrap !important;',
+          '  }',
+          '  button, [role="button"], a[role="button"] {',
+          '    min-height: 44px;',
+          '    font-size: max(14px, 1em) !important;',
+          '  }',
+          '}'
+        ].join('\n');
+      }
+
+      function amoCSS() {
+        return [
+          'html, body {',
+          '  min-width: 0 !important;',
+          '  max-width: 100vw !important;',
+          '  overflow-x: hidden !important;',
+          '  -webkit-text-size-adjust: 100% !important;',
+          '}',
+          '.Page-content, .Addon-header, main, [role="main"] {',
+          '  min-width: 0 !important;',
+          '  max-width: 100% !important;',
+          '}',
+          'img, video, canvas, svg { max-width: 100% !important; height: auto !important; }',
+          'button, [role="button"], a[role="button"] { min-height: 44px; }'
+        ].join('\n');
       }
 
       function injectCSS() {
-        if (document.getElementById('oriel-store-readable-css')) return;
-        var style = document.createElement('style');
-        style.id = 'oriel-store-readable-css';
-        style.textContent = [
-          'html { -webkit-text-size-adjust: 100% !important; text-size-adjust: 100% !important; }',
-          'body { max-width: 100vw !important; overflow-x: hidden !important; }',
-          'img, video, canvas, svg { max-width: 100% !important; height: auto !important; }',
-          /* Prefer wrapping long desktop grids instead of horizontal pan */
-          '[role="main"], main, #main, .main-content { max-width: 100% !important; }',
-          'button, [role="button"], a[role="button"] { min-height: 44px; }',
-          /* Keep primary install CTAs easy to tap */
-          'button, [role="button"] { font-size: max(14px, 1em) !important; }'
-        ].join('\n');
-        (document.head || document.documentElement).appendChild(style);
+        var id = 'oriel-store-readable-css';
+        var style = document.getElementById(id);
+        if (!style) {
+          style = document.createElement('style');
+          style.id = id;
+          (document.head || document.documentElement).appendChild(style);
+        }
+        var css = isCWS ? cwsCSS() : amoCSS();
+        if (style.textContent !== css) style.textContent = css;
       }
 
-      ensureViewport();
-      injectCSS();
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-          ensureViewport();
-          injectCSS();
-        });
+      function relaxInlineMinWidths() {
+        if (!isCWS || !document.body) return;
+        // Body itself often carries IqBfM + inline leftovers from SPA boots.
+        document.documentElement.style.setProperty('min-width', '0', 'important');
+        document.body.style.setProperty('min-width', '0', 'important');
+        document.body.style.setProperty('max-width', '100%', 'important');
+        var shells = document.querySelectorAll('.IqBfM, .yHWa2, .kFwPee');
+        for (var i = 0; i < shells.length && i < 40; i++) {
+          var el = shells[i];
+          el.style.setProperty('min-width', '0', 'important');
+          el.style.setProperty('max-width', '100%', 'important');
+        }
       }
+
+      function apply() {
+        ensureViewport();
+        injectCSS();
+        relaxInlineMinWidths();
+      }
+
+      apply();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', apply);
+      }
+      // CWS SPA rewrites <body class> / viewport after boot — keep locking.
+      var ticks = 0;
+      var timer = setInterval(function () {
+        apply();
+        ticks += 1;
+        if (ticks > 40) clearInterval(timer);
+      }, 250);
+      try {
+        new MutationObserver(function () { apply(); })
+          .observe(document.documentElement, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'style', 'content']
+          });
+      } catch (e) {}
     })();
     """#
 }

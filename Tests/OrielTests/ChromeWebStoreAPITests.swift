@@ -51,4 +51,15 @@ final class ChromeWebStoreAPITests: XCTestCase {
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("isRemoveChromeLabel"))
         XCTAssertTrue(ChromeWebStoreBridge.userScriptSource.contains("L('remove')"))
     }
+
+    func testStoreReadableLayoutTargetsCWSDesktopShell() {
+        let src = StoreReadableLayout.userScriptSource
+        XCTAssertTrue(src.contains("IqBfM"))
+        XCTAssertTrue(src.contains("min-width"))
+        XCTAssertTrue(src.contains("chromewebstore.google.com"))
+        XCTAssertTrue(src.contains("addons.mozilla.org"))
+        XCTAssertTrue(src.contains("width=device-width"))
+        // Must not run on arbitrary hosts — gate on store hostnames.
+        XCTAssertTrue(src.contains("if (!isCWS && !isAMO) return"))
+    }
 }
